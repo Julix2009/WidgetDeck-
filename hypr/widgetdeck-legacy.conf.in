@@ -1,0 +1,10 @@
+# WidgetDeck - Hyprland rules for Hyprland < 0.53 (old rule syntax; not tested by the author). Written by install.sh.
+exec-once = @BIN@ daemon
+layerrule = blur, widgetdeck
+layerrule = ignorealpha 0.22, widgetdeck
+layerrule = noanim, widgetdeck
+windowrulev2 = float, title:^(WidgetDeck)$
+windowrulev2 = center, title:^(WidgetDeck)$
+windowrulev2 = size 1500 920, title:^(WidgetDeck)$
+windowrulev2 = rounding 30, title:^(WidgetDeck)$
+windowrulev2 = noborder, title:^(WidgetDeck)$

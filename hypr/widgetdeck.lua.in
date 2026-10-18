@@ -1,0 +1,28 @@
+-- WidgetDeck - Hyprland rules (Lua config, Hyprland >= 0.55). Written by install.sh; the include line in your hyprland.lua is marked
+-- with ">>> widgetdeck" so ./uninstall.sh can remove it again.
+
+-- start the desktop widgets with the session
+hl.on("hyprland.start", function()
+    hl.exec_cmd("@BIN@ daemon")
+end)
+
+-- Frosted widgets (layer namespace "widgetdeck"): blur behind the glass cards.
+-- Liquid Glass widgets ("widgetdeck-liquid") draw their own blur and need NO rule.
+hl.layer_rule({
+    name = "widgetdeck_layers",
+    match = { namespace = "^widgetdeck$" },
+    blur = true,
+    ignore_alpha = 0.22,
+    no_anim = true,
+})
+
+-- the builder window: floating, centred, rounded, no border
+hl.window_rule({
+    name = "widgetdeck_builder",
+    match = { title = "^WidgetDeck$" },
+    float = true,
+    center = true,
+    size = "1500 920",
+    rounding = 20,   -- the Lua config caps rounding at 20
+    border_size = 0,
+})

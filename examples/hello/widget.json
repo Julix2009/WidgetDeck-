@@ -1,0 +1,12 @@
+{
+  "type": "hello",
+  "label": "Textfeld",
+  "desc": "Freier Text",
+  "glyph": "T",
+  "size": [320, 120],
+  "style": {},
+  "props": [
+    { "key": "text", "label": "Text", "kind": "text", "def": "Hallo Hyprland" },
+    { "key": "scale", "label": "Größe", "kind": "range", "def": 1.4, "min": 0.8, "max": 4, "step": 0.1 }
+  ]
+}

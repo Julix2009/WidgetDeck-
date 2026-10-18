@@ -1,0 +1,27 @@
+# WidgetDeck - Hyprland rules (Hyprland >= 0.53, hyprlang). Written by install.sh; the include line in your hyprland.conf is marked
+# with ">>> widgetdeck" so ./uninstall.sh can remove it again.
+
+# start the desktop widgets with the session
+exec-once = @BIN@ daemon
+
+# Frosted widgets (layer namespace "widgetdeck"): blur behind the glass cards.
+# Liquid Glass widgets ("widgetdeck-liquid") draw their own blur and need NO rule (a blur rule would also blur their shadow band).
+# Blur itself has to be enabled in decoration { blur { enabled = true } } (the default).
+layerrule {
+    name = widgetdeck_layers
+    match:namespace = ^widgetdeck$
+    blur = on
+    ignore_alpha = 0.22
+    no_anim = on
+}
+
+# the builder window: floating, centred, rounded, no border
+windowrule {
+    name = widgetdeck_builder
+    match:title = ^WidgetDeck$
+    float = on
+    center = on
+    size = 1500 920
+    rounding = 30
+    border_size = 0
+}

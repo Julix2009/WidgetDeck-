@@ -1,0 +1,49 @@
+# Optional: build a pacman package from a clone of this repository:
+#     cd packaging && makepkg -si
+# ./install.sh remains the default way to install. This file is NOT uploaded to the AUR.
+# Maintainer: (set before publishing)
+pkgname=widgetdeck
+pkgver=1.0.0
+pkgrel=1
+pkgdesc='Desktop widgets with Frosted / Liquid Glass look and a visual builder for Quickshell on Hyprland'
+arch=('any')
+url='https://github.com/<user>/widgetdeck'
+license=('custom')                  # TODO: set to the licence chosen for the own code (see NOTICE.md); the MacShell part is MIT
+depends=('quickshell' 'qt6-declarative' 'qt6-wayland' 'jq' 'curl' 'iproute2' 'iputils')
+makedepends=('qt6-shadertools')
+optdepends=('hyprland: the compositor this is made for'
+            'adwaita-fonts: UI font'
+            'ttf-iosevka-nerd: icons in the widgets'
+            'networkmanager: Wi-Fi name and signal in the network widget'
+            'playerctl: music widget controls'
+            'cava: visualizer widget'
+            'matugen: colours from the wallpaper')
+source=()                           # built from the surrounding clone, nothing is downloaded
+sha256sums=()
+
+prepare() {
+    # the sources are the repository one directory up
+    rm -rf "$srcdir/repo" && mkdir -p "$srcdir/repo"
+    cp -a "$startdir/../qml" "$startdir/../bin" "$startdir/../hypr" "$startdir/../matugen" "$startdir/../LICENSES" \
+          "$startdir/../NOTICE.md" "$startdir/../VERSION" "$srcdir/repo/"
+}
+
+build() {
+    cd "$srcdir/repo"
+    local f qsb=/usr/lib/qt6/bin/qsb
+    command -v qsb >/dev/null 2>&1 && qsb=qsb
+    for f in glass drops; do "$qsb" --qt6 -o "qml/core/$f.frag.qsb" "qml/core/$f.frag"; done
+}
+
+package() {
+    cd "$srcdir/repo"
+    install -dm755 "$pkgdir/usr/share/widgetdeck" "$pkgdir/usr/share/licenses/$pkgname"
+    cp -a qml "$pkgdir/usr/share/widgetdeck/qml"
+    cp -a hypr matugen "$pkgdir/usr/share/widgetdeck/"
+    chmod +x "$pkgdir"/usr/share/widgetdeck/qml/widgets/sysmon/*.sh
+    install -Dm755 bin/widgetdeck "$pkgdir/usr/bin/widgetdeck"
+    install -Dm644 NOTICE.md "$pkgdir/usr/share/licenses/$pkgname/NOTICE.md"
+    install -Dm644 LICENSES/MIT-MacShell.txt "$pkgdir/usr/share/licenses/$pkgname/MIT-MacShell.txt"
+    [ -f "$startdir/../LICENSE" ] && install -Dm644 "$startdir/../LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    echo "$pkgver" > "$pkgdir/usr/share/widgetdeck/qml/VERSION"
+}

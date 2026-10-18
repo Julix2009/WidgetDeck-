@@ -1,0 +1,16 @@
+# local / generated
+*.qsb
+*.new
+*.old
+*.log
+*.pkg.tar.*
+/packaging/src/
+/packaging/pkg/
+/packaging/*.tar.*
+# personal data must never be committed
+config.json
+widgets.json
+builder.json
+theme.json
+.backup-*/
+*widgetdeck-backup-*

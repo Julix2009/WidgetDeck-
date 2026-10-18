@@ -1,0 +1,76 @@
+#!/bin/sh
+# WidgetDeck launcher (Quickshell / QML).
+# Finds its QML directory in this order:  $WIDGETDECK_QML  ->  ~/.config/quickshell/widgetdeck  ->  /usr/share/widgetdeck/qml  ->  ./qml next to this script (a git clone).
+VERSION="1.0.0"
+
+find_qml() {
+    if [ -n "${WIDGETDECK_QML:-}" ] && [ -f "$WIDGETDECK_QML/shell.qml" ]; then printf '%s' "$WIDGETDECK_QML"; return 0; fi
+    cfg="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/widgetdeck"
+    here="$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)"
+    for d in "$cfg" "/usr/share/widgetdeck/qml" "$here/../qml" "$here/../share/widgetdeck/qml"; do
+        if [ -f "$d/shell.qml" ]; then (cd "$d" && pwd -P); return 0; fi
+    done
+    return 1
+}
+QML="$(find_qml)" || { echo "widgetdeck: cannot find the QML files (looked in ~/.config/quickshell/widgetdeck, /usr/share/widgetdeck/qml). Run ./install.sh first." >&2; exit 1; }
+QS="quickshell -p $QML"
+CONF="${WIDGETDECK_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/widgetdeck}"
+
+running() { $QS ipc call widgetdeck ping >/dev/null 2>&1; }
+ensure() {
+    running && return 0
+    # shellcheck disable=SC2086
+    setsid $QS >/dev/null 2>&1 &
+    i=0
+    while [ "$i" -lt 60 ]; do running && return 0; sleep 0.2; i=$((i + 1)); done
+    echo "widgetdeck: Quickshell did not start (see: widgetdeck log)" >&2
+    return 1
+}
+
+doctor() {
+    ok() { printf '  [ ok ] %s\n' "$1"; }
+    warn() { printf '  [warn] %s\n' "$1"; }
+    bad() { printf '  [FAIL] %s\n' "$1"; }
+    echo "WidgetDeck $VERSION - QML: $QML - config: $CONF"
+    if command -v quickshell >/dev/null 2>&1; then ok "quickshell: $(quickshell --version 2>/dev/null | head -n1)"; else bad "quickshell not found (pacman -S quickshell)"; fi
+    if command -v hyprctl >/dev/null 2>&1; then ok "hyprland: $(hyprctl version 2>/dev/null | head -n1 | cut -c1-60)"; else warn "hyprctl not found - the usable-area detection of the snap grid falls back to the full screen"; fi
+    qsb=""; for q in qsb qsb6 /usr/lib/qt6/bin/qsb; do command -v "$q" >/dev/null 2>&1 && { qsb="$q"; break; }; done
+    if [ -n "$qsb" ]; then ok "shader compiler: $qsb"; else warn "qsb not found (pacman -S qt6-shadertools): Liquid Glass falls back to Frosted Glass unless prebuilt shaders are installed"; fi
+    cache="${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck"
+    if [ -s "$cache/glass.frag.qsb" ]; then ok "Liquid Glass shader built ($cache/glass.frag.qsb)"; else warn "no compiled shader yet (it is built when the daemon starts; run: widgetdeck restart)"; fi
+    for f in "Adwaita Sans" "Iosevka Nerd Font"; do
+        if fc-list 2>/dev/null | grep -qi "$f"; then ok "font: $f"; else warn "font missing: $f (pacman -S adwaita-fonts ttf-iosevka-nerd)"; fi
+    done
+    for c in jq curl ip; do command -v "$c" >/dev/null 2>&1 && ok "$c" || bad "$c missing (needed by the data widgets)"; done
+    for c in nmcli playerctl cava matugen grim; do command -v "$c" >/dev/null 2>&1 && ok "$c (optional)" || warn "$c not installed (optional: the matching widget / feature is limited)"; done
+    if running; then ok "daemon running"; else warn "daemon not running (widgetdeck daemon, or autostart via the Hyprland snippet)"; fi
+    if [ -f "$CONF/widgets.json" ]; then ok "layout: $CONF/widgets.json"; else warn "no layout yet (created when the daemon starts)"; fi
+    loc="$(bash "$QML/widgets/sysmon/location.sh" 2>/dev/null)"
+    case "$loc" in *'"source":"none"'*) warn "no location known (weather / air quality): builder -> Settings -> Location & units";; *) ok "location source: $(printf '%s' "$loc" | sed -n 's/.*"source":"\([a-z]*\)".*/\1/p')";; esac
+}
+
+case "${1:-builder}" in
+    daemon)   exec $QS ;;
+    builder)  ensure && exec $QS ipc call widgetdeck openBuilder ;;
+    toggle)   ensure && exec $QS ipc call widgetdeck toggleBuilder ;;
+    close)    exec $QS ipc call widgetdeck closeBuilder ;;
+    stop)     exec $QS kill ;;
+    restart)  $QS kill >/dev/null 2>&1; sleep 0.5; setsid $QS >/dev/null 2>&1 & ;;
+    log)      exec $QS log ;;
+    config)   echo "$CONF/widgets.json" ;;
+    doctor)   doctor ;;
+    version|--version) echo "widgetdeck $VERSION" ;;
+    ipc)      shift; exec $QS ipc call widgetdeck "$@" ;;
+    *)  cat <<USAGE
+widgetdeck <command>
+  daemon     start the desktop widgets (runs in the foreground, used for autostart)
+  builder    open the visual builder (starts the daemon if needed)
+  toggle     open / close the builder (= edit mode: grid, guides, align)
+  close      close the builder
+  stop | restart | log
+  config     print the path of widgets.json
+  doctor     check dependencies, shader, fonts and location
+  ipc <fn>   raw IPC call (ping, list, select <id>, style|setProp <id> <key> <json>, builderGlass <mode>, ...)
+USAGE
+        ;;
+esac
