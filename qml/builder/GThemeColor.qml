@@ -1,6 +1,7 @@
 // Colour source of one property: "Theme" (follows Matugen, with a role) or "Eigene" (fixed colour).
 // Value format: "theme:<role>" or "#rrggbb" - stored like that in widgets.json.
 import QtQuick
+import "../core"
 
 Item {
     id: s
@@ -17,7 +18,7 @@ Item {
     Row {
         y: 18; width: parent.width; spacing: 6
         GButton { th: s.th; label: "Theme"; checked: s.isTheme; width: (s.width - 6) / 2; onClicked: s.picked("theme:" + s.role) }
-        GButton { th: s.th; label: "Eigene Farbe"; checked: !s.isTheme; width: (s.width - 6) / 2; onClicked: s.picked(s.isTheme ? s.shown.toString() : s.value) }
+        GButton { th: s.th; label: I18n.tr("Custom colour"); checked: !s.isTheme; width: (s.width - 6) / 2; onClicked: s.picked(s.isTheme ? s.shown.toString() : s.value) }
     }
     Rectangle {
         id: sw

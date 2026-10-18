@@ -33,11 +33,11 @@ Item {
     readonly property bool has: d !== null && d.current_temp !== undefined
 
     // ---- what the particles react to --------------------------------------------------------------------------------------
-    // icon glyphs as written by weather.sh: rain U+F0597, storm U+F0E7, snow U+F2DC
+    // icon names as written by weather.sh: sun, moon, cloud, mist, rain, snow, storm
     readonly property string realKind: {
         if (!d || !d.current_icon) return "";
-        var c = String(d.current_icon).codePointAt(0);
-        return (c === 0xF0597 || c === 0xF0E7) ? "rain" : (c === 0xF2DC ? "snow" : "");
+        var c = String(d.current_icon);
+        return (c === "rain" || c === "storm") ? "rain" : (c === "snow" ? "snow" : "");
     }
     readonly property string particleKind: {
         if (props.particles === false) return "";
@@ -72,12 +72,7 @@ Item {
         anchors { left: parent.left; verticalCenter: parent.verticalCenter }
         spacing: w.s(16)
         visible: w.has
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: w.d ? w.d.current_icon : ""
-            font.family: "Iosevka Nerd Font"; font.pixelSize: w.fs * 3.6; color: w.cAcc
-            style: w.style.mode === "liquid" ? Text.Raised : Text.Normal; styleColor: "#73000000"; renderType: Text.QtRendering
-        }
+        Icon { anchors.verticalCenter: parent.verticalCenter; name: w.d ? w.d.current_icon : ""; width: w.fs * 3.8; height: width; stroke: 1.7; color: w.cAcc }
         Column {
             anchors.verticalCenter: parent.verticalCenter
             spacing: w.s(2)
@@ -92,27 +87,22 @@ Item {
         visible: w.has && w.props.show_details !== false && !!w.today
         Repeater {
             model: w.today ? [
-                { k: "󰔏", t: Math.round(Number(w.today.max)) + "° / " + Math.round(Number(w.today.min)) + "°" },
-                { k: "󰔄", t: "gefühlt " + Math.round(Number(w.today.feels_like)) + "°" },
-                { k: "󰖝", t: w.today.wind + " " + w.windUnit },
-                { k: "󰖎", t: w.today.humidity + " %" }
+                { k: "thermometer", t: Math.round(Number(w.today.max)) + "° / " + Math.round(Number(w.today.min)) + "°" },
+                { k: "thermometer", t: I18n.tr("feels like") + " " + Math.round(Number(w.today.feels_like)) + "°" },
+                { k: "wind", t: w.today.wind + " " + w.windUnit },
+                { k: "drop", t: w.today.humidity + " %" }
             ] : []
             delegate: Row {
                 anchors.right: parent.right
                 spacing: w.s(8)
                 GText { anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.82; text: modelData.t }
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: w.s(20); horizontalAlignment: Text.AlignHCenter
-                    text: modelData.k; font.family: "Iosevka Nerd Font"; font.pixelSize: w.fs * 0.95; color: w.cAcc
-                    style: w.style.mode === "liquid" ? Text.Raised : Text.Normal; styleColor: "#73000000"; renderType: Text.QtRendering
-                }
+                Icon { anchors.verticalCenter: parent.verticalCenter; name: modelData.k; width: w.fs * 1.1; height: width; color: w.cAcc }
             }
         }
     }
     GText {
         anchors.centerIn: parent; visible: !w.has; wstyle: w.style; opacity: 0.65
         horizontalAlignment: Text.AlignHCenter; width: parent.width - w.s(20); wrapMode: Text.WordWrap
-        text: w.err === "no-location" ? "Kein Standort bekannt.\nBuilder → Einstellungen → Standort & Einheiten" : (poll.running ? "Lade …" : (w.err === "offline" ? "Keine Verbindung" : "Keine Wetterdaten"))
+        text: w.err === "no-location" ? I18n.tr("No location known.") + "\n" + I18n.tr("Builder → Settings → Location & units") : (poll.running ? I18n.tr("Loading …") : (w.err === "offline" ? I18n.tr("No connection") : I18n.tr("No weather data")))
     }
 }

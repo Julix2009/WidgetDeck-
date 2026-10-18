@@ -12,6 +12,9 @@ FloatingWindow {
     required property var backend
     required property var wall
     required property var update
+    property string screenName: ""
+    signal settingsClose()
+    onSettingsClose: settings.visible = false
     function showSettings(on) { settings.visible = on; }
     function scrollSettings(y) { setFlick.contentY = Math.max(0, Math.min(y, setFlick.contentHeight - setFlick.height)); }
     property size screenSize: Qt.size(2560, 1600)
@@ -45,7 +48,7 @@ FloatingWindow {
     implicitHeight: 920
     minimumSize: Qt.size(1100, 700)
 
-    readonly property bool liquidUi: store.builder.glass === "liquid"
+    readonly property bool liquidUi: store.builder.glass === "liquid" && backend.ready && wall.usable
     readonly property bool liveOn: store.builder.liveCapture === true && liquidUi
     Loader {
         id: liveLoader
@@ -141,10 +144,10 @@ FloatingWindow {
                 onPressed: mouse => { if (typeof win.startSystemMove === "function") win.startSystemMove(); }
             }
             Text { anchors.verticalCenter: parent.verticalCenter; text: "◈  WidgetDeck"; color: th.fg; font.family: th.font; font.pixelSize: 16; font.bold: true }
-            Text { x: 150; anchors.verticalCenter: parent.verticalCenter; text: "Widgets ziehen (Raster + Hilfslinien, Alt = frei), Shift = Mehrfachauswahl – Änderungen erscheinen live auf dem Desktop"; color: th.dim; font.family: th.font; font.pixelSize: 12 }
+            Text { x: 150; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
             Row {
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 8
-                GButton { th: th; label: "Einstellungen"; checked: settings.visible; onClicked: settings.visible = !settings.visible }
+                GButton { th: th; label: I18n.tr("Settings"); checked: settings.visible; onClicked: settings.visible = !settings.visible }
                 GButton { th: th; label: "✕"; danger: true; pad: 12; onClicked: win.visible = false }
             }
         }
@@ -212,7 +215,12 @@ FloatingWindow {
             width: 150; height: 64; radius: 18; opacity: 0.85
             color: Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, 0.35)
             border.color: th.accent; border.width: 2
-            Text { anchors.centerIn: parent; color: th.fg; font.family: th.font; font.pixelSize: 14; text: { var t = win.store.typeInfo(ghost.type); return t ? t.glyph + "  " + t.label : ""; } }
+            Row {
+                anchors.centerIn: parent; spacing: 8
+                readonly property var t: win.store.typeInfo(ghost.type)
+                TypeGlyph { anchors.verticalCenter: parent.verticalCenter; ti: parent.t; color: th.fg; size: 18 }
+                Text { anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 14; text: parent.t ? I18n.tr(parent.t.label) : "" }
+            }
         }
 
         // settings
@@ -228,100 +236,20 @@ FloatingWindow {
                 id: setFlick
                 anchors.fill: parent; anchors.margins: 18
                 contentHeight: setCol.height; clip: true; boundsBehavior: Flickable.StopAtBounds
-                Column {
+                SettingsPanel {
                     id: setCol
-                    width: parent.width - 8; spacing: 8
-                    Text { text: "RASTER & AUSRICHTEN"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
-                    Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 11
-                        text: "Bearbeiten-Modus = dieser Builder (widgetdeck toggle, oder: quickshell ipc call widgetdeck toggleBuilder). Nur hier lassen sich Widgets ziehen; auf dem Desktop nehmen sie keine Drag-Klicks an. Alt beim Ziehen = freie Platzierung." }
-                    GSwitch { width: parent.width; th: th; label: "Raster anzeigen"; checked: win.store.grid.grid; onToggled: v => win.store.setGrid("grid", v) }
-                    GSwitch { width: parent.width; th: th; label: "Einrasten (Raster + Hilfslinien)"; checked: win.store.grid.snap; onToggled: v => win.store.setGrid("snap", v) }
-                    GSpin { width: parent.width; th: th; label: "Rastergröße (px, 8 – 64)"; from: 8; to: 64; step: 2; value: win.store.grid.cell; onMoved: v => win.store.setGrid("cell", v) }
-                    GSlider { width: parent.width; th: th; label: "Einrast-Schwelle (px)"; from: 4; to: 16; step: 1; value: win.store.grid.threshold; onMoved: v => win.store.setGrid("threshold", v) }
-                    GSpin { width: parent.width; th: th; label: "Randabstand zum Bildschirmrand (px)"; from: 0; to: 100; step: 4; value: win.store.grid.margin; onMoved: v => win.store.setGrid("margin", v) }
-                    GSwitch { width: parent.width; th: th; label: "Überlappen erlauben"; checked: win.store.grid.overlap; onToggled: v => win.store.setGrid("overlap", v) }
-                    Column {
-                        spacing: 6; width: parent.width
-                        GButton { th: th; width: parent.width; label: "Alle am Raster ausrichten"; onClicked: win.store.snapAll() }
-                        GButton {
-                            id: resetBtn
-                            property bool armed: false
-                            width: parent.width
-                            th: th; danger: true; label: armed ? "Wirklich zurücksetzen? (nochmal klicken)" : "Layout zurücksetzen"
-                            onClicked: { if (armed) { win.store.resetLayout(); armed = false; } else { armed = true; armTimer.restart(); } }
-                            Timer { id: armTimer; interval: 3500; onTriggered: resetBtn.armed = false }
-                        }
-                    }
-                    Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; opacity: 0.8; font.family: th.font; font.pixelSize: 11
-                        text: "Nutzbarer Bereich: " + win.store.area.width + " × " + win.store.area.height + " px ab (" + win.store.area.x + ", " + win.store.area.y + ") – Raster und Grenzen gelten pro Monitor." }
-                    Text { text: "STANDORT & EINHEITEN"; topPadding: 8; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
-                    Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 11
-                        text: "Für Wetter und Luftqualität. Ohne Eingabe wird der Standort einmalig über deine IP-Adresse ermittelt (ipwho.is) und eine Woche lang gespeichert; abschaltbar. Eigene Koordinaten haben Vorrang." }
-                    GSwitch { width: parent.width; th: th; label: "Standort automatisch (IP-Adresse)"; checked: !win.store.config.location || win.store.config.location.auto !== false; onToggled: v => win.store.setConfig("location.auto", v) }
-                    GField {
-                        width: parent.width; th: th; label: "Breite (z. B. 48.2082, leer = automatisch)"
-                        value: win.store.config.location && win.store.config.location.lat !== null && win.store.config.location.lat !== undefined ? String(win.store.config.location.lat) : ""
-                        onCommitted: v => { var n = parseFloat(v); win.store.setConfig("location.lat", isFinite(n) && n >= -90 && n <= 90 ? n : null); }
-                    }
-                    GField {
-                        width: parent.width; th: th; label: "Länge (z. B. 16.3738)"
-                        value: win.store.config.location && win.store.config.location.lon !== null && win.store.config.location.lon !== undefined ? String(win.store.config.location.lon) : ""
-                        onCommitted: v => { var n = parseFloat(v); win.store.setConfig("location.lon", isFinite(n) && n >= -180 && n <= 180 ? n : null); }
-                    }
-                    GField { width: parent.width; th: th; label: "Ortsname (nur Anzeige)"; value: win.store.config.location && win.store.config.location.name ? win.store.config.location.name : ""; onCommitted: v => win.store.setConfig("location.name", v) }
-                    GChoice { width: parent.width; th: th; label: "Einheiten"; options: [["auto", "Automatisch (System)"], ["metric", "Metrisch (°C, m/s)"], ["imperial", "Imperial (°F, mph)"]]; value: win.store.config.units || "auto"; onPicked: v => win.store.setConfig("units", v) }
-                    GChoice { width: parent.width; th: th; label: "Sprache der Wetter-Texte"; options: [["auto", "Automatisch (System)"], ["de", "Deutsch"], ["en", "English"]]; value: win.store.config.language || "auto"; onPicked: v => win.store.setConfig("language", v) }
-                    Text { text: "THEME (MATUGEN)"; topPadding: 8; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
-                    GSwitch { width: parent.width; th: th; label: "Theme aktiv (folgt dem Wallpaper)"; checked: win.theme.enabled; onToggled: v => win.store.setBuilder("themeEnabled", v) }
-                    GChoice {
-                        width: parent.width; th: th; label: "Matugen-Schema"; options: D.SCHEMES; value: win.theme.scheme
-                        onPicked: v => { win.store.setBuilder("themeScheme", v); win.theme.regenerate(win.wall.path); }
-                    }
-                    GChoice {
-                        width: parent.width; th: th; label: "Modus"; options: [["dark", "Dunkel"], ["light", "Hell"]]; value: win.theme.mode
-                        onPicked: v => { win.store.setBuilder("themeMode", v); win.theme.regenerate(win.wall.path); }
-                    }
-                    GButton { th: th; width: parent.width; label: win.theme.busy ? "Matugen läuft …" : "Palette neu generieren"; primary: true; onClicked: win.theme.regenerate(win.wall.path) }
-                    Row {
-                        spacing: 8
-                        Rectangle { width: 18; height: 18; radius: 9; color: win.theme.sourceColor !== "" ? win.theme.sourceColor : "transparent"; border.width: 1; border.color: th.line }
-                        Text { width: setCol.width - 30; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 11
-                            text: "Schema/Modus starten Matugen mit dem aktuellen Wallpaper und dem vorhandenen Reload-Skript – kitty, nvim, rofi, cava … ziehen mit. Ein Wallpaper-Wechsel über den Picker nutzt wieder dessen Standard (tonal-spot, dunkel)." }
-                    }
-                    Text { text: "BUILDER-DESIGN"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 8 }
-                    GChoice { width: parent.width; th: th; label: "Glas-Stil des Builders"; options: D.MODES; value: win.store.builder.glass; onPicked: v => win.store.setBuilder("glass", v) }
-                    GSlider { width: parent.width; th: th; label: "Deckkraft des Fensters"; from: 0.5; to: 0.95; step: 0.01; value: win.store.builder.opacity; onMoved: v => win.store.setBuilder("opacity", v) }
-                    GSwitch { width: parent.width; th: th; label: "Live-Capture der Fenster (experimentell)"; checked: win.store.builder.liveCapture === true; onToggled: v => win.store.setBuilder("liveCapture", v) }
-                    Text { text: "HINTERGRUND DES GLASES"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 8 }
-                    Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 12
-                        text: "Wallpaper: " + (win.wall.path === "" ? "nicht gefunden" : win.wall.path) }
-                    GField { width: parent.width; th: th; label: "Wallpaper-Pfad überschreiben (leer = automatisch)"; value: win.store.data.wallpaperPath || ""
-                        onEdited: v => { win.store.data.wallpaperPath = v; win.store.touch(false); } }
-                    Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 12
-                        text: "Glas-Engine: " + (win.backend.ready ? "GPU-Shader (Refraktion aktiv)" : "Fallback ohne Refraktion (" + win.backend.state + ")") }
-                    Text { text: win.store.dir + "/widgets.json"; color: th.dim; opacity: 0.7; font.family: th.font; font.pixelSize: 11 }
-                    Text { text: "VERSION & UPDATES"; topPadding: 8; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
-                    Row {
-                        width: parent.width; spacing: 10
-                        Text { anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
-                            text: "Version " + (win.update.version !== "" ? win.update.version : "?") }
-                        GButton { th: th; label: win.update.busy ? "Prüfe …" : "Auf Updates prüfen"; onClicked: win.update.check(true) }
-                    }
-                    Text { visible: win.update.message !== ""; width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 12; text: win.update.message }
-                    Column {
-                        visible: win.update.available; width: parent.width; spacing: 6
-                        Text { width: parent.width; wrapMode: Text.WordWrap; color: th.accent; font.family: th.font; font.pixelSize: 13; font.bold: true
-                            text: "Update verfügbar: " + win.update.latest }
-                        Text { visible: win.update.notes !== ""; width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 11; text: win.update.notes }
-                        GButton { th: th; width: parent.width; primary: true; label: "Update im Terminal starten"; onClicked: win.update.startUpdate() }
-                        Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; opacity: 0.8; font.family: th.font; font.pixelSize: 11
-                            text: "Es wird nichts automatisch installiert: Das Terminal zeigt die Änderungen und fragt vorher nach. Deine Einstellungen bleiben erhalten." }
-                    }
-                    GSwitch { width: parent.width; th: th; label: "Täglich nach Updates suchen"
-                        checked: !win.store.config.update || win.store.config.update.check !== false; onToggled: v => win.store.setConfig("update.check", v) }
+                    width: parent.width - 8
+                    store: win.store; theme: win.theme; wall: win.wall; backend: win.backend; update: win.update; th: th
+                    screenName: win.screenName; liquidOk: win.backend.ready && win.wall.usable
+                    onPickWallpaper: { wallPicker.startPath = ""; wallPicker.open(); }
+                    onRunWizard: { win.settingsClose(); win.store.setConfig("setup.done", false); }
                 }
             }
         }
+
+        // wallpaper chooser (own file browser, no portal needed)
+        FilePicker { id: wallPicker; z: 150; anchors.centerIn: parent; width: Math.min(root.width - 80, 760); height: Math.min(root.height - 80, 540); th: th; visible: false
+            onPicked: p => { win.store.data.wallpaperPath = p; win.store.touch(false); } }
 
         // colour picker popup
         Rectangle {
@@ -362,7 +290,7 @@ FloatingWindow {
                 }
                 GField { width: parent.width; th: th; value: colorPop.hex; implicitHeight: 32
                     onEdited: v => { if (/^#[0-9a-fA-F]{6}$/.test(v)) { colorPop.hex = v; if (win._colorCb) win._colorCb(v); } } }
-                GButton { th: th; label: "Fertig"; primary: true; onClicked: colorPop.visible = false }
+                GButton { th: th; label: I18n.tr("Done"); primary: true; onClicked: colorPop.visible = false }
             }
         }
 
@@ -386,7 +314,7 @@ FloatingWindow {
                         width: ListView.view.width; height: 30; radius: 8
                         color: lm.containsMouse ? Qt.rgba(1, 1, 1, 0.14) : (modelData[0] === listPop.current ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
                         Rectangle { visible: modelData.length > 2; x: 8; anchors.verticalCenter: parent.verticalCenter; width: 16; height: 16; radius: 8; color: modelData.length > 2 ? modelData[2] : "transparent"; border.width: 1; border.color: th.line }
-                        Text { x: modelData.length > 2 ? 32 : 10; anchors.verticalCenter: parent.verticalCenter; text: modelData[1]; color: modelData[0] === listPop.current ? th.accent : th.fg; font.family: modelData.length > 2 ? th.font : modelData[1]; font.pixelSize: 14 }
+                        Text { x: modelData.length > 2 ? 32 : 10; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr(modelData[1]); color: modelData[0] === listPop.current ? th.accent : th.fg; font.family: modelData.length > 2 ? th.font : modelData[1]; font.pixelSize: 14 }
                         MouseArea { id: lm; anchors.fill: parent; hoverEnabled: true; onClicked: { if (win._listCb) win._listCb(modelData[0]); listPop.visible = false; } }
                     }
                 }

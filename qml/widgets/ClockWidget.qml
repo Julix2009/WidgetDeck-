@@ -7,6 +7,16 @@ Item {
     property var props: ({})
     property real innerRadius: 8
     property date now: new Date()
+    property var appConfig: ({})          // config.json (WidgetHost): time_format auto|24h|12h
+    // empty format in the widget props = follow the global setting (24 h / 12 h / the system locale)
+    readonly property bool use12h: {
+        var t = appConfig && appConfig.time_format ? appConfig.time_format : "auto";
+        if (t === "12h") return true;
+        if (t === "24h") return false;
+        return /[aA]/.test(Qt.locale().timeFormat(Locale.ShortFormat).replace(/'[^']*'/g, ""));
+    }
+    readonly property string timeFmt: w.props.time_format ? w.props.time_format : (use12h ? "%I:%M %p" : "%H:%M")
+    function dateText(d) { return w.props.date_format ? fmt(d, w.props.date_format) : Qt.locale().toString(d, Qt.locale().dateFormat(Locale.LongFormat)); }
 
     // strftime subset: %H %M %S %I %p %d %e %m %y %Y %A %a %B %b %j %%
     function pad(n) { return (n < 10 ? "0" : "") + n; }
@@ -44,7 +54,7 @@ Item {
         GText {
             width: parent.width
             wstyle: w.style
-            text: w.fmt(w.now, w.props.time_format)
+            text: w.timeFmt === "" ? "" : w.fmt(w.now, w.timeFmt)
             font.pixelSize: w.style.font_size * w.props.time_scale
             font.bold: true
             horizontalAlignment: w.hAlign(w.props.align)
@@ -54,7 +64,7 @@ Item {
             visible: w.props.show_date
             wstyle: w.style
             opacity: 0.65
-            text: w.fmt(w.now, w.props.date_format)
+            text: w.dateText(w.now)
             horizontalAlignment: w.hAlign(w.props.align)
         }
     }

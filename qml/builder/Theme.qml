@@ -1,6 +1,7 @@
 // Look of the builder UI. Colours come from the Matugen palette (ThemeStore), so the builder follows the wallpaper
 // with the same smooth fade as the widgets. The glass mode comes from builder.json ("glass": frosted | liquid).
 import QtQuick
+import "../core"
 
 QtObject {
     id: th
@@ -17,7 +18,7 @@ QtObject {
     readonly property color popup: Qt.rgba(pal.surface.r, pal.surface.g, pal.surface.b, 0.97)
     readonly property color danger: pal.error
     readonly property real ctlRadius: liquid ? 99 : 10
-    readonly property string font: "Adwaita Sans"
+    readonly property string font: Fonts.ui
     readonly property int spring: 420
     // popups live in the builder root so panels cannot clip them
     property var pickColor: function (item, hex, cb) { }

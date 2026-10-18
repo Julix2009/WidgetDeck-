@@ -1,5 +1,6 @@
 // Segmented control for <= 3 options, popup list otherwise.
 import QtQuick
+import "../core"
 
 Item {
     id: s
@@ -18,7 +19,7 @@ Item {
             model: s.options
             delegate: GButton {
                 required property var modelData
-                th: s.th; label: modelData[1]; checked: s.value === modelData[0]
+                th: s.th; label: I18n.tr(modelData[1]); checked: s.value === modelData[0]
                 width: (s.width - (s.options.length - 1) * 6) / s.options.length
                 onClicked: s.picked(modelData[0])
             }
@@ -27,7 +28,7 @@ Item {
     GButton {
         y: 18; width: parent.width; visible: !s.segmented
         th: s.th
-        label: { for (var i = 0; i < s.options.length; i++) if (s.options[i][0] === s.value) return s.options[i][1]; return s.value; }
+        label: { for (var i = 0; i < s.options.length; i++) if (s.options[i][0] === s.value) return I18n.tr(s.options[i][1]); return s.value; }
         onClicked: s.th.pickList(this, s.options, s.value, function (v) { s.picked(v); })
     }
 }

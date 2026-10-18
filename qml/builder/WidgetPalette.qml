@@ -18,7 +18,7 @@ Item {
         anchors.fill: parent
         spacing: 8
         Text { text: "WIDGETS"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
-        Text { text: "Klicken oder auf die Fläche ziehen"; color: th.dim; opacity: 0.8; font.family: th.font; font.pixelSize: 12 }
+        Text { text: I18n.tr("Click, or drag onto the stage"); color: th.dim; opacity: 0.8; font.family: th.font; font.pixelSize: 12 }
         Repeater {
             model: pal.typeKeys
             delegate: Rectangle {
@@ -32,7 +32,7 @@ Item {
                 Behavior on color { ColorAnimation { duration: 180 } }
                 // springy slide on hover
                 transform: Translate { x: ma.containsMouse ? 4 : 0; Behavior on x { NumberAnimation { duration: 380; easing.type: Easing.OutBack; easing.overshoot: 2.4 } } }
-                Text { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 30; text: card.ti ? card.ti.glyph : "◇"; color: th.fg; font.pixelSize: 20; fontSizeMode: Text.Fit; minimumPixelSize: 9; height: 24; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter }
+                TypeGlyph { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 30; height: 24; ti: card.ti; color: th.fg; size: 22 }
                 Column {
                     x: 54; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 66
                     Text { text: card.ti ? card.ti.label : modelData; color: th.fg; font.family: th.font; font.pixelSize: 14; font.bold: true }
@@ -54,7 +54,7 @@ Item {
             }
         }
         Item { width: 1; height: 6 }
-        Text { text: "AUF DEM DESKTOP"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
+        Text { text: I18n.tr("ON THE DESKTOP"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
         ListView {
             width: pal.width; height: pal.height - y
             clip: true; spacing: 6; boundsBehavior: Flickable.StopAtBounds
@@ -70,8 +70,9 @@ Item {
                 color: on ? Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, 0.28) : (lma.containsMouse ? th.fieldHover : th.field)
                 border.width: 1; border.color: on ? th.accent : th.line
                 Behavior on color { ColorAnimation { duration: 160 } }
-                Text { x: 14; anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
-                    text: (row.ti ? row.ti.glyph + "  " + row.ti.label : modelData) + (row.c ? "   ·  " + row.c.x + "," + row.c.y : "") }
+                TypeGlyph { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 18; height: 18; ti: row.ti; color: th.fg; size: 16 }
+                Text { x: 40; anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
+                    text: (row.ti ? I18n.tr(row.ti.label) : modelData) + (row.c ? "   ·  " + row.c.x + "," + row.c.y : "") }
                 MouseArea { id: lma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: pal.layerPicked(modelData) }
             }
         }

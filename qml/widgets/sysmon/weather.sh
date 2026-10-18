@@ -13,7 +13,7 @@ lat=$(jq -r '.lat // empty' <<<"$place"); lon=$(jq -r '.lon // empty' <<<"$place
 if [ -z "$lat" ] || [ -z "$lon" ]; then echo '{"error":"no-location"}'; exit 0; fi
 
 units=$(sys_units); lang=$(sys_lang)
-key="$lat,$lon,$units,$lang"
+key="$lat,$lon,$units,$lang,i2"
 cache="$WD_CACHE/weather.json"
 if [ -s "$cache" ] && [ "$(file_age "$cache")" -lt 600 ] && [ "$(jq -r '.key' "$cache" 2>/dev/null)" = "$key" ]; then jq -c 'del(.key)' "$cache"; exit 0; fi
 
@@ -23,16 +23,16 @@ if ! jq -e '.current.temperature_2m != null' >/dev/null 2>&1 <<<"$raw"; then
     if [ -s "$cache" ]; then jq -c 'del(.key) | .stale = true' "$cache"; else echo '{"error":"offline"}'; fi
     exit 0
 fi
-# WMO weather code -> glyph (Nerd Font) + description.   rain U+F0597, storm U+F0E7, snow U+F2DC, cloud U+F0C2, sun U+F185, moon U+F186, mist U+F0591
+# WMO weather code -> icon name (drawn by core/Icon.qml) + description
 out=$(jq -c --arg key "$key" --arg tsym "$tsym" --arg wsym "$wsym" --arg lang "$lang" --arg name "$name" --arg now "$(date +%s)" '
   def glyph($c; $day):
-    if $c == 0 then (if $day == 1 then "" else "" end)
-    elif $c <= 3 then ""
-    elif $c == 45 or $c == 48 then "󰖑"
-    elif ($c >= 51 and $c <= 67) or ($c >= 80 and $c <= 82) then "󰖗"
-    elif ($c >= 71 and $c <= 77) or $c == 85 or $c == 86 then ""
-    elif $c >= 95 then ""
-    else "" end;
+    if $c == 0 then (if $day == 1 then "sun" else "moon" end)
+    elif $c <= 3 then "cloud"
+    elif $c == 45 or $c == 48 then "mist"
+    elif ($c >= 51 and $c <= 67) or ($c >= 80 and $c <= 82) then "rain"
+    elif ($c >= 71 and $c <= 77) or $c == 85 or $c == 86 then "snow"
+    elif $c >= 95 then "storm"
+    else "cloud" end;
   def desc($c):
     (if $lang == "de" then
        {"0":"Klar","1":"Überwiegend klar","2":"Teils bewölkt","3":"Bewölkt","45":"Nebel","48":"Reifnebel","51":"Leichter Nieselregen","53":"Nieselregen","55":"Starker Nieselregen","56":"Gefrierender Nieselregen","57":"Gefrierender Nieselregen","61":"Leichter Regen","63":"Regen","65":"Starker Regen","66":"Gefrierender Regen","67":"Gefrierender Regen","71":"Leichter Schneefall","73":"Schneefall","75":"Starker Schneefall","77":"Schneegriesel","80":"Leichte Regenschauer","81":"Regenschauer","82":"Starke Regenschauer","85":"Leichte Schneeschauer","86":"Schneeschauer","95":"Gewitter","96":"Gewitter mit Hagel","99":"Gewitter mit Hagel"}

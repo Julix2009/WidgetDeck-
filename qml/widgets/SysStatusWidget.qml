@@ -49,11 +49,11 @@ Item {
         id: up
         anchors { left: parent.left; top: parent.top }
         spacing: w.s(2)
-        GText { wstyle: w.style; opacity: 0.6; font.bold: true; font.pixelSize: w.fs * 0.68; text: "LAUFZEIT" + (w.d.kernel && w.props.show_kernel !== false ? "   ·   Linux " + w.d.kernel : "") }
+        GText { wstyle: w.style; opacity: 0.6; font.bold: true; font.pixelSize: w.fs * 0.68; text: I18n.tr("UPTIME") + (w.d.kernel && w.props.show_kernel !== false ? "   ·   Linux " + w.d.kernel : "") }
         Row {
             spacing: w.s(10)
             Repeater {
-                model: [ { n: w.days, u: w.days === 1 ? "Tag" : "Tage" }, { n: w.hours, u: "Std" }, { n: w.mins, u: "Min" } ]
+                model: [ { n: w.days, u: w.days === 1 ? I18n.tr("day") : I18n.tr("days") }, { n: w.hours, u: I18n.tr("h") }, { n: w.mins, u: I18n.tr("min") } ]
                 delegate: Row {
                     spacing: w.s(4)
                     GText { id: num; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 2.1; text: modelData.n }
@@ -73,16 +73,11 @@ Item {
         spacing: w.s(4)
         Row {
             spacing: w.s(8)
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: w.ok ? "󰄬" : "󰀦"; font.family: "Iosevka Nerd Font"; font.pixelSize: w.fs * 1.3
-                color: w.ok ? w.cAcc : w.cErr
-                style: w.style.mode === "liquid" ? Text.Raised : Text.Normal; styleColor: "#73000000"; renderType: Text.QtRendering
-            }
+            Icon { anchors.verticalCenter: parent.verticalCenter; name: w.ok ? "check" : "warning"; width: w.fs * 1.4; height: width; color: w.ok ? w.cAcc : w.cErr }
             GText {
                 anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.0
                 color: w.ok ? w.style.fg : w.cErr
-                text: w.ok ? "OK" : (w.failed.length === 1 ? "1 Dienst fehlgeschlagen" : w.failed.length + " Dienste fehlgeschlagen")
+                text: w.ok ? "OK" : (w.failed.length === 1 ? I18n.tr("1 service failed") : I18n.trf("%1 services failed", w.failed.length))
             }
         }
         Repeater {                                                  // at most three names, then "+N"
@@ -93,6 +88,6 @@ Item {
             }
         }
         GText { visible: w.failed.length > 3; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.78; color: w.cErr; text: "  +" + (w.failed.length - 3) }
-        GText { visible: w.ok; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.78; text: "System- und User-Dienste laufen" }
+        GText { visible: w.ok; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.78; text: I18n.tr("System and user services are running") }
     }
 }

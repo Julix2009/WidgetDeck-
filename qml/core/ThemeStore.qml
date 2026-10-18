@@ -18,7 +18,10 @@ Scope {
     property alias pal: palette
     signal wallpaperPaletteChanged()               // theme.json was rewritten (= the wallpaper changed)
 
-    readonly property bool enabled: store.builder.themeEnabled !== false
+    // Matugen is optional: without it the fixed default palette (ThemeData.js FALLBACK) is used and the theming engine stays off
+    property bool hasMatugen: false
+    Process { id: probe; command: ["sh", "-c", "command -v matugen >/dev/null 2>&1"]; running: true; onExited: (code, status) => root.hasMatugen = code === 0 }
+    readonly property bool enabled: hasMatugen && store.builder.themeEnabled !== false
     readonly property string mode: store.builder.themeMode === "light" ? "light" : "dark"
     readonly property bool dark: mode === "dark"
     readonly property string scheme: store.builder.themeScheme || "scheme-tonal-spot"

@@ -81,11 +81,10 @@ Item {
         Row {
             anchors.verticalCenter: parent.verticalCenter
             spacing: w.s(8)
-            Text {
+            Icon {
                 anchors.verticalCenter: parent.verticalCenter
-                text: w.d.kind === "wifi" ? "󰖩" : "󰈀"
-                font.family: "Iosevka Nerd Font"; font.pixelSize: w.fs * 1.25; color: w.cAcc
-                style: w.style.mode === "liquid" ? Text.Raised : Text.Normal; styleColor: "#73000000"; renderType: Text.QtRendering
+                name: w.d.kind === "wifi" ? "wifi" : "ethernet"
+                width: w.fs * 1.4; height: width; color: w.cAcc
             }
             GText {
                 anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.9
@@ -126,11 +125,15 @@ Item {
         height: w.s(58)
         opacity: w.online ? 1 : 0
         Repeater {
-            model: [ { label: "󰁅  DOWNLOAD", col: w.cAcc, v: w.dl }, { label: "󰁝  UPLOAD", col: w.cUp, v: w.ul } ]
+            model: [ { label: I18n.tr("DOWNLOAD"), icon: "arrow-down", col: w.cAcc, v: w.dl }, { label: I18n.tr("UPLOAD"), icon: "arrow-up", col: w.cUp, v: w.ul } ]
             delegate: Column {
                 width: numbers.width / 2
                 spacing: w.s(1)
-                GText { wstyle: w.style; opacity: 0.6; font.bold: true; font.pixelSize: w.fs * 0.68; text: modelData.label }
+                Row {
+                    spacing: w.s(4)
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: modelData.icon; width: w.fs * 0.8; height: width; color: modelData.col; opacity: 0.8 }
+                    GText { wstyle: w.style; opacity: 0.6; font.bold: true; font.pixelSize: w.fs * 0.68; text: modelData.label }
+                }
                 Row {
                     spacing: w.s(6)
                     GText { id: num; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.9; color: modelData.col; text: modelData.v.n }
@@ -174,12 +177,8 @@ Item {
         opacity: w.online ? 0 : 1
         visible: opacity > 0.01
         Behavior on opacity { NumberAnimation { duration: 200 } }
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "󰖪"; font.family: "Iosevka Nerd Font"; font.pixelSize: w.fs * 2.6; color: w.cErr
-            style: w.style.mode === "liquid" ? Text.Raised : Text.Normal; styleColor: "#73000000"; renderType: Text.QtRendering
-        }
-        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.4; text: "Offline" }
-        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.8; text: "Keine Verbindung" }
+        Icon { anchors.horizontalCenter: parent.horizontalCenter; name: "wifi-off"; width: w.fs * 2.8; height: width; color: w.cErr }
+        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.4; text: I18n.tr("Offline") }
+        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.8; text: I18n.tr("No connection") }
     }
 }

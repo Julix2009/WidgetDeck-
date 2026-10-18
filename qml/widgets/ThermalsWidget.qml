@@ -106,11 +106,7 @@ Item {
             model: w.fans
             delegate: Item {
                 width: parent.width; height: w.s(20)
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "󰈐"; font.family: "Iosevka Nerd Font"; font.pixelSize: w.fs * 1.0; color: w.cAcc
-                    style: w.style.mode === "liquid" ? Text.Raised : Text.Normal; styleColor: "#73000000"; renderType: Text.QtRendering
-                }
+                Icon { anchors.verticalCenter: parent.verticalCenter; name: "fan"; width: w.fs * 1.1; height: width; color: w.cAcc }
                 GText { anchors { left: parent.left; leftMargin: w.s(24); verticalCenter: parent.verticalCenter } wstyle: w.style; font.pixelSize: w.fs * 0.78; text: modelData.label }
                 Rectangle {                                         // 0 .. 6000 rpm
                     anchors { left: parent.left; leftMargin: w.s(104); right: parent.right; rightMargin: w.s(70); verticalCenter: parent.verticalCenter }
@@ -129,6 +125,6 @@ Item {
     GText {                                                         // no sensor at all (e.g. a VM)
         anchors.centerIn: parent
         visible: w.temps.length === 0 && w.fans.length === 0
-        wstyle: w.style; opacity: 0.65; text: "Keine Sensoren gefunden"
+        wstyle: w.style; opacity: 0.65; text: I18n.tr("No sensors found")
     }
 }

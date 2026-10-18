@@ -201,7 +201,7 @@ Item {
         Row {
             anchors.verticalCenter: parent.verticalCenter; spacing: 4
             Repeater {
-                model: [["left", "Links"], ["hcenter", "Mitte"], ["right", "Rechts"], ["top", "Oben"], ["vcenter", "Mitte ↕"], ["bottom", "Unten"]]
+                model: [["left", I18n.tr("Left")], ["hcenter", I18n.tr("Centre")], ["right", I18n.tr("Right")], ["top", I18n.tr("Top")], ["vcenter", I18n.tr("Middle ↕")], ["bottom", I18n.tr("Bottom")]]
                 delegate: GButton {
                     required property var modelData
                     th: cv.th; label: modelData[1]; pad: 9; implicitHeight: 28
@@ -210,14 +210,14 @@ Item {
                 }
             }
             Item { width: 6; height: 1 }
-            GButton { th: cv.th; label: "Verteilen ↔"; pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(false) }
-            GButton { th: cv.th; label: "Verteilen ↕"; pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(true) }
+            GButton { th: cv.th; label: I18n.tr("Distribute ↔"); pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(false) }
+            GButton { th: cv.th; label: I18n.tr("Distribute ↕"); pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(true) }
         }
         Row {
             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 4
-            GButton { th: cv.th; label: "Raster"; pad: 9; implicitHeight: 28; checked: cv.grid.grid; onClicked: cv.store.setGrid("grid", !cv.grid.grid) }
-            GButton { th: cv.th; label: "Einrasten"; pad: 9; implicitHeight: 28; checked: cv.grid.snap; onClicked: cv.store.setGrid("snap", !cv.grid.snap) }
-            GButton { th: cv.th; label: "Überlappen"; pad: 9; implicitHeight: 28; checked: cv.grid.overlap; onClicked: cv.store.setGrid("overlap", !cv.grid.overlap) }
+            GButton { th: cv.th; label: I18n.tr("Grid"); pad: 9; implicitHeight: 28; checked: cv.grid.grid; onClicked: cv.store.setGrid("grid", !cv.grid.grid) }
+            GButton { th: cv.th; label: I18n.tr("Snap"); pad: 9; implicitHeight: 28; checked: cv.grid.snap; onClicked: cv.store.setGrid("snap", !cv.grid.snap) }
+            GButton { th: cv.th; label: I18n.tr("Overlap"); pad: 9; implicitHeight: 28; checked: cv.grid.overlap; onClicked: cv.store.setGrid("overlap", !cv.grid.overlap) }
         }
     }
 

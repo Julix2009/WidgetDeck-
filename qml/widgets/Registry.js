@@ -7,86 +7,86 @@
 
 var TYPES = {
     clock: {
-        label: "Uhr & Datum", desc: "Digitaluhr mit Datum", glyph: "◷", size: [380, 190], file: "ClockWidget.qml",
+        label: "Clock & date", desc: "Digital clock with date", icon: "clock", size: [380, 190], file: "ClockWidget.qml",
         props: [
-            { key: "time_format", label: "Zeitformat", kind: "text", def: "%H:%M" },
-            { key: "date_format", label: "Datumsformat", kind: "text", def: "%A, %d. %B" },
-            { key: "show_date", label: "Datum anzeigen", kind: "bool", def: true },
-            { key: "time_scale", label: "Größe der Uhrzeit", kind: "range", def: 3.6, min: 1.5, max: 7, step: 0.1 },
-            { key: "align", label: "Ausrichtung", kind: "choice", def: "start", options: [["start", "Links"], ["center", "Mitte"], ["end", "Rechts"]] }
+            { key: "time_format", label: "Time format (empty = automatic)", kind: "text", def: "" },
+            { key: "date_format", label: "Date format (empty = automatic)", kind: "text", def: "" },
+            { key: "show_date", label: "Show date", kind: "bool", def: true },
+            { key: "time_scale", label: "Time size", kind: "range", def: 3.6, min: 1.5, max: 7, step: 0.1 },
+            { key: "align", label: "Alignment", kind: "choice", def: "start", options: [["start", "Left"], ["center", "Centre"], ["end", "Right"]] }
         ]
     },
     sysmon: {
-        label: "CPU & RAM", desc: "Auslastung von Prozessor und Arbeitsspeicher", glyph: "▥", size: [380, 190], file: "SysmonWidget.qml",
+        label: "CPU & RAM", desc: "Processor and memory load", icon: "cpu", size: [380, 190], file: "SysmonWidget.qml",
         props: [
-            { key: "mode", label: "Darstellung", kind: "choice", def: "rings", options: [["rings", "Ringe"], ["bars", "Balken"]] },
-            { key: "show_cpu", label: "CPU anzeigen", kind: "bool", def: true },
-            { key: "show_ram", label: "RAM anzeigen", kind: "bool", def: true },
-            { key: "interval", label: "Aktualisierung (ms)", kind: "int", def: 1000, min: 250, max: 5000, step: 250 }
+            { key: "mode", label: "Display", kind: "choice", def: "rings", options: [["rings", "Rings"], ["bars", "Bars"]] },
+            { key: "show_cpu", label: "Show CPU", kind: "bool", def: true },
+            { key: "show_ram", label: "Show RAM", kind: "bool", def: true },
+            { key: "interval", label: "Update interval (ms)", kind: "int", def: 1000, min: 250, max: 5000, step: 250 }
         ]
     },
     music: {
-        label: "Musik", desc: "Aktueller Titel (MPRIS) mit Cover", glyph: "♪", size: [460, 180], file: "MusicWidget.qml",
+        label: "Music", desc: "Current track (MPRIS) with cover", icon: "music", size: [460, 180], file: "MusicWidget.qml",
         props: [
-            { key: "show_cover", label: "Cover anzeigen", kind: "bool", def: true },
-            { key: "show_controls", label: "Steuerung anzeigen", kind: "bool", def: true },
-            { key: "cover_colors", label: "Farben aus dem Albumcover", kind: "bool", def: false },
-            { key: "show_progress", label: "Fortschrittsbalken", kind: "bool", def: true },
-            { key: "player", label: "Player (leer = automatisch)", kind: "text", def: "" },
-            { key: "anim_enabled", label: "Songwechsel-Animation", kind: "bool", def: true },
-            { key: "anim_style", label: "Animationsstil", kind: "choice", def: "slide", options: [["crossfade", "Crossfade"], ["slide", "Slide"], ["zoom", "Zoom"]] },
-            { key: "anim_duration", label: "Dauer (ms)", kind: "range", def: 440, min: 200, max: 900, step: 10 },
-            { key: "anim_zoom", label: "Stärke des Zoom-Effekts", kind: "range", def: 0.06, min: 0, max: 0.2, step: 0.01 }
+            { key: "show_cover", label: "Show cover", kind: "bool", def: true },
+            { key: "show_controls", label: "Show controls", kind: "bool", def: true },
+            { key: "cover_colors", label: "Colours from the album cover", kind: "bool", def: false },
+            { key: "show_progress", label: "Progress bar", kind: "bool", def: true },
+            { key: "player", label: "Player (empty = automatic)", kind: "text", def: "" },
+            { key: "anim_enabled", label: "Track change animation", kind: "bool", def: true },
+            { key: "anim_style", label: "Animation style", kind: "choice", def: "slide", options: [["crossfade", "Crossfade"], ["slide", "Slide"], ["zoom", "Zoom"]] },
+            { key: "anim_duration", label: "Duration (ms)", kind: "range", def: 440, min: 200, max: 900, step: 10 },
+            { key: "anim_zoom", label: "Zoom strength", kind: "range", def: 0.06, min: 0, max: 0.2, step: 0.01 }
         ]
     },
     netmon: {
-        label: "Netzwerk", desc: "Download / Upload live, 60-s-Kurve, WLAN, Signal, Ping", glyph: "󰖩", size: [440, 250], file: "NetMonWidget.qml",
+        label: "Network", desc: "Live download / upload, 60 s curve, Wi-Fi, signal, ping", icon: "wifi", size: [440, 250], file: "NetMonWidget.qml",
         props: [
-            { key: "ping_target", label: "Ping-Ziel", kind: "text", def: "1.1.1.1" },
-            { key: "show_curve", label: "Kurve der letzten 60 s", kind: "bool", def: true }
+            { key: "ping_target", label: "Ping target", kind: "text", def: "1.1.1.1" },
+            { key: "show_curve", label: "Curve of the last 60 s", kind: "bool", def: true }
         ]
     },
     thermals: {
-        label: "Temperaturen & Lüfter", desc: "CPU, GPU, SSD und Lüfter aus hwmon", glyph: "󰔏", size: [440, 270], file: "ThermalsWidget.qml",
+        label: "Temperatures & fans", desc: "CPU, GPU, SSD and fans from hwmon", icon: "thermometer", size: [440, 270], file: "ThermalsWidget.qml",
         props: [
-            { key: "mode", label: "Darstellung", kind: "choice", def: "rings", options: [["rings", "Ringe"], ["bars", "Balken"]] },
-            { key: "warn_c", label: "Warnschwelle (°C)", kind: "int", def: 80, min: 30, max: 110, step: 1 },
-            { key: "show_fans", label: "Lüfter anzeigen", kind: "bool", def: true }
+            { key: "mode", label: "Display", kind: "choice", def: "rings", options: [["rings", "Rings"], ["bars", "Bars"]] },
+            { key: "warn_c", label: "Warning threshold (°C)", kind: "int", def: 80, min: 30, max: 110, step: 1 },
+            { key: "show_fans", label: "Show fans", kind: "bool", def: true }
         ]
     },
     sysstatus: {
-        label: "Uptime & Status", desc: "Laufzeit, Kernel und fehlgeschlagene systemd-Dienste", glyph: "󰔟", size: [380, 200], file: "SysStatusWidget.qml",
+        label: "Uptime & status", desc: "Uptime, kernel and failed systemd services", icon: "hourglass", size: [380, 200], file: "SysStatusWidget.qml",
         props: [
-            { key: "show_kernel", label: "Kernel-Version anzeigen", kind: "bool", def: true },
-            { key: "poll_s", label: "Abfrage (Sekunden)", kind: "int", def: 30, min: 5, max: 600, step: 5 }
+            { key: "show_kernel", label: "Show kernel version", kind: "bool", def: true },
+            { key: "poll_s", label: "Poll interval (seconds)", kind: "int", def: 30, min: 5, max: 600, step: 5 }
         ]
     },
     airquality: {
-        label: "Luftqualität", desc: "Europäischer AQI, PM2.5, PM10, Ozon (Open-Meteo)", glyph: "󰖕", size: [400, 230], file: "AirQualityWidget.qml",
+        label: "Air quality", desc: "European AQI, PM2.5, PM10, ozone (Open-Meteo)", icon: "leaf", size: [400, 230], file: "AirQualityWidget.qml",
         props: [
-            { key: "lat", label: "Breite (leer = Standort aus den Einstellungen)", kind: "text", def: "" },
-            { key: "lon", label: "Länge (leer = Standort aus den Einstellungen)", kind: "text", def: "" }
+            { key: "lat", label: "Latitude (empty = location from the settings)", kind: "text", def: "" },
+            { key: "lon", label: "Longitude (empty = location from the settings)", kind: "text", def: "" }
         ]
     },
     weather: {
-        label: "Wetter", desc: "Temperatur und Wetterlage, Liquid Glass mit Regen- und Schnee-Partikeln", glyph: "󰖐", size: [440, 200], file: "WeatherWidget.qml",
+        label: "Weather", desc: "Temperature and conditions, with rain and snow particles on Liquid Glass", icon: "cloud", size: [440, 200], file: "WeatherWidget.qml",
         props: [
-            { key: "show_details", label: "Details anzeigen", kind: "bool", def: true },
-            { key: "particles", label: "Wetter-Partikel (nur Liquid Glass)", kind: "bool", def: true },
-            { key: "particle_density", label: "Dichte der Partikel (max. 40 Tropfen)", kind: "range", def: 1.0, min: 0.1, max: 1.0, step: 0.05 },
-            { key: "debug_weather", label: "Test: Wetter erzwingen", kind: "choice", def: "auto", options: [["auto", "Echtes Wetter"], ["rain", "Regen"], ["snow", "Schnee"], ["off", "Trocken"]] }
+            { key: "show_details", label: "Show details", kind: "bool", def: true },
+            { key: "particles", label: "Weather particles (Liquid Glass only)", kind: "bool", def: true },
+            { key: "particle_density", label: "Particle density (max. 40 drops)", kind: "range", def: 1.0, min: 0.1, max: 1.0, step: 0.05 },
+            { key: "debug_weather", label: "Test: force weather", kind: "choice", def: "auto", options: [["auto", "Real weather"], ["rain", "Rain"], ["snow", "Snow"], ["off", "Dry"]] }
         ]
     },
     visualizer: {
-        label: "Musik-Visualizer", desc: "Audio-reaktive Balken (cava)", glyph: "▁▃▆", size: [460, 150], file: "VisualizerWidget.qml",
+        label: "Music visualizer", desc: "Audio-reactive bars (cava)", icon: "bars", size: [460, 150], file: "VisualizerWidget.qml",
         style: { bg_alpha: 0.45 },
         props: [
-            { key: "bars", label: "Anzahl Balken", kind: "int", def: 32, min: 6, max: 96, step: 1 },
-            { key: "mode", label: "Darstellung", kind: "choice", def: "bars", options: [["bars", "Balken"], ["mirror", "Gespiegelt"], ["line", "Linie"]] },
-            { key: "gradient", label: "Farbverlauf", kind: "bool", def: true },
-            { key: "color2", label: "Zweite Farbe (Verlauf)", kind: "color", def: "theme:secondary" },
-            { key: "gap", label: "Abstand", kind: "range", def: 0.35, min: 0.05, max: 0.8, step: 0.01 },
-            { key: "source", label: "Audioquelle (auto = Standard)", kind: "text", def: "auto" }
+            { key: "bars", label: "Number of bars", kind: "int", def: 32, min: 6, max: 96, step: 1 },
+            { key: "mode", label: "Display", kind: "choice", def: "bars", options: [["bars", "Bars"], ["mirror", "Mirrored"], ["line", "Line"]] },
+            { key: "gradient", label: "Gradient", kind: "bool", def: true },
+            { key: "color2", label: "Second colour (gradient)", kind: "color", def: "theme:secondary" },
+            { key: "gap", label: "Spacing", kind: "range", def: 0.35, min: 0.05, max: 0.8, step: 0.01 },
+            { key: "source", label: "Audio source (auto = default)", kind: "text", def: "auto" }
         ]
     }
 };

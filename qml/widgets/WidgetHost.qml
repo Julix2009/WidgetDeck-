@@ -52,6 +52,7 @@ GlassPanel {
     Binding { target: ld.item; property: "innerRadius"; value: host.innerRadius; when: ld.item !== null }
     // widgets that depend on config.json (location, units) re-fetch when it changes
     Binding { target: ld.item; property: "configRev"; value: host.store.configRev; when: ld.item !== null && ld.item.configRev !== undefined }
+    Binding { target: ld.item; property: "appConfig"; value: host.store.config; when: ld.item !== null && ld.item.appConfig !== undefined }
     // plugin widgets: every Material role as hex, so no colour codes are needed (property var palette)
     Binding { target: ld.item; property: "palette"; value: host.theme.palette_(); when: ld.item !== null && ld.item.palette !== undefined }
 }

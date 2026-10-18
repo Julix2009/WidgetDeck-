@@ -4,7 +4,7 @@ import QtQuick
 Text {
     property var wstyle: ({})
     color: wstyle.fg || "#f2f4f8"
-    font.family: wstyle.font || "Adwaita Sans"
+    font.family: Fonts.resolve(wstyle.font)
     font.pixelSize: wstyle.font_size || 16
     renderType: Text.QtRendering
     style: wstyle.mode === "liquid" ? Text.Raised : Text.Normal

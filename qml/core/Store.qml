@@ -19,12 +19,35 @@ Scope {
     property bool loaded: false
     property int geomRev: 0               // bumped by every change (rev AND geometry): position / size readers depend on this one
 
-    // ───────────── config.json: location, units, language ─────────────
-    // Shared with the data scripts (sysmon/*.sh read the same file). Edited in the builder: Settings -> Location & units.
-    //   { "location": { "auto": true, "lat": null, "lon": null, "name": "" }, "units": "auto|metric|imperial", "language": "auto|de|en" }
-    property var config: ({ location: { auto: true, lat: null, lon: null, name: "" }, units: "auto", language: "auto" })
+    // ───────────── config.json: setup, location, units, language, modules, update ─────────────
+    // Shared with the data scripts (sysmon/*.sh read the same file). Edited in the builder (Settings) and by the first-run assistant.
+    //   { "setup": {"done": false}, "location": { "auto": true, "lat": null, "lon": null, "name": "" }, "units": "auto|metric|imperial",
+    //     "time_format": "auto|24h|12h", "language": "auto|en|de", "modules": { "widgets": true, "builder": true, "bar": false, "notifications": false },
+    //     "update": { "check": true, "channel": "main" } }
+    readonly property var configDefaults: ({
+        setup: { done: false },
+        location: { auto: true, lat: null, lon: null, name: "" },
+        units: "auto", time_format: "auto", language: "auto",
+        modules: { widgets: true, builder: true, bar: false, notifications: false },
+        update: { check: true, channel: "main" }
+    })
+    property var config: JSON.parse(JSON.stringify(configDefaults))
     property int configRev: 0                 // bumped AFTER the file was written / read: widgets that depend on it fetch again
+    property bool configLoaded: false
     property string clast: ""
+    function mergeDefaults(def, o) {          // deep: the user's values win, missing keys come from the defaults
+        var r = Array.isArray(def) ? def.slice() : Object.assign({}, def);
+        for (var k in o) {
+            if (def[k] !== null && typeof def[k] === "object" && !Array.isArray(def[k]) && o[k] !== null && typeof o[k] === "object") r[k] = mergeDefaults(def[k], o[k]);
+            else r[k] = o[k];
+        }
+        return r;
+    }
+    function cget(key, fallback) {            // key like "modules.bar"
+        var p = key.split("."), o = config;
+        for (var i = 0; i < p.length; i++) { if (o === null || typeof o !== "object" || o[p[i]] === undefined) return fallback; o = o[p[i]]; }
+        return o === null ? fallback : o;
+    }
     function setConfig(key, value) {          // key like "location.lat"
         var c = JSON.parse(JSON.stringify(config)), p = key.split("."), o = c;
         for (var i = 0; i < p.length - 1; i++) { if (typeof o[p[i]] !== "object" || o[p[i]] === null) o[p[i]] = {}; o = o[p[i]]; }
@@ -40,8 +63,10 @@ Scope {
         onLoaded: {
             var t = text();
             if (t === root.clast) return;                       // our own save echoing back
-            try { var o = JSON.parse(t); if (o && typeof o === "object") { root.config = Object.assign({ location: { auto: true } }, o); root.configRev++; } } catch (e) { }
+            try { var o = JSON.parse(t); if (o && typeof o === "object") { root.config = root.mergeDefaults(root.configDefaults, o); root.configRev++; } } catch (e) { }
+            root.configLoaded = true;
         }
+        onLoadFailed: error => { root.configLoaded = true; }
         onFileChanged: reload()
     }
     Timer {
@@ -117,6 +142,25 @@ Scope {
         data = Object.assign({}, data, { widgets: defaultLayout().widgets });
         widgetIds = data.widgets.map(function (w) { return w.id; });
         rev++; geomRev++;
+        saveNow();
+    }
+
+    // first-run assistant: replaces the layout with the chosen widget types, flowing in columns over the usable area
+    function setupLayout(types, scale, mode) {
+        var c = grid.cell, a = areaRect(), x = a.x + 4 * c, top = a.y + 3 * c, y = top, colW = 0, list = [];
+        for (var i = 0; i < types.length; i++) {
+            var ti = allTypes[types[i]]; if (!ti) continue;
+            var w = SE.gridCeil(ti.size[0] * scale, c), h = SE.gridCeil(ti.size[1] * scale, c);
+            if (colW > 0 && y + h > a.y + a.h - c) { x += colW + 2 * c; y = top; colW = 0; }
+            var st = Object.assign({ mode: mode }, D.MODE_PRESETS[mode] || {});
+            if (scale !== 1) st.font_size = Math.round(16 * scale);
+            list.push({ id: uid(types[i]), type: types[i], x: x, y: y, w: w, h: h, style: st, props: {} });
+            y += h + 2 * c; colW = Math.max(colW, w);
+        }
+        data = Object.assign({}, data, { widgets: list });
+        widgetIds = list.map(function (w) { return w.id; });
+        rev++; geomRev++;
+        clampAll();
         saveNow();
     }
 

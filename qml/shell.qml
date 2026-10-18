@@ -8,6 +8,8 @@ import Quickshell.Wayland
 import "core"
 import "widgets"
 import "builder"
+import "modules"
+import "wizard"
 
 ShellRoot {
     id: shell
@@ -18,34 +20,56 @@ ShellRoot {
     UpdateCheck { id: theUpdate; store: theStore }
     Wallpaper { id: theWall; override: theStore.data.wallpaperPath || "" }
 
+    // the monitor the widgets live on: the chosen one (builder.json / assistant), else the one at the origin of the layout, else the first
     readonly property var screenObj: {
         var s = Quickshell.screens, want = theStore.data.monitor;
         for (var i = 0; i < s.length; i++) if (s[i].name === want) return s[i];
+        for (var j = 0; j < s.length; j++) if (s[j].x === 0 && s[j].y === 0) return s[j];
         return s.length > 0 ? s[0] : null;
     }
+    // modules (config.json "modules"): widgets + builder on by default, bar + notifications off
+    readonly property bool modWidgets: theStore.cget("modules.widgets", true)
+    readonly property bool modBuilder: theStore.cget("modules.builder", true)
+    readonly property bool modBar: theStore.configLoaded && theStore.cget("modules.bar", false)
+    readonly property bool modNotify: theStore.configLoaded && theStore.cget("modules.notifications", false)
     readonly property size screenSize: screenObj ? Qt.size(screenObj.width, screenObj.height) : Qt.size(2560, 1600)
 
     // ───────────── desktop widgets: one layer-shell surface per widget, BELOW all windows ─────────────
     // frosted and liquid widgets live in different namespaces (see DesktopWidget.qml)
-    readonly property var frostedIds: { theStore.rev; return theStore.widgetIds.filter(function (id) { return theStore.styleOf(id).mode !== "liquid" || !theBackend.ready; }); }
-    readonly property var liquidIds: { theStore.rev; return theStore.widgetIds.filter(function (id) { return theStore.styleOf(id).mode === "liquid" && theBackend.ready; }); }
+    // Liquid Glass needs the shader AND a wallpaper picture to refract; otherwise every widget is drawn Frosted
+    readonly property bool liquidOk: theBackend.ready && theWall.usable
+    readonly property var frostedIds: { theStore.rev; return theStore.widgetIds.filter(function (id) { return theStore.styleOf(id).mode !== "liquid" || !shell.liquidOk; }); }
+    readonly property var liquidIds: { theStore.rev; return theStore.widgetIds.filter(function (id) { return theStore.styleOf(id).mode === "liquid" && shell.liquidOk; }); }
 
     Variants {
-        model: (theStore.loaded && shell.screenObj) ? shell.frostedIds : []
+        model: (theStore.loaded && shell.screenObj && shell.modWidgets) ? shell.frostedIds : []
         DesktopWidget { required property string modelData; wid: modelData; ns: "widgetdeck"
             store: theStore; theme: theTheme; backend: theBackend; wall: theWall; screenObj: shell.screenObj; screenSize: shell.screenSize }
     }
     Variants {
-        model: (theStore.loaded && shell.screenObj) ? shell.liquidIds : []
+        model: (theStore.loaded && shell.screenObj && shell.modWidgets) ? shell.liquidIds : []
         DesktopWidget { required property string modelData; wid: modelData; ns: "widgetdeck-liquid"
             store: theStore; theme: theTheme; backend: theBackend; wall: theWall; screenObj: shell.screenObj; screenSize: shell.screenSize }
     }
 
+    Binding { target: I18n; property: "setting"; value: theStore.cget("language", "auto") }
+
+    Wizard { id: setupWizard; store: theStore; theme: theTheme; wall: theWall; liquidOk: shell.liquidOk; shaderOk: theBackend.ready }
+
     Builder {
         id: builderWin
         store: theStore; theme: theTheme; backend: theBackend; wall: theWall; update: theUpdate
+        screenName: shell.screenObj ? shell.screenObj.name : ""
         screenSize: shell.screenSize
     }
+
+    // ───────────── optional modules ─────────────
+    LazyLoader { id: barLoader; active: shell.modBar
+        Bar { theme: theTheme; store: theStore; onPowerRequested: powerLoader.item && powerLoader.item.toggle() } }
+    LazyLoader { id: notifyLoader; active: shell.modNotify
+        Notifications { theme: theTheme } }
+    LazyLoader { id: powerLoader; active: shell.modBar || shell.modNotify
+        PowerPanel { theme: theTheme } }
 
     // ───────────── usable area of the monitor (for the snap grid) ─────────────
     // = the monitor minus the zones other layer-shell surfaces reserve (the top bar), from hyprctl. Logical px of THIS monitor,
@@ -95,9 +119,22 @@ ShellRoot {
 
     IpcHandler {
         target: "widgetdeck"
-        function openBuilder(): void { builderWin.visible = true; }
+        function openBuilder(): void { if (shell.modBuilder) builderWin.visible = true; }
         function closeBuilder(): void { builderWin.visible = false; }
-        function toggleBuilder(): void { builderWin.visible = !builderWin.visible; }
+        function toggleBuilder(): void { if (shell.modBuilder) builderWin.visible = !builderWin.visible; else builderWin.visible = false; }
+        // modules: ipc call widgetdeck setModule bar on   (names: widgets builder bar notifications)
+        function setModule(name: string, state: string): string {
+            if (["widgets", "builder", "bar", "notifications"].indexOf(name) < 0) return "unknown module " + name;
+            if (state === "on" || state === "off") theStore.setConfig("modules." + name, state === "on");
+            return name + "=" + theStore.cget("modules." + name, false);
+        }
+        function powerPanel(): string { if (powerLoader.item) { powerLoader.item.toggle(); return "ok"; } return "disabled: enable the bar or notifications module"; }
+        function dismissNotifications(): string { if (notifyLoader.item) { notifyLoader.item.dismissAll(); return "ok"; } return "disabled"; }
+        function toggleDnd(): string { if (notifyLoader.item) { notifyLoader.item.dnd = !notifyLoader.item.dnd; return notifyLoader.item.dnd ? "dnd on" : "dnd off"; } return "disabled"; }
+        function wizard(): void { theStore.setConfig("setup.done", false); }
+        function wizardStep(n: int): void { setupWizard.step = n; }
+        function wizardPick(key: string, value: string): void { var o = {}; o[key] = value; setupWizard.apply(o); }
+        function version(): string { return theUpdate.version; }
         function reloadWallpaper(): void { theWall.refresh(); }
         function ping(): string { return "pong"; }
         // automation: qs -p ~/widgetdeck/qml ipc call widgetdeck <fn> ...

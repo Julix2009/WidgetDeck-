@@ -35,7 +35,7 @@ Item {
         visible: !pp.c
         width: parent.width - 8
         wrapMode: Text.WordWrap
-        text: "Wähle ein Widget auf der Fläche aus oder füge links eins hinzu."
+        text: I18n.tr("Select a widget on the stage or add one on the left.")
         color: th.dim; font.family: th.font; font.pixelSize: 13
     }
 
@@ -55,23 +55,23 @@ Item {
             // header
             Item {
                 width: parent.width; height: 36
-                Text { anchors.verticalCenter: parent.verticalCenter; text: pp.tinfo ? pp.tinfo.label : ""; color: th.fg; font.family: th.font; font.pixelSize: 16; font.bold: true }
+                Text { anchors.verticalCenter: parent.verticalCenter; text: pp.tinfo ? I18n.tr(pp.tinfo.label) : ""; color: th.fg; font.family: th.font; font.pixelSize: 16; font.bold: true }
                 Row {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 6
-                    GButton { th: pp.th; label: "Kopie"; onClicked: pp.duplicateRequested() }
-                    GButton { th: pp.th; label: "Löschen"; danger: true; onClicked: pp.removeRequested() }
+                    GButton { th: pp.th; label: I18n.tr("Duplicate"); onClicked: pp.duplicateRequested() }
+                    GButton { th: pp.th; label: I18n.tr("Delete"); danger: true; onClicked: pp.removeRequested() }
                 }
             }
 
-            Text { text: "POSITION & GRÖSSE"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
+            Text { text: I18n.tr("POSITION & SIZE"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
             Grid {
                 columns: 2; columnSpacing: 8; rowSpacing: 0; width: parent.width
                 Repeater {
-                    model: [["x", "X", 0, 8000], ["y", "Y", 0, 8000], ["w", "Breite", 80, 4000], ["h", "Höhe", 50, 4000]]
+                    model: [["x", "X", 0, 8000], ["y", "Y", 0, 8000], ["w", I18n.tr("Width"), 80, 4000], ["h", I18n.tr("Height"), 50, 4000]]
                     delegate: GSpin {
                         required property var modelData
                         th: pp.th; width: (col.width - 8) / 2
-                        label: modelData[1]; from: modelData[2]; to: modelData[3]
+                        label: I18n.tr(modelData[1]); from: modelData[2]; to: modelData[3]
                         value: pp.c ? pp.c[modelData[0]] : 0
                         onMoved: v => { var p = {}; p[modelData[0]] = v; pp.store.setGeom(pp.sel, p); }
                     }
@@ -80,20 +80,20 @@ Item {
 
             Text { text: "GLAS"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
             GChoice {
-                width: parent.width; th: pp.th; label: "Glas-Stil"; options: D.MODES; value: pp.st ? pp.st.mode : "frosted"
+                width: parent.width; th: pp.th; label: I18n.tr("Glass style"); options: D.MODES; value: pp.st ? pp.st.mode : "frosted"
                 onPicked: v => pp.store.setStyle(pp.sel, "mode", v)
             }
             Item {
                 visible: pp.st && pp.st.mode === "liquid"
                 width: parent.width; height: visible ? 62 : 0
-                Text { text: "Preset"; color: th.dim; font.family: th.font; font.pixelSize: 12 }
+                Text { text: I18n.tr("Preset"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
                 Row {
                     y: 20; spacing: 6; width: parent.width
                     Repeater {
                         model: Object.keys(D.LIQUID_PRESETS)
                         delegate: GButton {
                             required property string modelData
-                            th: pp.th; label: modelData; width: (col.width - 12) / 3
+                            th: pp.th; label: I18n.tr(modelData); width: (col.width - 12) / 3
                             onClicked: pp.store.applyStyle(pp.sel, D.LIQUID_PRESETS[modelData])
                         }
                     }
@@ -109,7 +109,7 @@ Item {
                 }
             }
 
-            Text { visible: pp.tinfo && pp.tinfo.props.length > 0; text: pp.tinfo ? pp.tinfo.label.toUpperCase() : ""; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 6 }
+            Text { visible: pp.tinfo && pp.tinfo.props.length > 0; text: pp.tinfo ? I18n.tr(pp.tinfo.label).toUpperCase() : ""; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 6 }
             Repeater {
                 model: pp.tinfo ? pp.tinfo.props : []
                 delegate: Loader {
@@ -143,19 +143,19 @@ Item {
             }
         }
     }
-    Component { id: cSlider; GSlider { th: pp.th; label: ed.p.label; from: ed.p.min; to: ed.p.max; step: ed.p.step; value: Number(ed.val); onMoved: v => ed.set(v) } }
-    Component { id: cSpin; GSpin { th: pp.th; label: ed.p.label; from: ed.p.min; to: ed.p.max; step: ed.p.step || 1; value: Number(ed.val); onMoved: v => ed.set(v) } }
-    Component { id: cSwitch; GSwitch { th: pp.th; label: ed.p.label; checked: !!ed.val; onToggled: v => ed.set(v) } }
-    Component { id: cChoice; GChoice { th: pp.th; label: ed.p.label; options: ed.p.options; value: String(ed.val); onPicked: v => ed.set(v) } }
-    Component { id: cColor; GThemeColor { th: pp.th; label: ed.p.label; value: String(ed.val); defRole: String(ed.p.def).indexOf("theme:") === 0 ? String(ed.p.def).substring(6) : "primary"; onPicked: v => ed.set(v) } }
-    Component { id: cText; GField { th: pp.th; label: ed.p.label; value: ed.val === undefined ? "" : String(ed.val); onEdited: v => ed.set(v) } }
+    Component { id: cSlider; GSlider { th: pp.th; label: I18n.tr(ed.p.label); from: ed.p.min; to: ed.p.max; step: ed.p.step; value: Number(ed.val); onMoved: v => ed.set(v) } }
+    Component { id: cSpin; GSpin { th: pp.th; label: I18n.tr(ed.p.label); from: ed.p.min; to: ed.p.max; step: ed.p.step || 1; value: Number(ed.val); onMoved: v => ed.set(v) } }
+    Component { id: cSwitch; GSwitch { th: pp.th; label: I18n.tr(ed.p.label); checked: !!ed.val; onToggled: v => ed.set(v) } }
+    Component { id: cChoice; GChoice { th: pp.th; label: I18n.tr(ed.p.label); options: ed.p.options; value: String(ed.val); onPicked: v => ed.set(v) } }
+    Component { id: cColor; GThemeColor { th: pp.th; label: I18n.tr(ed.p.label); value: String(ed.val); defRole: String(ed.p.def).indexOf("theme:") === 0 ? String(ed.p.def).substring(6) : "primary"; onPicked: v => ed.set(v) } }
+    Component { id: cText; GField { th: pp.th; label: I18n.tr(ed.p.label); value: ed.val === undefined ? "" : String(ed.val); onEdited: v => ed.set(v) } }
     Component {
         id: cFont
         Item {
             implicitHeight: 52
-            Text { text: ed.p.label; color: pp.th.dim; font.family: pp.th.font; font.pixelSize: 12 }
+            Text { text: I18n.tr(ed.p.label); color: pp.th.dim; font.family: pp.th.font; font.pixelSize: 12 }
             GButton {
-                y: 18; width: parent.width; th: pp.th; label: String(ed.val)
+                y: 18; width: parent.width; th: pp.th; label: ed.val ? String(ed.val) : I18n.tr("System default")
                 onClicked: pp.th.pickList(this, Qt.fontFamilies().map(function (f) { return [f, f]; }), String(ed.val), function (v) { ed.set(v); })
             }
         }

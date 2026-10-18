@@ -43,8 +43,8 @@ Scope {
                     var o = JSON.parse(text.trim());
                     root.version = o.version || root.version; root.state = o.state || ""; root.latest = o.latest || ""; root.notes = o.notes || ""; root.updater = o.updater || "";
                 } catch (e) { root.state = "unknown"; }
-                if (root.manual) root.message = root.state === "available" ? "" : root.state === "current" ? "Du hast die neueste Version."
-                    : root.state === "disabled" ? "Die Prüfung ist abgeschaltet." : "Prüfung nicht möglich (kein Netz oder kein Zugriff auf das Repository).";
+                if (root.manual) root.message = root.state === "available" ? "" : root.state === "current" ? I18n.tr("You have the latest version.")
+                    : root.state === "disabled" ? I18n.tr("The check is switched off.") : I18n.tr("Check not possible (no network, or no access to the repository).");
                 root.busy = false; root.manual = false;
             }
         }

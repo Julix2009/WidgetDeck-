@@ -43,7 +43,7 @@ Item {
     readonly property var bdTexture: backdropLoader.item ? backdropLoader.item.blurred : null
     readonly property size bdSize: backdropLoader.item ? Qt.size(backdropLoader.item.outW, backdropLoader.item.outH) : Qt.size(1, 1)
 
-    readonly property bool liquid: style.mode === "liquid" && backend.ready
+    readonly property bool liquid: style.mode === "liquid" && backend.ready && wall.usable
     readonly property bool panelReady: !liquid || (backdropLoader.item !== null && backdropLoader.item.ready)
     // The glass is a SHAPE: its size animates (gw/gh), the backdrop texture stays glued to the screen. Nothing here is
     // scaled as a bitmap. The shader item has a fixed size (panel + growRoom), the glass is centred inside it.

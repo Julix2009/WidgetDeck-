@@ -29,18 +29,18 @@ Item {
     // European AQI bands (EEA): 0-20 good, 20-40 fair, 40-60 moderate, 60-80 poor, 80-100 very poor, >100 extremely poor.
     // Colours come from the theme (accent family .. error), the traffic-light dot is all that carries them.
     readonly property var bands: [
-        { max: 20,  text: "Gut",             col: palette.primary || cAcc },
-        { max: 40,  text: "Annehmbar",       col: palette.secondary || cAcc },
-        { max: 60,  text: "Mäßig",           col: palette.tertiary || cAcc },
-        { max: 80,  text: "Schlecht",        col: cErr },
-        { max: 100, text: "Sehr schlecht",   col: cErr },
-        { max: 1e9, text: "Extrem schlecht", col: cErr }
+        { max: 20,  text: I18n.tr("Good"),             col: palette.primary || cAcc },
+        { max: 40,  text: I18n.tr("Fair"),       col: palette.secondary || cAcc },
+        { max: 60,  text: I18n.tr("Moderate"),           col: palette.tertiary || cAcc },
+        { max: 80,  text: I18n.tr("Poor"),        col: cErr },
+        { max: 100, text: I18n.tr("Very poor"),   col: cErr },
+        { max: 1e9, text: I18n.tr("Extremely poor"), col: cErr }
     ]
     readonly property int level: { for (var i = 0; i < bands.length; i++) if (aqi <= bands[i].max) return i; return bands.length - 1; }
     readonly property color levelColor: bands[level].col
 
     function clock(iso) { return iso ? String(iso).substring(11, 16) : ""; }
-    function ago(sec) { return sec < 90 ? "gerade eben" : sec < 5400 ? "vor " + Math.round(sec / 60) + " Min" : "vor " + Math.round(sec / 3600) + " Std"; }
+    function ago(sec) { return sec < 90 ? I18n.tr("just now") : sec < 5400 ? I18n.trf("%1 min ago", Math.round(sec / 60)) : I18n.trf("%1 h ago", Math.round(sec / 3600)); }
 
     Process {
         id: poll
@@ -73,7 +73,7 @@ Item {
                 Rectangle { anchors.verticalCenter: parent.verticalCenter; width: w.s(13); height: width; radius: width / 2; color: w.levelColor }
                 GText { anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.5; text: w.bands[w.level].text }
             }
-            GText { wstyle: w.style; opacity: 0.6; font.bold: true; font.pixelSize: w.fs * 0.68; text: "EUROPÄISCHER AQI" + (w.d.place ? "   ·   " + w.d.place : "") }
+            GText { wstyle: w.style; opacity: 0.6; font.bold: true; font.pixelSize: w.fs * 0.68; text: I18n.tr("EUROPEAN AQI") + (w.d.place ? "   ·   " + w.d.place : "") }
         }
         GText {
             width: parent.width * 0.38; height: parent.height
@@ -111,7 +111,7 @@ Item {
             model: [
                 { k: "PM2.5", v: w.d.pm25, max: 25 },
                 { k: "PM10",  v: w.d.pm10, max: 50 },
-                { k: "Ozon",  v: w.d.o3,   max: 120 }
+                { k: I18n.tr("Ozone"),  v: w.d.o3,   max: 120 }
             ]
             delegate: Item {
                 width: parent.width; height: w.s(18)
@@ -134,12 +134,12 @@ Item {
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
         visible: w.has; elide: Text.ElideRight; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.68
         opacity: w.d.stale ? 1 : 0.6; color: w.d.stale ? w.cErr : w.style.fg
-        text: (w.d.stale ? "Offline – letzter Wert von " : "Stand ") + w.clock(w.d.time) + (w.d.stale ? " (" + w.ago(w.d.age) + ")" : "") + "  ·  Open-Meteo"
+        text: (w.d.stale ? I18n.tr("Offline - last value from") + " " : I18n.tr("As of") + " ") + w.clock(w.d.time) + (w.d.stale ? " (" + w.ago(w.d.age) + ")" : "") + "  ·  Open-Meteo"
     }
     Column {
         anchors.centerIn: parent
         visible: !w.has; spacing: w.s(4)
-        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.3; text: w.d.error === "offline" ? "Offline" : (w.d.error === "no-location" ? "Kein Standort" : "Lade …") }
-        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.75; text: w.d.error === "no-location" ? "Builder → Einstellungen → Standort & Einheiten" : "" }
+        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.3; text: w.d.error === "offline" ? I18n.tr("Offline") : (w.d.error === "no-location" ? I18n.tr("No location") : I18n.tr("Loading …")) }
+        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.75; text: w.d.error === "no-location" ? I18n.tr("Builder → Settings → Location & units") : "" }
     }
 }

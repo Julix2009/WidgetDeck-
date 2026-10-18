@@ -53,8 +53,8 @@ Item {
     }
 
     // ───────────── track state -> transitions ─────────────
-    readonly property string titleText: player ? (player.trackTitle || "Unbekannter Titel") : "Nichts läuft"
-    readonly property string artistText: player ? player.trackArtist : "Kein Player aktiv"
+    readonly property string titleText: player ? (player.trackTitle || I18n.tr("Unknown title")) : I18n.tr("Nothing is playing")
+    readonly property string artistText: player ? player.trackArtist : I18n.tr("No player active")
     readonly property string artText: player ? String(player.trackArtUrl || "") : ""
     readonly property string trackKey: (player ? player.dbusName : "none") + "|" + titleText + "|" + artistText + "|" + artText
     property bool started: false
@@ -129,14 +129,14 @@ Item {
             SwapText {
                 id: titleT
                 width: parent.width
-                family: w.style.font || "Adwaita Sans"; pixelSize: w.style.font_size * 1.2; bold: true; color: w.style.fg
+                family: Fonts.resolve(w.style.font); pixelSize: w.style.font_size * 1.2; bold: true; color: w.style.fg
                 stagger: 0
                 animate: w.animOn; dur: w.animDur; started: w.started
             }
             SwapText {
                 id: artistT
                 width: parent.width
-                family: w.style.font || "Adwaita Sans"; pixelSize: w.style.font_size; color: w.style.fg; textOpacity: 0.62
+                family: Fonts.resolve(w.style.font); pixelSize: w.style.font_size; color: w.style.fg; textOpacity: 0.62
                 stagger: 70
                 animate: w.animOn; dur: w.animDur; started: w.started
             }

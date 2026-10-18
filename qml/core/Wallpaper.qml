@@ -1,4 +1,5 @@
-// Finds the current wallpaper file: override path -> awww / swww -> hyprpaper -> swaybg.
+// Finds the current wallpaper file: manual path (settings) -> awww / swww -> hyprpaper -> swaybg -> wpaperd (core/wallpaper.sh).
+// Liquid Glass needs the file (it refracts the picture), so `usable` tells the shell whether Liquid may be used at all.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -8,32 +9,41 @@ Scope {
     property string override: ""          // "wallpaperPath" from widgets.json
     property bool wanted: true            // poll only while something needs it
     property string detected: ""
-    readonly property string path: override !== "" ? override : detected
+    property string tool: ""              // which tool the detection found it in (empty = manual / none)
+    property bool overrideExists: false
+    readonly property string path: override !== "" ? expand(override) : detected
     readonly property url url: fileUrl(path)
+    // a picture exists: nothing found / a manual path that does not exist means "no wallpaper" -> Liquid falls back to Frosted
+    readonly property bool usable: override !== "" ? overrideExists : detected !== ""
+    readonly property string script: decodeURIComponent(Qt.resolvedUrl("wallpaper.sh").toString().replace("file://", ""))
 
+    function expand(p) { return p.indexOf("~/") === 0 ? Quickshell.env("HOME") + p.substring(1) : p; }
     function fileUrl(p) {
         if (!p) return "";
-        if (p.indexOf("~/") === 0) p = Quickshell.env("HOME") + p.substring(1);
         if (p.indexOf("file://") === 0) return p;
         return "file://" + encodeURI(p).replace(/#/g, "%23").replace(/\?/g, "%3F");
     }
-    function refresh() { if (!proc.running) proc.running = true; }
+    function refresh() { if (!proc.running) proc.running = true; if (override !== "" && !chk.running) chk.running = true; }
     Component.onCompleted: if (wanted) refresh()
     onWantedChanged: if (wanted) refresh()
-    onPathChanged: console.log("[widgetdeck-wallpaper]", path === "" ? "(none found)" : path)
+    onOverrideChanged: { overrideExists = false; if (wanted) refresh(); }
+    onPathChanged: console.log("[widgetdeck-wallpaper]", path === "" ? "(none found)" : (tool !== "" && override === "" ? tool + ": " : "") + path)
 
     Process {
         id: proc
-        command: ["sh", "-c",
-            "p=$(awww query 2>/dev/null | sed -n 's/.*image: //p' | head -n1)\n"
-            + "[ -z \"$p\" ] && p=$(swww query 2>/dev/null | sed -n 's/.*image: //p' | head -n1)\n"
-            + "[ -z \"$p\" ] && p=$(hyprctl hyprpaper listactive 2>/dev/null | head -n1 | sed 's/.*= //')\n"
-            + "if [ -z \"$p\" ]; then f=\"$HOME/.config/hypr/hyprpaper.conf\"\n"
-            + "  [ -f \"$f\" ] && p=$(grep -E '^[[:space:]]*(path|wallpaper)[[:space:]]*=' \"$f\" | head -n1 | sed -E 's/^[^=]*=[[:space:]]*//; s/^[^,\\/]*,//')\n"
-            + "fi\n"
-            + "[ -z \"$p\" ] && p=$(pgrep -a swaybg 2>/dev/null | sed -n 's/.* -i \\([^ ]*\\).*/\\1/p' | head -n1)\n"
-            + "printf '%s' \"$p\" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'"]
-        stdout: StdioCollector { onStreamFinished: root.detected = text.trim() }
+        command: ["bash", root.script, "--verbose"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var t = text.trim(), i = t.indexOf("\t");
+                root.tool = i > 0 ? t.substring(0, i) : "";
+                root.detected = i > 0 ? t.substring(i + 1) : "";
+            }
+        }
+    }
+    Process {
+        id: chk
+        command: ["test", "-f", root.path]
+        onExited: (code, status) => root.overrideExists = code === 0
     }
     Timer { interval: 5000; repeat: true; running: root.wanted && root.override === ""; onTriggered: root.refresh() }
 }
