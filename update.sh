@@ -167,6 +167,7 @@ main() {
             [ -n "$bak" ] && [ -d "$bak" ] && { rm -rf "$CONF_DIR"; cp -a "$bak" "$CONF_DIR"; state_set CONFIG_BACKUP ""; }
             run_install || warn "Auch die Wiederherstellung hatte Probleme - siehe $LOG_FILE"
         fi
+        state_set PREV_REV ""; state_set PREV_VERSION ""
         [ "$was_running" = 1 ] && restart_shell
         die "Update fehlgeschlagen; die alte Version ist wieder eingespielt. Details: $LOG_FILE"
     fi

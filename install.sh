@@ -103,7 +103,8 @@ check_system() {
         qt="$(ver_of "$(pacman -Q qt6-declarative | cut -d' ' -f2)")"
         if [ -n "$qt" ] && [ "$(vercmp "$qt" 6.7.0)" = -1 ]; then warn "Qt $qt ist älter als 6.7: der Weichzeichner und die Pfad-Renderer brauchen 6.7+."; else ok "Qt (qt6-declarative) $qt"; fi
     fi
-    # other bars / widget tools / notification daemons: only a hint, nothing is stopped
+    # other bars / widget tools / notification daemons: only a hint, nothing is stopped (not repeated on updates)
+    [ "$UPDATE_MODE" = 1 ] && return 0
     local c found=()
     for c in waybar eww ags astal-shell conky dunst mako swaync; do
         if pgrep -x "$c" >/dev/null 2>&1 || pacman -Q "$c" >/dev/null 2>&1; then found+=("$c"); fi
@@ -139,7 +140,7 @@ install_files() {
     ok "Starter: $BIN_DEST"
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-update" "$UPD_DEST"
     ok "Update-Befehl: $UPD_DEST   (holt später neue Versionen)"
-    case ":$PATH:" in *":$BIN_DIR:"*) ;; *) warn "$BIN_DIR ist nicht in deinem PATH. Füge es in deine Shell-Config ein (z. B. export PATH=\"\$HOME/.local/bin:\$PATH\")." ;; esac
+    case ":$PATH:" in *":$BIN_DIR:"*) ;; *) [ "$UPDATE_MODE" = 1 ] || warn "$BIN_DIR ist nicht in deinem PATH. Füge es in deine Shell-Config ein (z. B. export PATH=\"\$HOME/.local/bin:\$PATH\")." ;; esac
     state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set UPD_DEST "$UPD_DEST"; state_set VERSION "$VERSION"
 
     # your settings: created only where nothing exists yet
@@ -162,7 +163,7 @@ install_files() {
             jq --arg ch "$CHANNEL" '.update.channel = $ch' "$CONF_DIR/config.json" > "$t" && mv "$t" "$CONF_DIR/config.json" && ok "Update-Kanal: $CHANNEL"
         fi
     fi
-    if [ "$DRY_RUN" = 0 ]; then migrate_run || die "Migration fehlgeschlagen; deine Einstellungen wurden aus dem Backup zurückgespielt. Programmdateien sind bereits ersetzt - ./update.sh --rollback stellt die alte Version her."; else migrate_run; fi
+    if [ "$DRY_RUN" = 0 ]; then migrate_run || die "Migration fehlgeschlagen; deine Einstellungen wurden aus dem Backup zurückgespielt. Die Programmdateien sind schon ersetzt: widgetdeck-update stellt sie automatisch zurück; sonst: ./update.sh --rollback."; else migrate_run; fi
 }
 
 # ---------------------------------------------------------------- shaders
