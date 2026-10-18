@@ -138,7 +138,9 @@ say ""; say "  Geänderte Dateien seit ${LAST:-dem Anfang}:"
 if [ -n "$LAST" ]; then git diff --stat "$LAST" HEAD | tail -n 15 | sed 's/^/   /'; else git ls-files | wc -l | sed 's/^/    (erstes Release) Dateien: /'; fi
 
 if [ "$DRY_RUN" = 1 ]; then
-    say ""; say "  [dry-run] würde: VERSION auf $NEW setzen, CHANGELOG ergänzen, committen ('Release v$NEW'), Tag v$NEW setzen und 'git push --atomic $REMOTE $BRANCH v$NEW' ausführen."
+    say ""
+    if [ "$KIND" = current ]; then say "  [dry-run] würde: Tag v$NEW setzen und 'git push --atomic $REMOTE $BRANCH v$NEW' ausführen."
+    else say "  [dry-run] würde: VERSION auf $NEW setzen, CHANGELOG ergänzen, committen ('Release v$NEW'), Tag v$NEW setzen und 'git push --atomic $REMOTE $BRANCH v$NEW' ausführen."; fi
     say "  [dry-run] Es wurde nichts verändert."
     exit 0
 fi
