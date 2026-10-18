@@ -15,6 +15,7 @@ ShellRoot {
     Store { id: theStore }
     ThemeStore { id: theTheme; store: theStore }
     GlassBackend { id: theBackend }
+    UpdateCheck { id: theUpdate; store: theStore }
     Wallpaper { id: theWall; override: theStore.data.wallpaperPath || "" }
 
     readonly property var screenObj: {
@@ -42,7 +43,7 @@ ShellRoot {
 
     Builder {
         id: builderWin
-        store: theStore; theme: theTheme; backend: theBackend; wall: theWall
+        store: theStore; theme: theTheme; backend: theBackend; wall: theWall; update: theUpdate
         screenSize: shell.screenSize
     }
 

@@ -1,0 +1,46 @@
+#!/bin/sh
+# widgetdeck-update - fetches and installs a new WidgetDeck version (thin launcher for update.sh of your clone).
+#   widgetdeck-update [--yes] [--dry-run] [--channel main|stable] [--version vX.Y.Z] [--rollback]
+#   widgetdeck-update --terminal     (used by the settings button: runs the update inside a terminal window)
+# Finds the clone from ~/.config/quickshell/widgetdeck/SOURCE; if the clone is gone it clones the repository again.
+
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+SRC_FILE="$CFG/quickshell/widgetdeck/SOURCE"
+[ -n "${WIDGETDECK_QML:-}" ] && SRC_FILE="$WIDGETDECK_QML/SOURCE"
+
+read_src() { [ -f "$SRC_FILE" ] && sed -n "s/^$1=//p" "$SRC_FILE" | head -n1; }
+REPO="$(read_src repo)"; URL="$(read_src url)"
+
+# --terminal: reopen ourselves inside a terminal emulator (the button in the settings has no tty)
+if [ "$1" = "--terminal" ]; then
+    shift
+    self="$0"
+    for t in "${TERMINAL:-}" kitty alacritty foot wezterm ghostty konsole gnome-terminal xfce4-terminal xterm; do
+        [ -n "$t" ] && command -v "$t" >/dev/null 2>&1 || continue
+        case "$t" in
+            gnome-terminal|xfce4-terminal) exec "$t" -- sh -c '"$0" "$@"; printf "\n[Enter zum Schliessen] "; read -r _' "$self" "$@" ;;
+            wezterm) exec "$t" start -- sh -c '"$0" "$@"; printf "\n[Enter zum Schliessen] "; read -r _' "$self" "$@" ;;
+            *) exec "$t" -e sh -c '"$0" "$@"; printf "\n[Enter zum Schliessen] "; read -r _' "$self" "$@" ;;
+        esac
+    done
+    echo "widgetdeck-update: no terminal emulator found (set \$TERMINAL, or run widgetdeck-update in a terminal)" >&2
+    exit 1
+fi
+
+if [ -z "$REPO" ] || [ ! -f "$REPO/update.sh" ]; then
+    # clone is gone (moved / deleted): fetch it again from the recorded remote
+    if [ -z "$URL" ]; then
+        echo "widgetdeck-update: the repository clone is missing and no remote URL is recorded." >&2
+        echo "  Clone it again (git clone <url> && cd <dir> && ./install.sh) or run ./update.sh inside your clone." >&2
+        exit 1
+    fi
+    REPO="${XDG_DATA_HOME:-$HOME/.local/share}/widgetdeck/repo"
+    if [ ! -f "$REPO/update.sh" ]; then
+        echo "The clone of WidgetDeck is missing. Clone it again from $URL to $REPO?"
+        case " $* " in *" --yes "*|*" -y "*) a=y ;; *) printf '  [J/n] '; read -r a || a=n ;; esac
+        case "$a" in ""|j|J|y|Y) ;; *) echo "Aborted."; exit 1 ;; esac
+        mkdir -p "$(dirname "$REPO")" || exit 1
+        GIT_TERMINAL_PROMPT=0 git clone "$URL" "$REPO" || { echo "widgetdeck-update: clone failed (no network or no access to the repository)." >&2; exit 1; }
+    fi
+fi
+exec "$REPO/update.sh" "$@"

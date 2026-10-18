@@ -11,10 +11,12 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 . "$SCRIPT_DIR/lib/pkgs.sh"
 # shellcheck source=lib/hypr.sh
 . "$SCRIPT_DIR/lib/hypr.sh"
+# shellcheck source=lib/migrate.sh
+. "$SCRIPT_DIR/lib/migrate.sh"
 
 VERSION="$(tr -d '[:space:]' < "$SCRIPT_DIR/VERSION" 2>/dev/null || echo 0.0.0)"
 TESTED_HYPR="0.55.4"; TESTED_QS="0.3.0"
-PREFIX=""; NO_HYPR=0; NO_PACKAGES=0; DO_UNINSTALL=0; PURGE=0
+UPDATE_MODE=0; PREFIX=""; CHANNEL=""; NO_HYPR=0; NO_PACKAGES=0; DO_UNINSTALL=0; PURGE=0
 
 usage() {
     cat <<USAGE
@@ -27,6 +29,7 @@ WidgetDeck $VERSION - Installer
   --no-hypr-config   fasst die Hyprland-Config nicht an (zeigt nur, was einzutragen wäre)
   --no-packages      überspringt die Paketprüfung / Installation
   --prefix <Pfad>    Test-Installation: <Pfad> ersetzt dein Home (Config, Cache, Programm, Hyprland-Dateien liegen darunter)
+  --channel <c>      Update-Kanal: main (Standard, immer der neueste Stand) oder stable (nur getaggte Releases)
   --uninstall        entfernt, was installiert wurde (siehe auch uninstall.sh)
   --purge            (mit --uninstall) löscht auch deine Einstellungen und den Cache
   --help             diese Hilfe
@@ -44,8 +47,11 @@ while [ $# -gt 0 ]; do
         --yes|-y) ASSUME_YES=1 ;;
         --no-hypr-config) NO_HYPR=1 ;;
         --no-packages) NO_PACKAGES=1 ;;
+        --update) UPDATE_MODE=1 ;;
         --prefix) shift; [ $# -gt 0 ] || die "--prefix braucht einen Pfad"; PREFIX="$1" ;;
         --prefix=*) PREFIX="${1#--prefix=}" ;;
+        --channel) shift; [ $# -gt 0 ] || die "--channel braucht main oder stable"; CHANNEL="$1" ;;
+        --channel=*) CHANNEL="${1#--channel=}" ;;
         --uninstall) DO_UNINSTALL=1 ;;
         --purge) PURGE=1 ;;
         --help|-h) usage; exit 0 ;;
@@ -60,12 +66,14 @@ if [ -n "$PREFIX" ]; then H="$(realpath -m -- "$PREFIX")"; else H="${HOME:?HOME 
 QML_DEST="$H/.config/quickshell/widgetdeck"
 BIN_DIR="$H/.local/bin"
 BIN_DEST="$BIN_DIR/widgetdeck"
+UPD_DEST="$BIN_DIR/widgetdeck-update"
 CONF_DIR="$H/.config/widgetdeck"
 CACHE_DIR="$H/.cache/widgetdeck"
 MATUGEN_DIR="$H/.config/matugen"
 STATE_FILE="$CACHE_DIR/install-state"
 LOG_FILE="$CACHE_DIR/install.log"
 
+case "$CHANNEL" in ""|main|stable) ;; *) die "--channel: main oder stable erwartet, nicht '$CHANNEL'" ;; esac
 if [ "$DRY_RUN" = 0 ]; then mkdir -p "$CACHE_DIR"; : >> "$LOG_FILE"; else LOG_FILE=""; fi
 _log "== install.sh $VERSION $* (H=$H) =="
 
@@ -112,15 +120,27 @@ install_files() {
     run mkdir -p "$(dirname "$QML_DEST")"
     run rm -rf "$tmp"
     run cp -a "$SCRIPT_DIR/qml" "$tmp"
-    if [ "$DRY_RUN" = 0 ]; then printf '%s\n' "$VERSION" > "$tmp/VERSION"; chmod +x "$tmp"/widgets/sysmon/*.sh; fi
+    if [ "$DRY_RUN" = 0 ]; then
+        printf '%s\n' "$VERSION" > "$tmp/VERSION"; chmod +x "$tmp"/widgets/sysmon/*.sh "$tmp"/core/*.sh
+        # where updates come from (read by widgetdeck-update and the update hint in the settings)
+        local url="" rev=""
+        if command -v git >/dev/null 2>&1 && git -C "$SCRIPT_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+            url="$(git -C "$SCRIPT_DIR" remote get-url origin 2>/dev/null || true)"; rev="$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || true)"
+        fi
+        printf 'url=%s\nrepo=%s\nupdater=%s\n' "$url" "$SCRIPT_DIR" "$UPD_DEST" > "$tmp/SOURCE"
+        printf '%s\n' "$rev" > "$tmp/REV"
+        state_set REPO_DIR "$SCRIPT_DIR"; state_set REMOTE_URL "$url"; state_set INSTALLED_REV "$rev"
+    fi
     if [ -d "$QML_DEST" ] && [ "$DRY_RUN" = 0 ]; then rm -rf "$QML_DEST.old.$$"; mv "$QML_DEST" "$QML_DEST.old.$$"; fi
     run mv "$tmp" "$QML_DEST"
     [ "$DRY_RUN" = 0 ] && rm -rf "$QML_DEST.old.$$"
     ok "Programm: $QML_DEST"
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck" "$BIN_DEST"
     ok "Starter: $BIN_DEST"
+    run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-update" "$UPD_DEST"
+    ok "Update-Befehl: $UPD_DEST   (holt später neue Versionen)"
     case ":$PATH:" in *":$BIN_DIR:"*) ;; *) warn "$BIN_DIR ist nicht in deinem PATH. Füge es in deine Shell-Config ein (z. B. export PATH=\"\$HOME/.local/bin:\$PATH\")." ;; esac
-    state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set VERSION "$VERSION"
+    state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set UPD_DEST "$UPD_DEST"; state_set VERSION "$VERSION"
 
     # your settings: created only where nothing exists yet
     run mkdir -p "$CONF_DIR"
@@ -131,10 +151,18 @@ install_files() {
             info "Wetter und Luftqualität brauchen einen Standort. Er kann einmalig per IP-Adresse (Dienst ipwho.is, Ergebnis 7 Tage lokal gespeichert)"
             info "bestimmt werden - oder du trägst später Breite/Länge im Builder ein (Einstellungen > Standort). Es werden keine Zugangsdaten benötigt."
             ask "Standort automatisch per IP bestimmen?" y && auto=true
-            printf '{\n  "location": { "auto": %s, "lat": null, "lon": null, "name": "" },\n  "units": "auto",\n  "language": "auto"\n}\n' "$auto" > "$CONF_DIR/config.json"
+            jq -n --argjson auto "$auto" --argjson schema "$(migrate_latest)" --arg ch "${CHANNEL:-main}" \
+                '{schema: $schema, location: {auto: $auto, lat: null, lon: null, name: ""}, units: "auto", language: "auto", update: {check: true, channel: $ch}}' > "$CONF_DIR/config.json"
             ok "Beispiel-Einstellungen: $CONF_DIR/config.json (Standort automatisch: $auto)"
         fi
-    else ok "vorhandene Einstellungen bleiben unverändert ($CONF_DIR)"; fi
+    else
+        ok "vorhandene Einstellungen bleiben unverändert ($CONF_DIR)"
+        if [ -n "$CHANNEL" ] && [ "$DRY_RUN" = 0 ]; then
+            local t; t="$(mktemp "$CONF_DIR/config.json.XXXXXX")"
+            jq --arg ch "$CHANNEL" '.update.channel = $ch' "$CONF_DIR/config.json" > "$t" && mv "$t" "$CONF_DIR/config.json" && ok "Update-Kanal: $CHANNEL"
+        fi
+    fi
+    if [ "$DRY_RUN" = 0 ]; then migrate_run || die "Migration fehlgeschlagen; deine Einstellungen wurden aus dem Backup zurückgespielt. Programmdateien sind bereits ersetzt - ./update.sh --rollback stellt die alte Version her."; else migrate_run; fi
 }
 
 # ---------------------------------------------------------------- shaders
@@ -188,6 +216,8 @@ do_uninstall() {
     if [ -x "$bin" ] && [ "$DRY_RUN" = 0 ]; then "$bin" stop >/dev/null 2>&1 || true; fi
     [ -d "$qml" ] && { run rm -rf "$qml"; ok "entfernt: $qml"; } || info "nicht vorhanden: $qml"
     [ -f "$bin" ] && { run rm -f "$bin"; ok "entfernt: $bin"; }
+    local upd; upd="$(state_get UPD_DEST)"; upd="${upd:-$UPD_DEST}"
+    [ -f "$upd" ] && { run rm -f "$upd"; ok "entfernt: $upd"; }
     tpl="$(state_get MATUGEN_TEMPLATE)"
     [ -n "$tpl" ] && [ -f "$tpl" ] && { run rm -f "$tpl"; ok "entfernt: $tpl"; }
     local toml bak

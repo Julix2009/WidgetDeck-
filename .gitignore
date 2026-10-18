@@ -14,3 +14,4 @@ builder.json
 theme.json
 .backup-*/
 *widgetdeck-backup-*
+.release-denylist

@@ -11,6 +11,7 @@ FloatingWindow {
     required property var theme
     required property var backend
     required property var wall
+    required property var update
     property size screenSize: Qt.size(2560, 1600)
     property string sel: ""                  // primary selection (props panel)
     property var sels: []                    // all selected widgets (Shift+click / rubber band)
@@ -297,6 +298,25 @@ FloatingWindow {
                     Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 12
                         text: "Glas-Engine: " + (win.backend.ready ? "GPU-Shader (Refraktion aktiv)" : "Fallback ohne Refraktion (" + win.backend.state + ")") }
                     Text { text: win.store.dir + "/widgets.json"; color: th.dim; opacity: 0.7; font.family: th.font; font.pixelSize: 11 }
+                    Text { text: "VERSION & UPDATES"; topPadding: 8; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
+                    Row {
+                        width: parent.width; spacing: 10
+                        Text { anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
+                            text: "Version " + (win.update.version !== "" ? win.update.version : "?") }
+                        GButton { th: th; label: win.update.busy ? "Prüfe …" : "Auf Updates prüfen"; onClicked: win.update.check(true) }
+                    }
+                    Text { visible: win.update.message !== ""; width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 12; text: win.update.message }
+                    Column {
+                        visible: win.update.available; width: parent.width; spacing: 6
+                        Text { width: parent.width; wrapMode: Text.WordWrap; color: th.accent; font.family: th.font; font.pixelSize: 13; font.bold: true
+                            text: "Update verfügbar: " + win.update.latest }
+                        Text { visible: win.update.notes !== ""; width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 11; text: win.update.notes }
+                        GButton { th: th; width: parent.width; primary: true; label: "Update im Terminal starten"; onClicked: win.update.startUpdate() }
+                        Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; opacity: 0.8; font.family: th.font; font.pixelSize: 11
+                            text: "Es wird nichts automatisch installiert: Das Terminal zeigt die Änderungen und fragt vorher nach. Deine Einstellungen bleiben erhalten." }
+                    }
+                    GSwitch { width: parent.width; th: th; label: "Täglich nach Updates suchen"
+                        checked: !win.store.config.update || win.store.config.update.check !== false; onToggled: v => win.store.setConfig("update.check", v) }
                 }
             }
         }

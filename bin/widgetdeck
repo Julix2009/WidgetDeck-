@@ -1,7 +1,6 @@
 #!/bin/sh
 # WidgetDeck launcher (Quickshell / QML).
 # Finds its QML directory in this order:  $WIDGETDECK_QML  ->  ~/.config/quickshell/widgetdeck  ->  /usr/share/widgetdeck/qml  ->  ./qml next to this script (a git clone).
-VERSION="1.0.0"
 
 find_qml() {
     if [ -n "${WIDGETDECK_QML:-}" ] && [ -f "$WIDGETDECK_QML/shell.qml" ]; then printf '%s' "$WIDGETDECK_QML"; return 0; fi
@@ -13,6 +12,7 @@ find_qml() {
     return 1
 }
 QML="$(find_qml)" || { echo "widgetdeck: cannot find the QML files (looked in ~/.config/quickshell/widgetdeck, /usr/share/widgetdeck/qml). Run ./install.sh first." >&2; exit 1; }
+VERSION="$(tr -d '[:space:]' < "$QML/VERSION" 2>/dev/null || true)"; VERSION="${VERSION:-unknown}"
 QS="quickshell -p $QML"
 CONF="${WIDGETDECK_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/widgetdeck}"
 
@@ -56,6 +56,7 @@ case "${1:-builder}" in
     close)    exec $QS ipc call widgetdeck closeBuilder ;;
     stop)     exec $QS kill ;;
     restart)  $QS kill >/dev/null 2>&1; sleep 0.5; setsid $QS >/dev/null 2>&1 & ;;
+    status)   running ;;
     log)      exec $QS log ;;
     config)   echo "$CONF/widgets.json" ;;
     doctor)   doctor ;;
@@ -68,6 +69,7 @@ widgetdeck <command>
   toggle     open / close the builder (= edit mode: grid, guides, align)
   close      close the builder
   stop | restart | log
+  status     exit code 0 when the daemon is running
   config     print the path of widgets.json
   doctor     check dependencies, shader, fonts and location
   ipc <fn>   raw IPC call (ping, list, select <id>, style|setProp <id> <key> <json>, builderGlass <mode>, ...)

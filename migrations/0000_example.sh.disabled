@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Vorlage - kopieren nach 000N_name.sh (ohne .disabled). Beispiel: ergänzt eine neue Einstellung mit Standardwert.
+set -euo pipefail
+conf="$1"
+. "$(dirname "$0")/lib.sh"
+merge_defaults "$conf/config.json" '{ "ui": { "density": "normal" } }'

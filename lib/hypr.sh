@@ -73,6 +73,7 @@ hypr_apply() {
     local dup
     dup="$(grep -rlE 'widgetdeck (daemon|builder)' "$HYPR_DIR" 2>/dev/null | grep -v "$HYPR_SNIPPET" | head -n3 || true)"
     [ -n "$dup" ] && warn "Autostart für widgetdeck steht schon in: $(echo "$dup" | tr '\n' ' ') - sonst startet es doppelt."
+    if [ "${UPDATE_MODE:-0}" = 1 ] && [ "$NO_HYPR" = 0 ]; then info "Kein Verweis in $(basename "$HYPR_MAIN") (bei der Installation nicht gewünscht). Die Regeldatei wurde trotzdem aktualisiert."; return 0; fi
     if [ "$NO_HYPR" = 1 ]; then info "(--no-hypr-config) Verweis nicht eingetragen. Füge selbst hinzu:"; hypr_include_block | sed 's/^/  | /'; return 0; fi
     if ask "Soll der Verweis in $HYPR_MAIN eingetragen werden (Backup wird angelegt)?" y; then
         local bak="$HYPR_MAIN.widgetdeck-backup-$(stamp)"
