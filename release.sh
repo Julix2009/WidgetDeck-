@@ -165,7 +165,7 @@ if [ "$KIND" != current ]; then
 fi
 git tag -a "v$NEW" -m "WidgetDeck $NEW"
 ok "Tag v$NEW gesetzt"
-if git push --atomic "$REMOTE" "$BRANCH" "v$NEW"; then
+if git push -q --atomic "$REMOTE" "$BRANCH" "v$NEW"; then
     ok "main und v$NEW gepusht"
 else
     warn "Der Push ist fehlgeschlagen. Lokal sind Commit und Tag vorhanden. Erneut versuchen: git push --atomic $REMOTE $BRANCH v$NEW"

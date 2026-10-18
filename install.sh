@@ -253,9 +253,13 @@ build_shaders
 matugen_setup
 step "Hyprland"
 hypr_apply
-step "Fertig"
-say "  Starten:        widgetdeck builder      (öffnet den Editor; beim ersten Start entsteht ein Standard-Layout)"
-say "  Prüfen:         widgetdeck doctor"
-say "  Update später:  ./update.sh   (im geklonten Ordner)"
-[ "$DRY_RUN" = 0 ] && say "  Log:            $LOG_FILE"
+if [ "$UPDATE_MODE" = 1 ]; then
+    ok "Programmdateien sind aktuell (Version $VERSION)"
+else
+    step "Fertig"
+    say "  Starten:        widgetdeck builder      (öffnet den Editor; beim ersten Start entsteht ein Standard-Layout)"
+    say "  Prüfen:         widgetdeck doctor"
+    say "  Update später:  widgetdeck-update       (oder im Builder: Einstellungen > Version & Updates)"
+    [ "$DRY_RUN" = 0 ] && say "  Log:            $LOG_FILE"
+fi
 exit 0

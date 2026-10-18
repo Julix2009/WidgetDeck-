@@ -57,6 +57,10 @@ main() {
     STATE_FILE="$CACHE_DIR/install-state"; LOG_FILE=""
     if [ "$DRY_RUN" = 0 ]; then mkdir -p "$CACHE_DIR"; LOG_FILE="$CACHE_DIR/install.log"; : >> "$LOG_FILE"; fi
     _log "== update.sh $* (H=$H) =="
+    if [ "$DRY_RUN" = 0 ]; then       # two updates at the same time would corrupt each other
+        exec 9> "$CACHE_DIR/update.lock"
+        flock -n 9 || die "Es läuft bereits ein Update (oder ein zweiter Aufruf gleichzeitig). Bitte warten."
+    fi
 
     command -v git >/dev/null 2>&1 || die "git fehlt (pacman -S git)."
     git -C "$SCRIPT_DIR" rev-parse --git-dir >/dev/null 2>&1 || die "$SCRIPT_DIR ist kein Git-Klon - ein Update ist nur in einem geklonten Ordner möglich."
@@ -150,8 +154,8 @@ main() {
     # ---------------------------------------------------------------- apply
     state_set PREV_REV "$cur_rev"; state_set PREV_VERSION "$cur_ver"; state_set CONFIG_BACKUP ""
     local was_running=0
-    if [ "$NO_RESTART" = 0 ] && [ -x "$BIN_DEST" ] && HOME="$H" "$BIN_DEST" status >/dev/null 2>&1; then was_running=1; fi
-    if [ "$was_running" = 1 ]; then HOME="$H" "$BIN_DEST" stop >/dev/null 2>&1 || true; sleep 0.5; fi     # nobody writes the settings during the update
+    if [ "$NO_RESTART" = 0 ] && [ -x "$BIN_DEST" ] && HOME="$H" "$BIN_DEST" status >/dev/null 2>&1 9>&-; then was_running=1; fi
+    if [ "$was_running" = 1 ]; then HOME="$H" "$BIN_DEST" stop >/dev/null 2>&1 9>&- || true; sleep 0.5; fi     # nobody writes the settings during the update
 
     step "Programmdateien aktualisieren"
     checkout_target "$target_rev" "$default_branch" "$channel"
@@ -189,7 +193,7 @@ run_install() {
 }
 
 restart_shell() {
-    if [ -x "$BIN_DEST" ]; then HOME="$H" "$BIN_DEST" restart >/dev/null 2>&1 && ok "Widgets neu gestartet" || warn "Neustart ging nicht: starte selbst mit 'widgetdeck restart'"; fi
+    if [ -x "$BIN_DEST" ]; then HOME="$H" "$BIN_DEST" restart >/dev/null 2>&1 9>&- && ok "Widgets neu gestartet" || warn "Neustart ging nicht: starte selbst mit 'widgetdeck restart'"; fi
 }
 
 checkout_target() {       # checkout_target <rev> <default branch> <channel>: main channel stays on the branch, tags / versions are detached
@@ -253,7 +257,7 @@ do_rollback() {
     handle_local_changes "$(state_get INSTALLED_REV)"
     ask "Rollback jetzt ausführen?" y || { say "Abgebrochen."; return 0; }
     local was_running=0
-    if [ "$NO_RESTART" = 0 ] && [ -x "$BIN_DEST" ] && HOME="$H" "$BIN_DEST" status >/dev/null 2>&1; then was_running=1; HOME="$H" "$BIN_DEST" stop >/dev/null 2>&1 || true; sleep 0.5; fi
+    if [ "$NO_RESTART" = 0 ] && [ -x "$BIN_DEST" ] && HOME="$H" "$BIN_DEST" status >/dev/null 2>&1 9>&-; then was_running=1; HOME="$H" "$BIN_DEST" stop >/dev/null 2>&1 9>&- || true; sleep 0.5; fi
     if [ -n "$bak" ] && [ -d "$bak" ]; then
         local pre="$H/.config/widgetdeck.pre-rollback-$(stamp)"
         [ -d "$CONF_DIR" ] && cp -a "$CONF_DIR" "$pre"
