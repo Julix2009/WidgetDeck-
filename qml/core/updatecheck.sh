@@ -15,8 +15,9 @@ REV="$(tr -d '[:space:]' < "$QML/REV" 2>/dev/null)"
 src() { sed -n "s/^$1=//p" "$QML/SOURCE" 2>/dev/null | head -n1; }
 URL="$(src url)"; REPO="$(src repo)"; UPDATER="$(src updater)"
 [ -z "$URL" ] && [ -d "$REPO/.git" ] && URL="$(git -C "$REPO" remote get-url origin 2>/dev/null)"
-CHECK="$(jq -r '.update.check // true' "$CONF/config.json" 2>/dev/null)"; CHANNEL="$(jq -r '.update.channel // "main"' "$CONF/config.json" 2>/dev/null)"
-[ "$CHECK" = false ] && [ "$FORCE" = 0 ] && CHECK=false || CHECK=true
+CHECK="$(jq -r 'if .update.check == false then "false" else "true" end' "$CONF/config.json" 2>/dev/null)"
+CHANNEL="$(jq -r '.update.channel // "main"' "$CONF/config.json" 2>/dev/null)"
+if [ "$CHECK" = false ] && [ "$FORCE" = 0 ]; then CHECK=false; else CHECK=true; fi
 case "$CHANNEL" in stable|main) ;; *) CHANNEL=main ;; esac
 now=$(date +%s)
 
