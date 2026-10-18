@@ -46,6 +46,10 @@ migrate_run() {
     cp -a "$CONF_DIR" "$bak"
     state_set CONFIG_BACKUP "$bak"
     ok "Backup der Einstellungen: $bak"
+    # keep the five newest backups
+    local old_baks=()
+    while IFS= read -r f; do old_baks+=("$f"); done < <(ls -1d "$H"/.config/widgetdeck.bak-* 2>/dev/null | sort -r | tail -n +6)
+    for f in "${old_baks[@]}"; do rm -rf "$f"; done
     for f in "${pending[@]}"; do
         n="$(basename "$f")"; n=$((10#${n%%_*}))
         if bash "$f" "$CONF_DIR" >> "${LOG_FILE:-/dev/null}" 2>&1 && migrate_set_schema "$n"; then

@@ -129,6 +129,7 @@ ShellRoot {
         function sels(): string { return JSON.stringify(builderWin.sels); }
         function refreshArea(): void { shell.refreshArea(); }
         function settingsPanel(on: bool): void { builderWin.showSettings(on); }
+        function scrollSettings(y: real): void { builderWin.scrollSettings(y); }
         // drive the stage exactly like the mouse does (same functions); x / y in desktop px, mods bit 1 = Shift, bit 2 = Alt
         function dragStart(x: real, y: real, mods: int): void { builderWin.canvasItem.pressAt(x, y, (mods & 1 ? Qt.ShiftModifier : 0) | (mods & 2 ? Qt.AltModifier : 0)); }
         function dragMove(x: real, y: real, mods: int): void { builderWin.canvasItem.moveTo(x, y, (mods & 1 ? Qt.ShiftModifier : 0) | (mods & 2 ? Qt.AltModifier : 0)); }

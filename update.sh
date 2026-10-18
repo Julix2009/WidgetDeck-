@@ -114,7 +114,7 @@ main() {
     fi
     say ""
     say "  Aktuell:  $cur_ver${cur_rev:+ (${cur_rev:0:7})}"
-    say "  Neu:      $target_ver (${target_rev:0:7})   [${VERSION_OPT:+Version $VERSION_OPT}${VERSION_OPT:-Kanal $channel}]"
+    say "  Neu:      $target_ver (${target_rev:0:7})   [$( [ -n "$VERSION_OPT" ] && echo "Version v${VERSION_OPT#v}" || echo "Kanal $channel" )]"
     if [ "$target_ver" != "?" ] && [ "$(vercmp "$target_ver" "$cur_ver")" = -1 ]; then warn "Die Zielversion ist älter als die installierte (Downgrade)."; fi
 
     # changelog excerpt since the installed version

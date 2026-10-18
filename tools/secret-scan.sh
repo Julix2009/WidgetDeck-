@@ -2,6 +2,7 @@
 # Secret / personal-data scan of the working tree AND the whole git history.
 #   tools/secret-scan.sh            exit 0 = clean, 1 = findings
 # Looks for: personal home paths, tokens / keys, concrete coordinates, and every line of the (untracked) file .release-denylist
+# Commit authors are not scanned (they are public by design: set a noreply address, see README).
 # (one word per line: your name, city, Wi-Fi name, host name ...). Uses gitleaks too when it is installed.
 set -uo pipefail
 cd "$(git -C "$(dirname -- "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)" || exit 2
@@ -44,7 +45,7 @@ done < <(git ls-files)
 
 echo "Suche in der gesamten Git-Historie (Inhalte und Commit-Nachrichten) ..."
 if git rev-parse --verify -q HEAD >/dev/null; then
-    git log --all -p --no-color --format='commit %H%n%an <%ae>%n%s%n%b' -- . "${EXCL[@]}" | grep -E '^(\+|commit|[^ +-])' | scan_stream "Historie"
+    git log --all -p --no-color --format='commit %H%n%s%n%b' -- . "${EXCL[@]}" | grep -E '^(\+|commit|[^ +-])' | scan_stream "Historie"
 fi
 
 if command -v gitleaks >/dev/null 2>&1; then

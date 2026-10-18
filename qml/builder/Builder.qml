@@ -12,6 +12,8 @@ FloatingWindow {
     required property var backend
     required property var wall
     required property var update
+    function showSettings(on) { settings.visible = on; }
+    function scrollSettings(y) { setFlick.contentY = Math.max(0, Math.min(y, setFlick.contentHeight - setFlick.height)); }
     property size screenSize: Qt.size(2560, 1600)
     property string sel: ""                  // primary selection (props panel)
     property var sels: []                    // all selected widgets (Shift+click / rubber band)
@@ -21,7 +23,6 @@ FloatingWindow {
         else if (sels.indexOf(sel) < 0) sels = [sel];
     }
     function selectIds(ids, primary) { sels = ids; sel = primary; }
-    function showSettings(on) { settings.visible = on; }
     // widgets that disappeared (deleted, layout reset, file reload) leave the selection
     Connections {
         target: win.store
@@ -224,6 +225,7 @@ FloatingWindow {
             screenX: win.winPos.x + x; screenY: win.winPos.y + y; screenSize: win.screenSize
             padPx: 0; interactive: false
             Flickable {
+                id: setFlick
                 anchors.fill: parent; anchors.margins: 18
                 contentHeight: setCol.height; clip: true; boundsBehavior: Flickable.StopAtBounds
                 Column {
