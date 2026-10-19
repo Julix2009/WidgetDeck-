@@ -1,149 +1,116 @@
 # WidgetDeck
 
-Desktop-Widgets für **Hyprland** mit Quickshell: Uhr, CPU/RAM, Musik, Visualizer, Netzwerk, Temperaturen, Systemstatus, Luftqualität und Wetter (mit Regen- und Schneepartikeln) – im Look **Frosted Glass** oder **Liquid Glass**. Alles lässt sich in einem eingebauten **Builder** per Maus anordnen: Raster, Hilfslinien, Mehrfachauswahl, Ausrichten und Verteilen.
+Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, CPU/RAM, music, visualizer, network, temperatures, system status, air quality and weather (with rain and snow particles), in **Frosted Glass** or **Liquid Glass** style. A built-in **builder** lets you place everything with the mouse: snap grid, guides, multi-select, align and distribute.
 
-> Screenshots sind absichtlich noch nicht dabei (sie dürfen keine persönlichen Daten zeigen). Lege eigene Bilder in `docs/` ab, sobald du welche hast.
+It runs on its own: it needs none of the author's dotfiles, no other Quickshell setup, no icon theme and no particular font. Optional parts (a bar, a notification service with power menu) are **off by default**.
 
-## Voraussetzungen
+> Deutsche Version: [README.de.md](README.de.md)
 
-* Arch Linux (oder ein Derivat), nicht als root
-* **Hyprland** – getestet mit 0.55.4 (Lua- und `.conf`-Config). Ab 0.53 wird die neue Regel-Syntax geschrieben, davor die alte (ungetestet).
-* **Quickshell** – getestet mit 0.3.0, dazu Qt 6.11 (mindestens Qt 6.7)
-* Eine GPU mit Vulkan/OpenGL-Treiber. Liquid Glass ist ein Shader und braucht etwas GPU-Leistung; ohne funktionierenden Shader fällt WidgetDeck automatisch auf Frosted Glass zurück.
+**Only Arch Linux is supported** (Hyprland + Quickshell from the official repositories).
 
-Pakete (alle aus den offiziellen Repos, **kein AUR nötig**):
-
-| Zweck | Pakete |
-|---|---|
-| Pflicht | `quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils` |
-| Empfohlen (Schrift/Icons) | `adwaita-fonts ttf-iosevka-nerd` |
-| Optional | `networkmanager` (WLAN-Name), `playerctl` (Musik-Tasten), `cava` (Visualizer), `matugen` (Farben aus dem Wallpaper) |
-
-Der Installer prüft das und installiert Fehlendes nach deiner Bestätigung mit **einem** `pacman`-Aufruf.
-
-## Installation
+## Install
 
 ```bash
-git clone https://github.com/<Benutzer>/widgetdeck && cd widgetdeck && ./install.sh
+git clone https://github.com/<user>/widgetdeck && cd widgetdeck && ./install.sh
 ```
 
-Das Skript fragt vor jeder Änderung an Dingen, die dir gehören. Nützliche Optionen:
+The installer asks before it changes anything that belongs to you. Then run `hyprctl reload` (or log in again): WidgetDeck starts with your session, and a short **setup assistant** opens once (wallpaper, location, units, style, size, widgets). Nothing needs a restart or manual editing.
 
-| Option | Wirkung |
+Useful options: `--dry-run` (show only), `--yes`, `--modules widgets,builder,bar,notifications`, `--no-hypr-config`, `--prefix <dir>` (try it in a scratch home), `--channel stable`, `--uninstall`.
+
+## Requirements and packages
+
+All packages are in the **official repositories** (no AUR).
+
+| Purpose | Packages |
 |---|---|
-| `--dry-run` | zeigt nur, was passieren würde |
-| `--yes` | keine Rückfragen (Standardantworten) |
-| `--no-hypr-config` | Hyprland-Config wird nicht angefasst, die nötigen Zeilen werden nur angezeigt |
-| `--no-packages` | Paketprüfung überspringen |
-| `--channel stable` | Update-Kanal: nur getaggte Releases (Standard: `main`, immer der neueste getestete Stand) |
-| `--prefix <Pfad>` | Test-Installation in einen anderen „Home“-Ordner |
-| `--uninstall` | wieder entfernen (siehe unten) |
+| required | `quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils` |
+| recommended (font) | `adwaita-fonts` (without it the next installed font is used: Inter, Cantarell, Noto Sans, DejaVu Sans, else the system default) |
+| optional | `networkmanager` (Wi-Fi name), `playerctl`, `cava` (visualizer), `matugen` (colours from the wallpaper; without it a fixed default palette is used) |
 
-Was passiert wo:
+Icons are drawn by WidgetDeck itself, so no icon font or icon theme is needed.
 
-| Was | Ort |
+## Compatibility
+
+| | Tested | Notes |
+|---|---|---|
+| Hyprland | **0.55.4** (`hyprland.conf` and Lua `hyprland.lua`) | Rules for 0.53 / 0.54 use the same block syntax and are expected to work but are **untested**. Older versions get the old rule syntax (**untested**); below 0.40 the installer stops. |
+| Quickshell / Qt | 0.3.0 (git), Qt 6.11.1 | Qt 6.7 or newer is required. |
+| GPU | Intel (Arc) | The shader is a plain Qt ShaderEffect; AMD and NVIDIA are **untested**. Without a working shader everything falls back to Frosted Glass. |
+| Wallpaper tools | **awww** (real); swww, hyprpaper (old and new config syntax), swaybg, wpaperd (simulated output / config only) | A manual path in the settings always works. |
+| Monitors | one real monitor, plus virtual monitors incl. scale 1.5 in a nested session | The widgets live on one monitor (choose it in the settings). |
+| Config styles | plain file, split config with `source =`, Lua, `XDG_CONFIG_HOME`, read-only / Nix store symlink (shown manually) | uwsm: exec-once works, a hint is printed (untested). |
+| Hardware | no battery, no fans, no sensors, no Wi-Fi, no network: widgets leave out what is missing | NVIDIA temperature via `nvidia-smi` (simulated). |
+| Languages | English (default), German | Chosen by system language or in the settings. |
+
+Known limitations: a monitor much smaller than the one a layout was made on can leave widgets overlapping until you reset the layout; switching the notification module off needs one `widgetdeck restart` before another notification daemon can take over; the bar and notification cards were checked in a nested session but not compared pixel by pixel.
+
+## What it changes - and what it does not
+
+Changes (all removable with `./uninstall.sh`):
+
+| What | Where |
 |---|---|
-| Programm (wird bei Updates ersetzt) | `~/.config/quickshell/widgetdeck/` |
-| Starter und Update-Befehl | `~/.local/bin/widgetdeck`, `~/.local/bin/widgetdeck-update` |
-| **Deine Einstellungen** (Layout, Glas-Regler, Standort) | `~/.config/widgetdeck/` – wird **nie** überschrieben |
-| Hyprland-Regeln | `~/.config/hypr/widgetdeck.conf` (bzw. `.lua`) plus **eine** markierte Zeile in deiner `hyprland.conf`/`hyprland.lua` – vorher mit Zeitstempel-Backup |
-| Cache, Log | `~/.cache/widgetdeck/` (`install.log`) |
+| program files | `~/.config/quickshell/widgetdeck/` (start manually with `qs -c widgetdeck`) |
+| commands | `~/.local/bin/widgetdeck`, `widgetdeck-update`, `widgetdeck-doctor` |
+| your settings | `~/.config/widgetdeck/` (never overwritten by updates) |
+| Hyprland rules | a **separate** file `~/.config/hypr/widgetdeck.conf` (or `.lua`), plus **one marked include line** in your config, only after you agree, with a timestamped backup and a check with `Hyprland --verify-config` first |
+| cache, log | `~/.cache/widgetdeck/` |
+| matugen | one marked block in `~/.config/matugen/config.toml`, only if matugen is installed and you agree |
 
-Deine Hyprland-Hauptconfig wird nur angefasst, wenn du zustimmst. Die Zeile steht zwischen `>>> widgetdeck` und `<<< widgetdeck`. Wer lieber selbst einträgt, nimmt `--no-hypr-config`.
+It does **not**: stop, disable or replace any other program (bars, notification daemons, wallpaper tools); edit anything else in your Hyprland config; install anything from the AUR; run as root (only `pacman` is called through `sudo`, after you confirm).
 
-Der Installer warnt, wenn er `waybar`, `eww`, `ags`, `conky`, `dunst`, `mako` oder `swaync` findet. Er beendet nichts. WidgetDeck zeichnet nur Widgets auf dem Desktop (unterste Ebene) und braucht weder Bar noch Benachrichtigungsdienst.
+**Network use** (all optional): weather and air quality come from open-meteo.com (only coordinates are sent). The location can be found once by IP address via ipwho.is (cached for a week) - the assistant explains this and you can enter coordinates instead or switch weather off. A daily update check does `git ls-remote` on this repository; it can be switched off in the settings. Nothing is looked up before you accept the assistant's location question.
 
-## Erster Start
+## Modules
+
+| Module | Default | Notes |
+|---|---|---|
+| Widgets | on | weather, network, temperatures, system, air quality, music |
+| Builder and grid | on | the editor (`widgetdeck builder`) |
+| Bar | **off** | slim top bar: workspaces, clock, tray, power button |
+| Notifications and power menu | **off** | replaces your notification daemon |
+
+Choose at install time (`--modules`) or later in the builder under *Settings → Modules*. Before the bar or the notification service is switched on, WidgetDeck looks for waybar, ags, eww, hyprpanel, dunst, mako, swaync and similar, tells you what to turn off first, and **never turns anything off itself**. Command line: `widgetdeck module bar on|off`.
+
+The widgets work without the bar. Everything the bar offers is also reachable by IPC and optional key binds; the generated rules file contains commented examples:
+
+```
+bind = SUPER, W, exec, widgetdeck toggle                  # builder / edit mode
+bind = SUPER SHIFT, P, exec, widgetdeck ipc powerPanel    # power menu
+bind = SUPER, N, exec, widgetdeck ipc toggleDnd           # do not disturb
+```
+
+## First start and everyday use
+
+* **Assistant:** wallpaper check (with a built-in file chooser if nothing is found), location, units (°C/°F, 24 h/12 h), glass style, widget size, which widgets. Skippable; run it again with `widgetdeck wizard` or in the settings.
+* **Builder:** `widgetdeck builder` (or `widgetdeck toggle`). Drag widgets (Alt = free placement, Shift = multi-select), align and distribute, change the glass per widget, switch modules.
+* **Liquid Glass** refracts your wallpaper, so it needs the wallpaper file. It is found automatically for awww, swww, hyprpaper, swaybg and wpaperd; otherwise choose a picture. If there is none (or the shader cannot be built) every widget uses Frosted Glass.
+* **Check your setup:** `widgetdeck-doctor` prints OK / WARN / FAIL lines with a suggested fix (Hyprland version and config, Quickshell, shaders, packages, wallpaper detection, conflicts, sensors, network). Its output hides your home directory and prints no location or wallpaper path, so you can paste it into a GitHub issue.
+
+## Updates and removal
 
 ```bash
-hyprctl reload          # lädt die neuen Regeln (oder neu anmelden: dann startet WidgetDeck von selbst)
-widgetdeck builder      # startet die Widgets und öffnet den Builder
-widgetdeck doctor       # prüft Pakete, Schrift, Shader, Standort
+widgetdeck-update              # shows the changes, asks, updates; settings are never touched
+widgetdeck-update --rollback   # back to the previous version (and the settings backup)
+./uninstall.sh                 # removes what was installed; asks before deleting your settings
 ```
 
-Beim ersten Start entsteht ein Standard-Layout (Uhr, CPU/RAM, Musik, Visualizer).
+Details (channels, migrations, local changes): see [README.de.md](README.de.md#updates) or run `widgetdeck-update --help`.
 
-## Bedienung
+## Troubleshooting
 
-* **Widgets anzeigen/verstecken:** im Builder links „Widgets“ – Karte anklicken fügt hinzu, im Eigenschaften-Panel gibt es „Löschen“. `widgetdeck toggle` öffnet/schließt den Builder; ohne Builder sind die Widgets reine Anzeige (Mausklicks gehen durch).
-* **Bearbeiten & Raster:** solange der Builder offen ist, kannst du Widgets ziehen und skalieren. Sie rasten am Raster ein (**Alt** gedrückt halten = freies Verschieben, Shift = Mehrfachauswahl), dazu gibt es Hilfslinien an Kanten, Mitten und gleichen Abständen. Mehrfachauswahl, Ausrichten und Verteilen findest du im Panel „Raster & Ausrichten“.
-* **Liquid Glass bearbeiten:** Widget auswählen → „Glas-Stil“ → *Liquid*. Dort stellst du Brechung, Weichzeichnung, Glanz, Lichtrichtung, Tönung usw. ein. Die Werte gelten pro Widget. Unter „Hintergrund des Glases“ siehst du, welches Wallpaper erkannt wurde, und kannst den Pfad überschreiben.
-* **Standort & Einheiten:** Builder → Einstellungen → „Standort & Einheiten“. Entweder Breite/Länge eintragen oder die automatische Bestimmung per IP nutzen. Einheiten (°C/°F, km/h/mph) und Sprache folgen standardmäßig deinem System.
-* **Farben aus dem Wallpaper** (optional, mit `matugen`): der Installer bietet an, eine Vorlage einzutragen. Ohne matugen wird die eingebaute Palette benutzt.
-* **Hardware fehlt?** Kein Sensor/Lüfter/WLAN: das Feld fehlt einfach oder zeigt „Ethernet“/„Offline“; nichts wird erfunden.
-
-## Updates
-
-```bash
-widgetdeck-update
-```
-
-Der Befehl wird bei der Installation nach `~/.local/bin` gelegt. Er holt den Remote-Stand, zeigt die **Änderungen seit deiner Version** (aus dem Änderungsprotokoll) und fragt, ob aktualisiert werden soll. Danach werden Programmdateien ersetzt, der Shader neu vorkompiliert, fehlende Pakete nach Rückfrage über `pacman` nachinstalliert und die Widgets neu gestartet.
-
-| Befehl | Wirkung |
+| Problem | What to do |
 |---|---|
-| `widgetdeck-update --yes` | ohne Rückfrage |
-| `widgetdeck-update --dry-run` | zeigt nur, was passieren würde |
-| `widgetdeck-update --channel stable` | ab jetzt nur getaggte Releases (`--channel main` = immer der neueste Stand, Standard) |
-| `widgetdeck-update --version v0.2.0` | eine bestimmte Version installieren |
-| `widgetdeck-update --rollback` | zurück auf die Version vor dem letzten Update, inklusive Backup der Einstellungen |
+| Nothing appears | `widgetdeck-doctor`. Is the daemon running (`widgetdeck status`)? Did you run `hyprctl reload`? Is `~/.local/bin` in your `PATH`? |
+| Glass looks flat | Frosted: `decoration { blur { enabled = true } }` and the rules file included? Liquid: `widgetdeck-doctor` → shader / wallpaper lines; `pacman -S qt6-shadertools` |
+| No icons / odd font | Icons are built in. For the font: `pacman -S adwaita-fonts` |
+| Wrong weather location | Settings → Location: enter coordinates (or run the assistant again) |
+| Builder window is tiled | The rules file is not included: re-run `./install.sh` |
+| Two bars / no notifications | Another bar or notification daemon is running: the settings tell you which one |
 
-**Deine Einstellungen bleiben erhalten.** Ein Update berührt nur Programmdateien. Alles in `~/.config/widgetdeck/` (Layout, Positionen, Glas-Regler, Standort) bleibt, wie es ist. Ändert sich das Format, laufen nummerierte Migrationen (`migrations/`) automatisch in der richtigen Reihenfolge – vorher entsteht ein Backup `~/.config/widgetdeck.bak-<Datum>`, und fehlende neue Einstellungen werden mit Standardwerten ergänzt, ohne vorhandene zu überschreiben. Schlägt etwas fehl, wird die vorherige Version samt Einstellungen automatisch wiederhergestellt.
+## Licence and credits
 
-**Eigene Änderungen an Dateien** im geklonten Ordner erkennt das Skript: Es bietet an, sie per `git stash` zu sichern oder als Kopie mit Zeitstempel abzulegen, und aktualisiert erst danach. Selbst bearbeitete installierte Programmdateien werden vor dem Ersetzen nach `~/.cache/widgetdeck/program-backup-<Datum>` kopiert. Änderungen an den Hyprland-Regeln landen nur in `~/.config/hypr/widgetdeck.conf` (bzw. `.lua`), nie in deiner Hauptconfig.
+Own code: MIT, see [LICENSE](LICENSE). The Liquid Glass shader is derived from `liquidglass.frag` of [MacShell](https://github.com/0-ss/MacShell) (MIT, © 2026 Rickky), see `NOTICE.md` and `LICENSES/`. Weather data: [Open-Meteo](https://open-meteo.com) (CC BY 4.0). Fonts and icon sets are not bundled; the icons are drawn for this project.
 
-**Hinweis in der Oberfläche:** Im Builder unter *Einstellungen → Version & Updates* steht die Version, daneben „Auf Updates prüfen“. Gibt es eine neuere Version, erscheint „Update verfügbar“ mit dem Änderungsprotokoll-Auszug und einem Knopf, der `widgetdeck-update` in einem Terminal öffnet. Die Prüfung läuft im Hintergrund höchstens einmal pro Tag (`git ls-remote`, ohne API-Token), blockiert nichts und bleibt still, wenn du offline bist oder keinen Zugriff auf das Repository hast. Es wird **nie** automatisch installiert. Abschalten: Schalter „Täglich nach Updates suchen“ oder `"update": { "check": false }` in `~/.config/widgetdeck/config.json`.
-
-## Deinstallation
-
-```bash
-./uninstall.sh          # entfernt nur, was installiert wurde; fragt, ob deine Einstellungen gelöscht werden sollen
-```
-
-Die Hyprland-Config wird aus dem Backup zurückgesetzt (wenn du sie seitdem nicht geändert hast; sonst wird nur die markierte Zeile entfernt). Mit `--purge` gehen auch Einstellungen und Cache weg.
-
-## Für Betreuer: neue Version veröffentlichen
-
-Im geklonten Repo, auf dem Branch `main` und mit sauberem Arbeitsbaum:
-
-```bash
-./release.sh patch      # Fehlerbehebung 0.1.0 -> 0.1.1   (minor: neue Funktion, major: grundlegende Änderung)
-```
-
-Das Skript prüft zuerst `shellcheck`, einen Secret-Scan (`tools/secret-scan.sh`: persönliche Pfade, Tokens, Koordinaten und alle Wörter aus der nicht eingecheckten Datei `.release-denylist`, über Dateien **und** Historie) und die Raster-Tests. Dann erhöht es `VERSION`, schreibt aus den Commit-Nachrichten einen Entwurf für `CHANGELOG.md` (Präfixe `feat:`/`fix:` sortieren nach *Hinzugefügt*/*Behoben*, alles andere nach *Geändert*; der Entwurf öffnet sich im `$EDITOR`), zeigt Version, Änderungen und geänderte Dateien und fragt. Erst nach „j“ wird committet, mit `vX.Y.Z` getaggt und `main` samt Tag gepusht. `./release.sh patch --dry-run` zeigt nur, was passieren würde. Die allererste Veröffentlichung (Version steht schon in `VERSION`): `./release.sh current`.
-
-* Ändert sich das Format der Einstellungen, lege vorher `migrations/000N_name.sh` an (Vorlage und Regeln: `migrations/README.md`) und erhöhe damit die Schema-Nummer.
-* `shellcheck` und `gitleaks` installierst du mit `sudo pacman -S shellcheck gitleaks`. Nur wenn das nicht geht: `--no-shellcheck` (wird in der Zusammenfassung vermerkt).
-* Commits tragen deine Git-Identität. Wer seine private Adresse nicht öffentlich haben will, nutzt die GitHub-`noreply`-Adresse (`git config user.email <id>+<name>@users.noreply.github.com`).
-
-**Fehler in einem Release zurücknehmen:** Lösche den Tag nicht heimlich, sondern behebe den Fehler mit einem normalen Commit (`git revert <commit>` oder ein Fix) und veröffentliche sofort ein neues Patch-Release mit `./release.sh patch`. Wer das fehlerhafte Release schon hat, bekommt den Fix mit `widgetdeck-update`, oder geht mit `widgetdeck-update --rollback` auf den Stand davor zurück. Nur wenn ein Release gar nicht erscheinen durfte (etwa weil es ein Geheimnis enthielt): Tag entfernen (`git push origin :refs/tags/vX.Y.Z`), Geheimnis sofort ungültig machen und die Historie bereinigen – ein Secret gilt nach dem Push als bekannt.
-
-## Optional: als Paket
-
-Statt `install.sh` kann man auch ein Arch-Paket bauen: `cd packaging && makepkg -si`. Es installiert nach `/usr/share/widgetdeck` und `/usr/bin/widgetdeck`. Hyprland-Regeln werden dabei **nicht** automatisch eingetragen – Vorlagen liegen in `/usr/share/widgetdeck/hypr/` (`@BIN@` durch `/usr/bin/widgetdeck` ersetzen). Das Paket ist nicht im AUR; `install.sh` bleibt der Standardweg.
-
-## Bekannte Probleme
-
-* **Shader:** Wenn `qsb` fehlt oder der Shader nicht kompiliert, erscheint Frosted Glass statt Liquid Glass (Details: `~/.cache/widgetdeck/install.log`, `widgetdeck log`).
-* **Liquid Glass sieht dein Wallpaper nur als Datei.** Es liest das Bild aus awww/swww, hyprpaper oder swaybg; bei anderen Tools den Pfad im Builder setzen (Einstellungen → „Hintergrund des Glases“ → Wallpaper-Pfad überschreiben). Liegt nicht das echte Wallpaper dahinter, wirkt das Glas „falsch“.
-* **Standort:** Ohne Standort zeigen Wetter und Luftqualität einen Hinweis. Die IP-Ortung ist grob (oft nur die Region des Anbieters).
-* **Sprache:** Die Oberfläche ist deutsch; Wetterbeschreibungen gibt es deutsch und englisch. Eine vollständige Übersetzung gibt es nicht.
-* Getestet wurde nur mit Hyprland 0.55.4 / Quickshell 0.3.0 / Qt 6.11.1 und Intel-GPU.
-
-## Fehlersuche
-
-| Problem | Lösung |
-|---|---|
-| Es erscheint nichts | `widgetdeck doctor`; läuft der Daemon? `widgetdeck daemon` im Terminal zeigt Fehler. Wurde `hyprctl reload` ausgeführt? `~/.local/bin` im `PATH`? |
-| Glas sieht flach/matt aus | Frosted: in Hyprland `decoration { blur { enabled = true } }` prüfen und ob die Regeldatei eingebunden ist. Liquid: `widgetdeck doctor` → Shader kompiliert? Sonst `pacman -S qt6-shadertools`, danach `./install.sh` und `widgetdeck restart` |
-| Wetter zeigt den falschen Ort | Builder → Einstellungen → Standort: Breite/Länge eintragen (löscht die automatische Bestimmung) oder `rm ~/.cache/widgetdeck/location.json` |
-| Das Wetter fehlt ganz | Kein Internet, oder kein Standort gesetzt. `bash ~/.config/quickshell/widgetdeck/widgets/sysmon/weather.sh` zeigt die Rohdaten |
-| Symbole sind Kästchen | `pacman -S ttf-iosevka-nerd`, `fc-cache`, `widgetdeck restart` |
-| Doppelt gestartet | Autostart steht schon in deiner eigenen Hyprland-Config: einen entfernen |
-
-## Lizenzen & Danksagung
-
-* Der Liquid-Glass-Shader ist eine **abgeleitete Arbeit** von `liquidglass.frag` aus [MacShell](https://github.com/0-ss/MacShell) (MIT, © 2026 Rickky). Lizenztext: `LICENSES/MIT-MacShell.txt`; Herkunft aller Teile: `NOTICE.md`.
-* Wetter und Luftqualität: [Open-Meteo](https://open-meteo.com) (CC BY 4.0). Optionale Ortung: ipwho.is.
-* Schriften und Icons werden nicht mitgeliefert, sondern per Paket installiert.
-* Lizenz des eigenen Codes: siehe `LICENSE` (falls noch nicht vorhanden, ist sie noch nicht festgelegt).
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) · Help: [SUPPORT.md](SUPPORT.md)

@@ -15,7 +15,7 @@ Bitte `LICENSES/` und die Dateikopf-Kommentare nicht entfernen.
 
 * Die Dotfiles-Panels, Top-Bar, Settings-Menüs und Skripte aus dem Dotfiles-Projekt **ilyamiro/imperative-dots** liegen **nicht** im Paket.
   Das Projekt hat keine Lizenzdatei; ohne Lizenz darf der Code nicht weitergegeben werden. WidgetDeck bringt eigene Ersatzskripte für Wetter, Luftqualität und Standort mit.
-* Es werden **keine Schriften, Icons oder Emoji-Daten** mitgeliefert. Die Widgets verwenden Zeichen der Nerd-Font-Symbole aus dem Paket `ttf-iosevka-nerd` (SIL OFL 1.1) und die Schrift `Adwaita Sans` (`adwaita-fonts`, OFL 1.1), die per `pacman` installiert werden.
+* Es werden **keine Schriften oder Emoji-Daten** mitgeliefert; bevorzugt wird `Adwaita Sans` (`adwaita-fonts`, OFL 1.1), das per `pacman` installiert wird. Die **Icons** (`qml/core/Icons.js`) sind für dieses Projekt gezeichnet (eigener Code).
 
 ## Genutzte Online-Dienste (nur Daten, kein Code)
 

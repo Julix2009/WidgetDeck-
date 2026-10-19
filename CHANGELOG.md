@@ -14,3 +14,8 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Installationsskript (`install.sh`) mit Paketprüfung, Hyprland-Regeldatei samt Backup, `--dry-run`, `--prefix` und Deinstallation.
 - Wetter, Luftqualität und Standort über Open-Meteo (ohne API-Schlüssel); Einheiten und Sprache folgen dem System.
 - Update-Weg: `widgetdeck-update`, Update-Hinweis in den Einstellungen, Migrationen für die Einstellungen und Rollback.
+- Eigenständig ohne fremde Dotfiles: eigene Icons (keine Icon-Schrift nötig), Schrift-Fallback, feste Standard-Palette (Matugen optional), Wallpaper-Erkennung für awww, swww, hyprpaper, swaybg und wpaperd mit eigener Dateiauswahl.
+- Module: Widgets, Builder, Leiste und Benachrichtigungen/Power-Menü (die beiden letzten standardmäßig aus); Warnung vor Konflikten, nichts wird je selbst beendet.
+- Einrichtungsassistent beim ersten Start; `widgetdeck-doctor`; Oberfläche und Installer auf Englisch und Deutsch.
+- Installer: Prüfung der Hyprland-Config per `--verify-config`, XDG-Pfade, Lua-Config, schreibgeschützte (Nix-)Configs werden nur angezeigt.
+- LICENSE, CONTRIBUTING, SUPPORT, Issue-Vorlage und GitHub-Prüfungen (shellcheck, qmllint, Übersetzungen, Secret-Scan).

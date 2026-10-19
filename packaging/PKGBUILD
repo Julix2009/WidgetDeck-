@@ -8,12 +8,11 @@ pkgrel=1
 pkgdesc='Desktop widgets with Frosted / Liquid Glass look and a visual builder for Quickshell on Hyprland'
 arch=('any')
 url='https://github.com/<user>/widgetdeck'
-license=('custom')                  # TODO: set to the licence chosen for the own code (see NOTICE.md); the MacShell part is MIT
+license=('MIT')                     # own code; the Liquid Glass shader derives from MIT-licensed MacShell (see NOTICE.md)
 depends=('quickshell' 'qt6-declarative' 'qt6-wayland' 'jq' 'curl' 'iproute2' 'iputils')
 makedepends=('qt6-shadertools')
 optdepends=('hyprland: the compositor this is made for'
             'adwaita-fonts: UI font'
-            'ttf-iosevka-nerd: icons in the widgets'
             'networkmanager: Wi-Fi name and signal in the network widget'
             'playerctl: music widget controls'
             'cava: visualizer widget'
@@ -25,7 +24,7 @@ prepare() {
     # the sources are the repository one directory up
     rm -rf "$srcdir/repo" && mkdir -p "$srcdir/repo"
     cp -a "$startdir/../qml" "$startdir/../bin" "$startdir/../hypr" "$startdir/../matugen" "$startdir/../LICENSES" \
-          "$startdir/../NOTICE.md" "$startdir/../VERSION" "$srcdir/repo/"
+          "$startdir/../NOTICE.md" "$startdir/../LICENSE" "$startdir/../VERSION" "$srcdir/repo/"
 }
 
 build() {
@@ -40,10 +39,11 @@ package() {
     install -dm755 "$pkgdir/usr/share/widgetdeck" "$pkgdir/usr/share/licenses/$pkgname"
     cp -a qml "$pkgdir/usr/share/widgetdeck/qml"
     cp -a hypr matugen "$pkgdir/usr/share/widgetdeck/"
-    chmod +x "$pkgdir"/usr/share/widgetdeck/qml/widgets/sysmon/*.sh
+    chmod +x "$pkgdir"/usr/share/widgetdeck/qml/widgets/sysmon/*.sh "$pkgdir"/usr/share/widgetdeck/qml/core/*.sh "$pkgdir"/usr/share/widgetdeck/qml/modules/*.sh
     install -Dm755 bin/widgetdeck "$pkgdir/usr/bin/widgetdeck"
+    install -Dm755 bin/widgetdeck-doctor "$pkgdir/usr/bin/widgetdeck-doctor"
     install -Dm644 NOTICE.md "$pkgdir/usr/share/licenses/$pkgname/NOTICE.md"
     install -Dm644 LICENSES/MIT-MacShell.txt "$pkgdir/usr/share/licenses/$pkgname/MIT-MacShell.txt"
-    [ -f "$startdir/../LICENSE" ] && install -Dm644 "$startdir/../LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     echo "$pkgver" > "$pkgdir/usr/share/widgetdeck/qml/VERSION"
 }
