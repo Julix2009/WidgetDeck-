@@ -313,7 +313,7 @@ Item {
             }
         }
 
-        GText { id: footer; anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: w.notice !== "" ? implicitHeight : 0; elide: Text.ElideRight; wstyle: w.style; font.pixelSize: w.fs * 0.7
+        GText { id: footer; anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: w.notice !== "" ? Math.round(w.fs * 0.7 * 1.35) : 0; elide: Text.ElideRight; wstyle: w.style; font.pixelSize: w.fs * 0.7
                 color: w.state === "expired" ? w.cCancel : w.cFg; opacity: 0.86; text: w.notice
                 MouseArea { anchors.fill: parent; enabled: w.state === "expired"; cursorShape: Qt.PointingHandCursor; onClicked: w.openSetup() } }
     }
