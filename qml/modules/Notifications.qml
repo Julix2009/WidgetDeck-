@@ -4,6 +4,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 import "../core"
 
@@ -26,6 +27,12 @@ Scope {
     PanelWindow {
         id: win
         visible: !nt.dnd && col.children.length > 1
+        // cards appear on the monitor you are working on
+        screen: {
+            var f = Hyprland.focusedMonitor, all = Quickshell.screens;
+            for (var i = 0; i < all.length; i++) if (f && all[i].name === f.name) return all[i];
+            return all.length > 0 ? all[0] : null;
+        }
         anchors { top: true; right: true }
         margins { top: 54; right: 12 }
         implicitWidth: 380

@@ -246,6 +246,7 @@ var de = {
  "Theme tint: colour": "Theme-Tint: Farbe",
  "Time format (empty = automatic)": "Zeitformat (leer = automatisch)",
  "Time size": "Größe der Uhrzeit",
+ "To hand the notification service back to another program, restart WidgetDeck once: widgetdeck restart": "Um den Benachrichtigungsdienst an ein anderes Programm zurückzugeben, starte WidgetDeck einmal neu: widgetdeck restart",
  "Tonal Spot": "Tonal Spot",
  "Top": "Oben",
  "Track change animation": "Songwechsel-Animation",

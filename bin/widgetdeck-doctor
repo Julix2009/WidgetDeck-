@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# widgetdeck-doctor - checks the WidgetDeck setup and prints OK / WARN / FAIL with a suggested fix.
+# The output is made to be pasted into a GitHub issue: your home directory is shown as "~", no location or wallpaper path is printed.
+#   widgetdeck-doctor [--plain]       (--plain: no colours)
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck"
+QML="${WIDGETDECK_QML:-$CFG/quickshell/widgetdeck}"
+CONF="${WIDGETDECK_DIR:-$CFG/widgetdeck}"
+[ -f "$QML/shell.qml" ] || for d in /usr/share/widgetdeck/qml "$(dirname "$0")/../qml"; do [ -f "$d/shell.qml" ] && QML="$(cd "$d" && pwd -P)" && break; done
+
+if [ -t 1 ] && [ "${1:-}" != "--plain" ]; then G=$'\033[32m'; Y=$'\033[33m'; R=$'\033[31m'; Z=$'\033[0m'; else G=""; Y=""; R=""; Z=""; fi
+nok=0; nwarn=0; nfail=0
+ok()   { nok=$((nok + 1));     printf '%s[ OK ]%s %s\n' "$G" "$Z" "$1"; }
+warn() { nwarn=$((nwarn + 1)); printf '%s[WARN]%s %s\n' "$Y" "$Z" "$1"; [ -n "${2:-}" ] && printf '       fix: %s\n' "$2"; return 0; }
+fail() { nfail=$((nfail + 1)); printf '%s[FAIL]%s %s\n' "$R" "$Z" "$1"; [ -n "${2:-}" ] && printf '       fix: %s\n' "$2"; return 0; }
+head_() { printf '\n== %s ==\n' "$1"; }
+has() { command -v "$1" >/dev/null 2>&1; }
+verof() { grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' <<<"$1" | head -n1; }
+vge() { [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]; }   # $1 >= $2
+
+run_all() {
+VER="$(tr -d "[:space:]" < "$QML/VERSION" 2>/dev/null)"
+echo "widgetdeck-doctor  ·  WidgetDeck ${VER:-unknown}  ·  $(date +%F)"
+echo "system: $(. /etc/os-release 2>/dev/null; echo "${PRETTY_NAME:-unknown}")  ·  kernel $(uname -r)  ·  session ${XDG_SESSION_TYPE:-?}/${XDG_CURRENT_DESKTOP:-?}  ·  lang ${LANG:-unset}"
+GPU="$(lspci 2>/dev/null | grep -iE 'vga|3d|display' | sed 's/^[^:]*: //' | head -n2 | tr '\n' ';')"; echo "gpu: ${GPU:-unknown (lspci missing)}"
+
+head_ "Arch / user"
+if [ -f /etc/arch-release ] || grep -qiE 'arch' /etc/os-release 2>/dev/null; then ok "Arch Linux (or derivative)"; else warn "not Arch Linux - only Arch is supported"; fi
+[ "$(id -u)" = 0 ] && fail "running as root" "run as a normal user"
+
+head_ "Hyprland"
+HV=""
+if has Hyprland; then HV="$(verof "$(Hyprland --version 2>/dev/null | head -n1)")"; fi
+if [ -z "$HV" ]; then fail "Hyprland not found" "pacman -S hyprland"
+else
+    if vge "$HV" 0.55.0; then ok "Hyprland $HV (tested: 0.55.4; Lua and .conf configs)"
+    elif vge "$HV" 0.53.0; then warn "Hyprland $HV: block-rule syntax supported, but untested by the author" "report problems with this output"
+    elif vge "$HV" 0.40.0; then warn "Hyprland $HV: old rule syntax is used (untested)" "update Hyprland if anything looks wrong"
+    else fail "Hyprland $HV is too old (minimum 0.40)" "pacman -Syu"; fi
+fi
+if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && has hyprctl; then
+    ok "Hyprland session is running"
+    if has jq; then hyprctl monitors -j 2>/dev/null | jq -r '.[] | "monitor: \(.name)  \(.width)x\(.height)@\(.refreshRate|floor)  scale \(.scale)  at \(.x),\(.y)"'; fi
+else warn "not inside a Hyprland session (run this in a terminal of your session for the full check)"; fi
+MAIN=""; for f in "$CFG/hypr/hyprland.lua" "$CFG/hypr/hyprland.conf"; do [ -f "$f" ] && { MAIN="$f"; break; }; done
+if [ -z "$MAIN" ]; then warn "no hyprland.conf / hyprland.lua found in $CFG/hypr" "create one, or add the rules from the repository folder hypr/ to wherever your config lives"
+else
+    case "$MAIN" in *.lua) CT="Lua" ;; *) CT="hyprlang (.conf)" ;; esac
+    ok "config: $MAIN ($CT)"
+    SNIP="$(dirname "$MAIN")/widgetdeck.${MAIN##*.}"
+    if [ -f "$SNIP" ]; then
+        ok "rules file present: $SNIP"
+        if grep -q 'widgetdeck' "$MAIN"; then ok "the rules file is included by your config"
+        else warn "rules file exists but your config does not include it" "add the source/dofile line shown by ./install.sh, or re-run ./install.sh"; fi
+    else warn "no widgetdeck rules file (Frosted blur, float rule for the builder and autostart are missing)" "re-run ./install.sh (it asks before touching your config)"; fi
+    if has Hyprland && Hyprland --help 2>&1 | grep -q verify-config; then
+        out="$(cd /tmp && env -u WAYLAND_DISPLAY -u HYPRLAND_INSTANCE_SIGNATURE timeout 20 Hyprland --verify-config -c "$MAIN" 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | sed -n '/Config parsing result/,$p' | grep -vE 'Config parsing result|^[[:space:]]*$')"
+        if [ "$out" = "config ok" ]; then ok "Hyprland accepts your config"; else fail "Hyprland reports config problems:" "fix the lines below"; printf '%s\n' "$out" | head -n6 | sed 's/^/         | /'; fi
+    fi
+fi
+if grep -rqs 'blur' "$(dirname "${MAIN:-/nonexistent}")" 2>/dev/null; then :; fi
+has uwsm && echo "info: uwsm is installed"
+
+head_ "Quickshell and Qt"
+if has quickshell; then QV="$(verof "$(quickshell --version 2>/dev/null | head -n1)")"; if vge "${QV:-0}" 0.2.0; then ok "Quickshell $QV"; else fail "Quickshell ${QV:-?} is too old" "pacman -Syu quickshell"; fi
+else fail "quickshell not found" "pacman -S quickshell"; fi
+QTV="$(pacman -Q qt6-declarative 2>/dev/null | cut -d' ' -f2)"; QTV="$(verof "$QTV")"
+if [ -n "$QTV" ]; then if vge "$QTV" 6.7.0; then ok "Qt $QTV"; else fail "Qt $QTV is older than 6.7" "pacman -Syu"; fi; else warn "qt6-declarative not found via pacman"; fi
+Q=""; for c in qsb qsb6 /usr/lib/qt6/bin/qsb; do has "$c" && { Q="$c"; break; }; done
+if [ -n "$Q" ]; then ok "shader compiler: $Q"; else fail "qsb not found - Liquid Glass falls back to Frosted" "pacman -S qt6-shadertools"; fi
+if [ -s "$CACHE/glass.frag.qsb" ] && [ -s "$CACHE/drops.frag.qsb" ]; then ok "Liquid Glass shaders compiled"
+elif [ -s "$QML/core/glass.frag.qsb" ]; then ok "prebuilt Liquid Glass shaders present"
+else warn "no compiled shaders yet (built at the first start / by ./install.sh)" "widgetdeck restart, or ./install.sh"; fi
+[ -f "$QML/shell.qml" ] && ok "program files: $QML" || fail "program files not found" "run ./install.sh"
+has qs || has quickshell && ok "start command: qs -c widgetdeck (or: widgetdeck daemon)"
+if has widgetdeck; then if widgetdeck status >/dev/null 2>&1; then ok "WidgetDeck is running"; else warn "WidgetDeck is not running" "widgetdeck daemon (autostart comes from the Hyprland rules file)"; fi
+else warn "widgetdeck command not in PATH" "add ~/.local/bin to your PATH"; fi
+
+head_ "Packages"
+for p in quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils; do pacman -T "$p" >/dev/null 2>&1 && ok "$p" || fail "$p missing" "pacman -S $p"; done
+for p in adwaita-fonts; do pacman -T "$p" >/dev/null 2>&1 && ok "$p (preferred font)" || warn "$p missing - the next installed font is used" "pacman -S $p"; done
+for p in networkmanager:"Wi-Fi name in the network widget" playerctl:"music widget skip direction" cava:"visualizer widget" matugen:"colours from the wallpaper (otherwise the fixed default palette)"; do
+    n="${p%%:*}"; w="${p#*:}"; pacman -T "$n" >/dev/null 2>&1 && ok "$n (optional)" || echo "[info] $n not installed (optional): $w"; done
+fonts="$(fc-list 2>/dev/null)"
+for f in "Adwaita Sans" "Inter" "Cantarell" "Noto Sans" "DejaVu Sans"; do grep -qi "$f" <<<"$fonts" && { echo "font found: $f"; found=1; break; }; done
+[ -z "${found:-}" ] && warn "none of the preferred fonts is installed - the system default font is used" "pacman -S adwaita-fonts"
+
+head_ "Wallpaper (needed for Liquid Glass)"
+if [ -f "$QML/core/wallpaper.sh" ]; then
+    w="$(bash "$QML/core/wallpaper.sh" --verbose 2>/dev/null)"
+    man="$(jq -r '.wallpaperPath // ""' "$CONF/widgets.json" 2>/dev/null)"
+    if [ -n "$man" ] && [ -f "${man/#\~/$HOME}" ]; then ok "wallpaper: chosen manually in the settings"
+    elif [ -n "$w" ]; then ok "wallpaper found via ${w%%$'\t'*}"
+    else warn "no wallpaper found (looked at: awww, swww, hyprpaper, swaybg, wpaperd) - Liquid Glass is off, widgets use Frosted" "choose a picture in the setup assistant or Settings > Glass background"; fi
+fi
+for t in awww swww hyprpaper swaybg wpaperd; do has "$t" && echo "wallpaper tool installed: $t"; done
+
+head_ "Conflicts (nothing is ever stopped by WidgetDeck)"
+c=""; for p in waybar ags eww hyprpanel yambar ironbar dunst mako swaync; do pgrep -x "$p" >/dev/null 2>&1 && c="$c $p"; done
+if [ -n "$c" ]; then warn "running:$c" "fine for the widgets; the bar / notification modules would collide with them (the settings tell you what to switch off)"; else ok "no other bar or notification daemon is running"; fi
+if has busctl; then o="$(busctl --user status org.freedesktop.Notifications 2>/dev/null | sed -n 's/^PID=//p')"; [ -n "$o" ] && echo "notification service owner: $(cat /proc/$o/comm 2>/dev/null)"; fi
+
+head_ "Settings"
+if [ -f "$CONF/config.json" ]; then
+    if jq -e . "$CONF/config.json" >/dev/null 2>&1; then
+        ok "config.json is valid (schema $(jq -r '.schema // 0' "$CONF/config.json"))"
+        echo "modules: $(jq -c '.modules // {}' "$CONF/config.json")"
+        loc="off"; [ "$(jq -r '.location.auto // true' "$CONF/config.json")" != false ] && loc="automatic (IP lookup via ipwho.is)"; [ "$(jq -r '.location.lat // "x"' "$CONF/config.json")" != x ] && loc="manual coordinates"
+        echo "location: $loc  ·  units: $(jq -r '.units // "auto"' "$CONF/config.json")  ·  clock: $(jq -r '.time_format // "auto"' "$CONF/config.json")  ·  language: $(jq -r '.language // "auto"' "$CONF/config.json")"
+        [ "$(jq -r '.setup.done // false' "$CONF/config.json")" = true ] || echo "[info] the first-run assistant has not been finished yet"
+    else fail "config.json is not valid JSON" "fix or delete $CONF/config.json (a backup is in ${CONF}.bak-*)"; fi
+else warn "no config.json yet (created by ./install.sh)"; fi
+if [ -f "$CONF/widgets.json" ]; then jq -e . "$CONF/widgets.json" >/dev/null 2>&1 && ok "widgets.json: $(jq '.widgets|length' "$CONF/widgets.json") widgets" || fail "widgets.json is not valid JSON"; fi
+
+head_ "Hardware (widgets hide what is missing)"
+cpu=0; [ -d /sys/class/hwmon ] && grep -lqE 'coretemp|k10temp' /sys/class/hwmon/hwmon*/name 2>/dev/null && cpu=1
+[ "$cpu" = 1 ] && ok "CPU temperature sensor" || echo "[info] no CPU temperature sensor (the thermals widget leaves it out)"
+fans="$(ls /sys/class/hwmon/hwmon*/fan*_input 2>/dev/null | wc -l)"; echo "fans reported: $fans"
+bat="$(ls -d /sys/class/power_supply/BAT* 2>/dev/null | wc -l)"; echo "batteries: $bat (no widget needs one)"
+wl="$(ls -d /sys/class/net/*/wireless 2>/dev/null | wc -l)"; echo "wireless interfaces: $wl"
+has nmcli || echo "[info] nmcli missing: the network widget shows 'Wi-Fi' without a name"
+has nvidia-smi && echo "nvidia-smi present"
+
+head_ "Network"
+if has curl; then
+    if curl -sf --max-time 6 -o /dev/null "https://api.open-meteo.com/v1/forecast?latitude=0&longitude=0&current=temperature_2m"; then ok "weather service reachable (open-meteo.com)"
+    else warn "weather service not reachable - weather and air quality show an offline note" "check your connection / firewall"; fi
+fi
+
+echo
+echo "summary: $nok ok, $nwarn warnings, $nfail failures"
+[ "$nfail" = 0 ]
+}
+run_all 2>&1 | sed "s#$HOME#~#g"
+exit "${PIPESTATUS[0]}"

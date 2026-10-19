@@ -26,3 +26,16 @@ hl.window_rule({
     rounding = 20,   -- the Lua config caps rounding at 20
     border_size = 0,
 })
+-- the first-run assistant (fixed size, set by the app)
+hl.window_rule({
+    name = "widgetdeck_setup",
+    match = { title = "^WidgetDeck Setup$" },
+    float = true,
+    center = true,
+    border_size = 0,
+})
+
+-- ---- optional key binds: remove the leading "-- " of the ones you want --------------------------------------------------
+-- hl.bind("SUPER + W", hl.dsp.exec_cmd("@BIN@ toggle"))                  -- open / close the builder (edit mode)
+-- hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd("@BIN@ ipc powerPanel"))  -- power menu (bar or notifications module)
+-- hl.bind("SUPER + N", hl.dsp.exec_cmd("@BIN@ ipc toggleDnd"))           -- do not disturb (notifications module)

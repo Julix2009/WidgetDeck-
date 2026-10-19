@@ -3,6 +3,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../core"
 
 Scope {
@@ -11,10 +12,16 @@ Scope {
     property bool open: false
     function toggle() { open = !open; }
 
-    LazyLoader {
-        active: pp.open
+    Variants {
+        model: pp.open ? [1] : []
         PanelWindow {
             id: win
+            required property var modelData
+            screen: {
+                var f = Hyprland.focusedMonitor, all = Quickshell.screens;
+                for (var i = 0; i < all.length; i++) if (f && all[i].name === f.name) return all[i];
+                return all.length > 0 ? all[0] : null;
+            }
             anchors { top: true; bottom: true; left: true; right: true }
             color: Qt.rgba(0, 0, 0, 0.35)
             exclusionMode: ExclusionMode.Ignore

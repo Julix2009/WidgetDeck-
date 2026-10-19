@@ -12,10 +12,12 @@ Column {
     spacing: 8
     property string pending: ""          // module waiting for the user's "enable anyway"
     property string conflict: ""
+    property bool handBack: false          // the notification service was switched off: the D-Bus name is only released when WidgetDeck restarts
     readonly property string script: decodeURIComponent(Qt.resolvedUrl("../modules/conflicts.sh").toString().replace("file://", ""))
 
     function toggle(name, on) {
-        if (!on) { store.setConfig("modules." + name, false); if (pending === name) pending = ""; return; }
+        if (!on) { store.setConfig("modules." + name, false); if (pending === name) pending = ""; if (name === "notifications") handBack = true; return; }
+        if (name === "notifications") handBack = false;
         if (name === "bar" || name === "notifications") { pending = name; conflict = ""; probe.command = ["bash", script, name]; probe.running = true; }
         else store.setConfig("modules." + name, true);
     }
@@ -36,6 +38,8 @@ Column {
     GSwitch { width: parent.width; th: mb.th; label: I18n.tr("Bar (off by default)"); checked: mb.store.cget("modules.bar", false); onToggled: v => mb.toggle("bar", v) }
     GSwitch { width: parent.width; th: mb.th; label: I18n.tr("Notifications and power menu (off by default)"); checked: mb.store.cget("modules.notifications", false); onToggled: v => mb.toggle("notifications", v) }
 
+    Text { visible: mb.handBack; width: parent.width; wrapMode: Text.WordWrap; color: mb.th.dim; font.family: mb.th.font; font.pixelSize: 11
+        text: I18n.tr("To hand the notification service back to another program, restart WidgetDeck once: widgetdeck restart") }
     Rectangle {
         visible: mb.pending !== "" && mb.conflict !== ""
         width: parent.width; height: warn.height + 24; radius: 12; color: Qt.rgba(1, 0.6, 0.2, 0.14); border.width: 1; border.color: Qt.rgba(1, 0.6, 0.2, 0.6)

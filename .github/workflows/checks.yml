@@ -1,0 +1,30 @@
+# Checks only (shellcheck, qmllint, translations, grid tests, secret scan). Nothing is built, released or deployed.
+name: checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git shellcheck qt6-declarative python nodejs gitleaks jq
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Mark the checkout as safe
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: shellcheck
+        run: shellcheck -x install.sh update.sh uninstall.sh release.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/modules/*.sh tools/*.sh migrations/*.sh
+      - name: qmllint (errors only)
+        run: |
+          cd qml
+          /usr/lib/qt6/bin/qmllint -I /usr/lib/qt6/qml -I . --unqualified disable --missing-property disable --compiler disable --unresolved-type disable --uncreatable-type disable --property-override disable --signal-handler-parameters disable --import disable --incompatible-type disable $(find . -name '*.qml')
+      - name: translations
+        run: python3 tools/check-i18n.py
+      - name: grid tests
+        run: node tools/snapengine-test.js
+      - name: secret scan
+        run: tools/secret-scan.sh

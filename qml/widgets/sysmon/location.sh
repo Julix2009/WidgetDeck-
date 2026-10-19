@@ -12,7 +12,8 @@ if [[ "$lat" =~ ^-?[0-9]+(\.[0-9]+)?$ && "$lon" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; the
     jq -nc --argjson la "$lat" --argjson lo "$lon" --arg n "$(cfg '.location.name' "")" '{lat:$la, lon:$lo, name:$n, source:"manual"}'
     exit 0
 fi
-if [ "$(cfg '.location.auto' true)" = "true" ]; then
+# no lookup before the first-run assistant has explained it and the user accepted ("setup": {"done": false} in config.json)
+if [ "$(cfg '.location.auto' true)" = "true" ] && [ "$(cfg '.setup.done' true)" != "false" ]; then
     cache="$WD_CACHE/location.json"
     if [ "$(file_age "$cache")" -gt 604800 ]; then
         r=$(curl -sf --max-time 6 "https://ipwho.is/?fields=success,latitude,longitude,city" 2>/dev/null) || r=""

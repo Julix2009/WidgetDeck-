@@ -10,7 +10,7 @@ case "$what" in
             pgrep -x "$p" >/dev/null 2>&1 && echo "$p (running)"
         done
         # another Quickshell instance that is not us (other bars are often Quickshell configs)
-        { pgrep -ax quickshell; pgrep -ax qs; } 2>/dev/null | grep -v -- 'widgetdeck' | head -n2 | sed 's/^[0-9]* /quickshell config: /'
+        { pgrep -ax quickshell; pgrep -ax qs; } 2>/dev/null | grep -v -- 'widgetdeck' | sed 's/^[0-9]* /quickshell config: /' | sort -u | head -n3
         ;;
     notifications)
         owner=""

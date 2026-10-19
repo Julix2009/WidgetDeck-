@@ -1,0 +1,34 @@
+name: Bug report
+description: Something does not work
+body:
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `widgetdeck-doctor`
+      description: Paste everything. It hides your home directory and prints no location or wallpaper path.
+      render: text
+    validations: { required: true }
+  - type: input
+    id: hypr
+    attributes: { label: Hyprland version, description: "`Hyprland --version`", placeholder: "0.55.4" }
+    validations: { required: true }
+  - type: dropdown
+    id: cfg
+    attributes: { label: Hyprland config type, options: [hyprland.conf, hyprland.lua, split / sourced files, other] }
+    validations: { required: true }
+  - type: input
+    id: gpu
+    attributes: { label: GPU and driver, placeholder: "Intel Arc / AMD RX 6700 / NVIDIA RTX 3060 (nvidia 550)" }
+  - type: input
+    id: monitor
+    attributes: { label: Monitor(s), description: "resolution, scale, count", placeholder: "2560x1600 scale 1.5; second 1920x1080 scale 1" }
+  - type: input
+    id: wall
+    attributes: { label: Wallpaper tool, placeholder: "awww / swww / hyprpaper / swaybg / wpaperd / other" }
+  - type: dropdown
+    id: install
+    attributes: { label: Installed with, options: [install.sh, PKGBUILD, other] }
+  - type: textarea
+    id: what
+    attributes: { label: What happened, description: "What did you do, what did you expect, what happened instead? Screenshots help (blur private content)." }
+    validations: { required: true }

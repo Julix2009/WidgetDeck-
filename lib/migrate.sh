@@ -28,7 +28,7 @@ migrate_run() {
     local cur latest f n pending=() bak
     cur="$(migrate_current)"; latest="$(migrate_latest)"
     if [ "$cur" -ge "$latest" ]; then
-        [ "$cur" -gt "$latest" ] && info "Einstellungen haben Schema $cur (neuer als dieses Programm, $latest) - es wird nichts migriert."
+        [ "$cur" -gt "$latest" ] && info "$(t 'Your settings have schema %s (newer than this program, %s) - nothing is migrated.' "$cur" "$latest")"
         return 0
     fi
     for f in "$SCRIPT_DIR"/migrations/[0-9][0-9][0-9][0-9]_*.sh; do
@@ -36,16 +36,16 @@ migrate_run() {
         n="$(basename "$f")"; n=$((10#${n%%_*}))
         [ "$n" -gt "$cur" ] && pending+=("$f")
     done
-    step "Einstellungen migrieren (Schema $cur -> $latest)"
+    step "$(t 'Migrating your settings (schema %s -> %s)' "$cur" "$latest")"
     bak="$H/.config/widgetdeck.bak-$(stamp)"
     if [ "$DRY_RUN" = 1 ]; then
-        printf '  [dry-run] Backup %s\n' "$bak"
+        printf '  [dry-run] backup %s\n' "$bak"
         for f in "${pending[@]}"; do printf '  [dry-run] bash %s %s\n' "$(basename "$f")" "$CONF_DIR"; done
         return 0
     fi
     cp -a "$CONF_DIR" "$bak"
     state_set CONFIG_BACKUP "$bak"
-    ok "Backup der Einstellungen: $bak"
+    ok "$(t 'Backup of your settings: %s' "$bak")"
     # keep the five newest backups
     local old_baks=()
     while IFS= read -r f; do old_baks+=("$f"); done < <(ls -1d "$H"/.config/widgetdeck.bak-* 2>/dev/null | sort -r | tail -n +6)
@@ -53,9 +53,9 @@ migrate_run() {
     for f in "${pending[@]}"; do
         n="$(basename "$f")"; n=$((10#${n%%_*}))
         if bash "$f" "$CONF_DIR" >> "${LOG_FILE:-/dev/null}" 2>&1 && migrate_set_schema "$n"; then
-            ok "Migration $(basename "$f")"
+            ok "$(t 'Migration %s' "$(basename "$f")")"
         else
-            warn "Migration $(basename "$f") ist fehlgeschlagen - stelle die Einstellungen aus dem Backup wieder her."
+            warn "$(t 'Migration %s failed - restoring your settings from the backup.' "$(basename "$f")")"
             rm -rf "$CONF_DIR" && cp -a "$bak" "$CONF_DIR"
             state_set CONFIG_BACKUP ""
             return 1

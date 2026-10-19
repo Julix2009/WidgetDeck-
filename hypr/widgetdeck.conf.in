@@ -1,10 +1,10 @@
 # WidgetDeck - Hyprland rules (Hyprland >= 0.53, hyprlang). Written by install.sh; the include line in your hyprland.conf is marked
-# with ">>> widgetdeck" so ./uninstall.sh can remove it again.
+# with ">>> widgetdeck" so ./uninstall.sh can remove it again. Edit freely: install.sh never overwrites a file you changed (it writes *.new).
 
 # start the desktop widgets with the session
 exec-once = @BIN@ daemon
 
-# Frosted widgets (layer namespace "widgetdeck"): blur behind the glass cards.
+# Frosted widgets, the bar and the notification cards (layer namespace "widgetdeck"): blur behind the glass.
 # Liquid Glass widgets ("widgetdeck-liquid") draw their own blur and need NO rule (a blur rule would also blur their shadow band).
 # Blur itself has to be enabled in decoration { blur { enabled = true } } (the default).
 layerrule {
@@ -25,3 +25,17 @@ windowrule {
     rounding = 30
     border_size = 0
 }
+# the first-run assistant (fixed size, set by the app)
+windowrule {
+    name = widgetdeck_setup
+    match:title = ^WidgetDeck Setup$
+    float = on
+    center = on
+    border_size = 0
+}
+
+# ---- optional key binds: remove the leading "# " of the ones you want ------------------------------------------------------
+# bind = SUPER, W, exec, @BIN@ toggle                  # open / close the builder (edit mode)
+# bind = SUPER SHIFT, P, exec, @BIN@ ipc powerPanel    # power menu (needs the bar or the notifications module)
+# bind = SUPER, N, exec, @BIN@ ipc toggleDnd           # do not disturb (notifications module)
+# bind = SUPER SHIFT, N, exec, @BIN@ ipc dismissNotifications

@@ -23,10 +23,13 @@ Scope {
         if (p.indexOf("file://") === 0) return p;
         return "file://" + encodeURI(p).replace(/#/g, "%23").replace(/\?/g, "%3F");
     }
-    function refresh() { if (!proc.running) proc.running = true; if (override !== "" && !chk.running) chk.running = true; }
+    function refresh() {
+        if (!proc.running) proc.running = true;
+        if (override !== "") { chk.running = false; chk.command = ["test", "-f", expand(override)]; chk.running = true; }
+    }
     Component.onCompleted: if (wanted) refresh()
     onWantedChanged: if (wanted) refresh()
-    onOverrideChanged: { overrideExists = false; if (wanted) refresh(); }
+    onOverrideChanged: { overrideExists = false; if (wanted) Qt.callLater(refresh); }
     onPathChanged: console.log("[widgetdeck-wallpaper]", path === "" ? "(none found)" : (tool !== "" && override === "" ? tool + ": " : "") + path)
 
     Process {
@@ -42,7 +45,7 @@ Scope {
     }
     Process {
         id: chk
-        command: ["test", "-f", root.path]
+        command: ["true"]
         onExited: (code, status) => root.overrideExists = code === 0
     }
     Timer { interval: 5000; repeat: true; running: root.wanted && root.override === ""; onTriggered: root.refresh() }

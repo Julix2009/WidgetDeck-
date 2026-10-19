@@ -28,29 +28,23 @@ ensure() {
 }
 
 doctor() {
-    ok() { printf '  [ ok ] %s\n' "$1"; }
-    warn() { printf '  [warn] %s\n' "$1"; }
-    bad() { printf '  [FAIL] %s\n' "$1"; }
-    echo "WidgetDeck $VERSION - QML: $QML - config: $CONF"
-    if command -v quickshell >/dev/null 2>&1; then ok "quickshell: $(quickshell --version 2>/dev/null | head -n1)"; else bad "quickshell not found (pacman -S quickshell)"; fi
-    if command -v hyprctl >/dev/null 2>&1; then ok "hyprland: $(hyprctl version 2>/dev/null | head -n1 | cut -c1-60)"; else warn "hyprctl not found - the usable-area detection of the snap grid falls back to the full screen"; fi
-    qsb=""; for q in qsb qsb6 /usr/lib/qt6/bin/qsb; do command -v "$q" >/dev/null 2>&1 && { qsb="$q"; break; }; done
-    if [ -n "$qsb" ]; then ok "shader compiler: $qsb"; else warn "qsb not found (pacman -S qt6-shadertools): Liquid Glass falls back to Frosted Glass unless prebuilt shaders are installed"; fi
-    cache="${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck"
-    if [ -s "$cache/glass.frag.qsb" ]; then ok "Liquid Glass shader built ($cache/glass.frag.qsb)"; else warn "no compiled shader yet (it is built when the daemon starts; run: widgetdeck restart)"; fi
-    for f in "Adwaita Sans" "Iosevka Nerd Font"; do
-        if fc-list 2>/dev/null | grep -qi "$f"; then ok "font: $f"; else warn "font missing: $f (pacman -S adwaita-fonts ttf-iosevka-nerd)"; fi
-    done
-    for c in jq curl ip; do command -v "$c" >/dev/null 2>&1 && ok "$c" || bad "$c missing (needed by the data widgets)"; done
-    for c in nmcli playerctl cava matugen grim; do command -v "$c" >/dev/null 2>&1 && ok "$c (optional)" || warn "$c not installed (optional: the matching widget / feature is limited)"; done
-    if running; then ok "daemon running"; else warn "daemon not running (widgetdeck daemon, or autostart via the Hyprland snippet)"; fi
-    if [ -f "$CONF/widgets.json" ]; then ok "layout: $CONF/widgets.json"; else warn "no layout yet (created when the daemon starts)"; fi
-    loc="$(bash "$QML/widgets/sysmon/location.sh" 2>/dev/null)"
-    case "$loc" in *'"source":"none"'*) warn "no location known (weather / air quality): builder -> Settings -> Location & units";; *) ok "location source: $(printf '%s' "$loc" | sed -n 's/.*"source":"\([a-z]*\)".*/\1/p')";; esac
+    d="$(dirname "$0")/widgetdeck-doctor"
+    if [ -x "$d" ]; then exec "$d" "$@"; fi
+    if command -v widgetdeck-doctor >/dev/null 2>&1; then exec widgetdeck-doctor "$@"; fi
+    echo "widgetdeck: widgetdeck-doctor is not installed (run ./install.sh)" >&2; return 1
+}
+
+# module <widgets|builder|bar|notifications> <on|off>: edits config.json (the running shell picks it up at once)
+module() {
+    case "$1" in widgets|builder|bar|notifications) ;; *) echo "usage: widgetdeck module <widgets|builder|bar|notifications> <on|off>" >&2; return 1 ;; esac
+    case "$2" in on) v=true ;; off) v=false ;; *) echo "usage: widgetdeck module $1 <on|off>" >&2; return 1 ;; esac
+    command -v jq >/dev/null 2>&1 || { echo "widgetdeck: jq is needed" >&2; return 1; }
+    f="$CONF/config.json"; mkdir -p "$CONF"; [ -f "$f" ] || echo '{}' > "$f"
+    t="$(mktemp "$f.XXXXXX")" && jq --arg m "$1" --argjson v "$v" '.modules[$m] = $v' "$f" > "$t" && mv "$t" "$f" && echo "module $1: $2"
 }
 
 case "${1:-builder}" in
-    daemon)   exec $QS ;;
+    daemon)   if running; then echo "widgetdeck: already running" >&2; exit 0; fi; exec $QS ;;
     builder)  ensure && exec $QS ipc call widgetdeck openBuilder ;;
     toggle)   ensure && exec $QS ipc call widgetdeck toggleBuilder ;;
     close)    exec $QS ipc call widgetdeck closeBuilder ;;
@@ -59,7 +53,9 @@ case "${1:-builder}" in
     status)   running ;;
     log)      exec $QS log ;;
     config)   echo "$CONF/widgets.json" ;;
-    doctor)   doctor ;;
+    doctor)   shift; doctor "$@" ;;
+    module)   shift; module "$@" ;;
+    wizard)   ensure && exec $QS ipc call widgetdeck wizard ;;
     version|--version) echo "widgetdeck $VERSION" ;;
     ipc)      shift; exec $QS ipc call widgetdeck "$@" ;;
     *)  cat <<USAGE
@@ -71,7 +67,9 @@ widgetdeck <command>
   stop | restart | log
   status     exit code 0 when the daemon is running
   config     print the path of widgets.json
-  doctor     check dependencies, shader, fonts and location
+  doctor     check the whole setup (same as widgetdeck-doctor)
+  module <name> on|off   switch a module (widgets builder bar notifications)
+  wizard     show the first-run assistant again
   ipc <fn>   raw IPC call (ping, list, select <id>, style|setProp <id> <key> <json>, builderGlass <mode>, ...)
 USAGE
         ;;

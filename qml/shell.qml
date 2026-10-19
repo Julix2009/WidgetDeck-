@@ -64,12 +64,15 @@ ShellRoot {
     }
 
     // ───────────── optional modules ─────────────
-    LazyLoader { id: barLoader; active: shell.modBar
-        Bar { theme: theTheme; store: theStore; onPowerRequested: powerLoader.item && powerLoader.item.toggle() } }
-    LazyLoader { id: notifyLoader; active: shell.modNotify
-        Notifications { theme: theTheme } }
-    LazyLoader { id: powerLoader; active: shell.modBar || shell.modNotify
-        PowerPanel { theme: theTheme } }
+    // Variants (not LazyLoader): a module that is switched off is really destroyed - the notification service gives its D-Bus name back
+    Variants { id: barLoader; model: shell.modBar ? [1] : []
+        Bar { required property var modelData; theme: theTheme; store: theStore; onPowerRequested: shell.togglePower() } }
+    Variants { id: notifyLoader; model: shell.modNotify ? [1] : []
+        Notifications { required property var modelData; theme: theTheme } }
+    Variants { id: powerLoader; model: (shell.modBar || shell.modNotify) ? [1] : []
+        PowerPanel { required property var modelData; theme: theTheme } }
+    function moduleItem(v) { return v.instances.length > 0 ? v.instances[0] : null; }
+    function togglePower() { var p = moduleItem(powerLoader); if (p) p.toggle(); }
 
     // ───────────── usable area of the monitor (for the snap grid) ─────────────
     // = the monitor minus the zones other layer-shell surfaces reserve (the top bar), from hyprctl. Logical px of THIS monitor,
@@ -128,12 +131,14 @@ ShellRoot {
             if (state === "on" || state === "off") theStore.setConfig("modules." + name, state === "on");
             return name + "=" + theStore.cget("modules." + name, false);
         }
-        function powerPanel(): string { if (powerLoader.item) { powerLoader.item.toggle(); return "ok"; } return "disabled: enable the bar or notifications module"; }
-        function dismissNotifications(): string { if (notifyLoader.item) { notifyLoader.item.dismissAll(); return "ok"; } return "disabled"; }
-        function toggleDnd(): string { if (notifyLoader.item) { notifyLoader.item.dnd = !notifyLoader.item.dnd; return notifyLoader.item.dnd ? "dnd on" : "dnd off"; } return "disabled"; }
+        function powerPanel(): string { var p = shell.moduleItem(powerLoader); if (p) { p.toggle(); return "ok"; } return "disabled: enable the bar or notifications module"; }
+        function dismissNotifications(): string { var n = shell.moduleItem(notifyLoader); if (n) { n.dismissAll(); return "ok"; } return "disabled"; }
+        function toggleDnd(): string { var n = shell.moduleItem(notifyLoader); if (n) { n.dnd = !n.dnd; return n.dnd ? "dnd on" : "dnd off"; } return "disabled"; }
+        function wallpaperInfo(): string { return JSON.stringify({ path: theWall.path, usable: theWall.usable, tool: theWall.tool, manual: theWall.override !== "", liquidOk: shell.liquidOk }); }
         function wizard(): void { theStore.setConfig("setup.done", false); }
         function wizardStep(n: int): void { setupWizard.step = n; }
-        function wizardPick(key: string, value: string): void { var o = {}; o[key] = value; setupWizard.apply(o); }
+        function wizardPick(json: string): void { setupWizard.apply(JSON.parse(json)); }
+        function wizardFinish(): void { setupWizard.finish(false); }
         function version(): string { return theUpdate.version; }
         function reloadWallpaper(): void { theWall.refresh(); }
         function ping(): string { return "pong"; }
