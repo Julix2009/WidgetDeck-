@@ -80,7 +80,8 @@ function summary(lessons, now, group) {
 
 // school-day indexes for the week grid: Monday .. last day with lessons (at least Friday)
 function weekDays(now) {
-    var mon = addDays(now, -((now.getDay() + 6) % 7)), out = [];
+    var wd = now.getDay(), base = wd === 6 ? addDays(now, 2) : (wd === 0 ? addDays(now, 1) : now);       // Saturday / Sunday: show the coming week
+    var mon = addDays(base, -((base.getDay() + 6) % 7)), out = [];
     for (var i = 0; i < 5; i++) out.push(addDays(mon, i));
     return out;
 }

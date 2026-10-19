@@ -55,4 +55,6 @@ const rows = M.gridRows(demo.grid, M.weekDays(monday));
 ok('grid rows from the school time grid (7 slots)', rows.length === 7 && rows[0].start === '08:00' && rows[6].end === '15:15', rows.length);
 ok('empty leading / trailing grid rows are trimmed', M.trimRows(M.gridRows(demo.grid, M.weekDays(monday)), L, M.weekDays(monday)).length === 7, 0);
 ok('cell lookup', M.cell(L, monday, '08:00', '').main.subject === 'M', 0);
+const sat = M.addDays(monday, 5), sun = M.addDays(monday, 6), wed = M.addDays(monday, 2);
+ok('week view: weekend shows the coming week', M.ymd(M.weekDays(sat)[0]) === M.ymd(M.addDays(monday, 7)) && M.ymd(M.weekDays(sun)[0]) === M.ymd(M.addDays(monday, 7)) && M.ymd(M.weekDays(wed)[0]) === M.ymd(monday), 0);
 process.exit(fail ? 1 : 0);

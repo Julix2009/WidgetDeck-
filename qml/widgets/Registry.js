@@ -81,7 +81,7 @@ var TYPES = {
         label: "Timetable", desc: "Your WebUntis timetable (Untis Mobile access): now / next lesson, day and week", icon: "calendar", size: [380, 220], file: "TimetableWidget.qml",
         sizes: { small: [380, 220], large: [640, 460] },
         props: [
-            { key: "default_view", label: "Start view (large size)", kind: "choice", def: "today", options: [["today", "Today"], ["tomorrow", "Tomorrow"], ["week", "Week"]] },
+            { key: "default_view", label: "View (large size)", kind: "choice", def: "today", options: [["today", "Today"], ["tomorrow", "Tomorrow"], ["week", "Week"]] },
             { key: "group", label: "My group (empty = all)", kind: "text", def: "" },
             { key: "show_room", label: "Show room", kind: "bool", def: true },
             { key: "show_teacher", label: "Show teacher", kind: "bool", def: true },

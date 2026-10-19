@@ -16,6 +16,8 @@ Item {
     property real innerRadius: 8
     property var palette: ({})
     property int configRev: 0
+    property bool persistent: false                       // set by WidgetHost: persistRequested(key, value) is saved into the layout
+    signal persistRequested(string key, var value)
 
     readonly property real fs: style.font_size || 16
     function s(v) { return v * fs / 16; }
@@ -36,19 +38,29 @@ Item {
     readonly property bool hasData: lessons.length > 0 || (d && d.fetched > 0)
     property date now: new Date()
     readonly property var sum: M.summary(lessons, now, group)
-    property string view: ""                              // "" = props.default_view
-    readonly property string shownView: view !== "" ? view : (props.default_view || "today")
+    // ONE view state: props.default_view (today | tomorrow | week). A click writes it through persist(), so it is saved, restored at start,
+    // shown in the builder and can be set from outside (IPC setProp). `localView` only stands in when no host saves the choice.
+    property string localView: ""
+    readonly property string shownView: persistent ? (props.default_view || "today") : (localView !== "" ? localView : (props.default_view || "today"))
+    function setView(v) {
+        if (v === shownView) return;
+        if (persistent) persistRequested("default_view", v); else localView = v;
+        if (live && d && d.fetched > 0 && Date.now() / 1000 - d.fetched > 300) run();     // older than 5 min: refresh in the background, the cache stays visible
+    }
     readonly property bool compact: width < s(500) || height < s(290)
     readonly property string asOf: d && d.fetched ? Qt.formatTime(new Date(d.fetched * 1000), "HH:mm") : ""
 
+    property bool runAgain: false
+    readonly property string srcKey: props.source ? String(props.source) : "auto"
     function run() {
-        if (poll.running) return;
+        if (poll.running) { runAgain = true; return; }          // a change during a running fetch is not lost: it runs again afterwards
         var src = props.source && props.source !== "auto" ? ["demo"].concat(String(props.source).indexOf("holiday") >= 0 ? ["holiday"] : []) : ["fetch"];
         poll.command = ["python3", "-I", w.dir + "untis.py"].concat(src);
         poll.running = true;
     }
     Process {
         id: poll
+        onRunningChanged: if (!running && w.runAgain) { w.runAgain = false; Qt.callLater(w.run); }
         stdout: StdioCollector {
             onStreamFinished: { try { var o = JSON.parse(this.text); if (o && o.state) w.d = o; } catch (e) { if (!w.d) w.d = { state: "error", lessons: [], grid: {}, fetched: 0 }; } }
         }
@@ -56,7 +68,7 @@ Item {
     Timer { interval: 900000; repeat: true; running: w.live; triggeredOnStart: true; onTriggered: w.run() }          // 15 min, only while visible
     onLiveChanged: if (live) run()
     onConfigRevChanged: if (live) run()
-    onPropsChanged: if (live) Qt.callLater(run)
+    onSrcKeyChanged: if (live) Qt.callLater(run)               // only a new data source needs a fetch (not every layout change / view switch)
     Timer { interval: 30000; repeat: true; running: w.live; onTriggered: w.now = new Date() }                          // minute resolution is enough
     function openSetup() {
         var p = Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup";
@@ -179,51 +191,82 @@ Item {
         readonly property var es: M.entries(w.lessons, M.ymd(shownDate), w.group)
         readonly property int curIdx: w.shownView === "today" ? M.currentIndex(es, M.minutesOf(w.now)) : -1
         readonly property int nextIdx: w.shownView === "today" ? M.nextIndex(es, M.minutesOf(w.now)) : -1
+        // today <-> tomorrow: the list fades out, swaps and fades in (the glass underneath is not touched)
+        property string lastView: w.shownView
+        onEsChanged: {
+            if (lastView !== w.shownView && dayList.visible) { lastView = w.shownView; swap.restart(); }
+            else if (!swap.running) dayCol.shown = es;
+        }
+        Component.onCompleted: dayCol.shown = es
+        SequentialAnimation {
+            id: swap
+            NumberAnimation { target: dayCol; property: "opacity"; to: 0; duration: 90; easing.type: Easing.OutCubic }
+            ScriptAction { script: dayCol.shown = largeView.es }
+            NumberAnimation { target: dayCol; property: "opacity"; to: 1; duration: 140; easing.type: Easing.OutCubic }
+        }
 
-        // header: tabs + reload
+        // header: tabs + reload. Hit areas are at least 28 px; hover / press change size and position of the pill (never scale), the
+        // active tab is marked by the accent colour on border and text (no fill on the glass).
+        readonly property real hitH: Math.max(28, w.s(30))
         Row {
             id: tabs
+            objectName: "tabs"
             anchors { left: parent.left; top: parent.top }
-            spacing: w.s(6)
+            spacing: w.s(2)
             Repeater {
                 model: [["today", I18n.tr("Today")], ["tomorrow", I18n.tr("Tomorrow")], ["week", I18n.tr("Week")]]
-                delegate: Rectangle {
+                delegate: Item {
+                    id: tab
                     required property var modelData
                     readonly property bool on: w.shownView === modelData[0]
-                    height: w.s(26); width: tl.implicitWidth + w.s(20); radius: height / 2; color: "transparent"
-                    border.width: 1; border.color: on ? w.cAcc : (tma.containsMouse ? Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.4) : Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.16))
-                    Behavior on border.color { ColorAnimation { duration: 200 } }
-                    GText { id: tl; anchors.centerIn: parent; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.78; color: on ? w.cAcc : w.cFg; opacity: on ? 1 : 0.75; text: modelData[1] }
-                    MouseArea { id: tma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: w.view = modelData[0] }
+                    height: largeView.hitH; width: tl.implicitWidth + w.s(20) + w.s(4) + 6
+                    Rectangle {
+                        id: pill
+                        anchors.centerIn: parent
+                        anchors.verticalCenterOffset: tma.pressed ? 1 : 0
+                        height: w.s(26) + (tma.pressed ? -2 : (tma.containsMouse ? 2 : 0))
+                        width: tl.implicitWidth + w.s(20) + (tma.pressed ? -2 : (tma.containsMouse ? 4 : 0))
+                        radius: height / 2; color: "transparent"
+                        border.width: 1
+                        border.color: tab.on ? w.cAcc : (tma.containsMouse ? Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.45) : Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.16))
+                        Behavior on border.color { ColorAnimation { duration: 160 } }
+                        Behavior on width { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                        Behavior on height { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    }
+                    GText { id: tl; anchors.centerIn: pill; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.78; color: tab.on ? w.cAcc : w.cFg; opacity: tab.on ? 1 : (tma.containsMouse ? 0.95 : 0.75); text: modelData[1] }
+                    MouseArea { id: tma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: w.setView(modelData[0]) }
                 }
             }
         }
-        GText { anchors { left: tabs.right; leftMargin: w.s(14); verticalCenter: tabs.verticalCenter; right: reload.left; rightMargin: w.s(8) } elide: Text.ElideRight; wstyle: w.style; opacity: 0.82; font.pixelSize: w.fs * 0.78
+        GText { anchors { left: tabs.right; leftMargin: w.s(10); verticalCenter: tabs.verticalCenter; right: reload.left; rightMargin: w.s(8) } elide: Text.ElideRight; wstyle: w.style; opacity: 0.82; font.pixelSize: w.fs * 0.78
                 visible: !largeView.isWeek
                 text: w.dayName(largeView.shownDate, true) + ", " + w.mdText(largeView.shownDate) }
         Item {
             id: reload
             anchors { right: parent.right; verticalCenter: tabs.verticalCenter }
-            width: w.s(26); height: width
-            Icon { anchors.centerIn: parent; width: w.s(16); height: width; name: "refresh"; color: rma.containsMouse ? w.cAcc : w.cFg; opacity: poll.running ? 0.4 : 0.8 }
+            width: largeView.hitH; height: width
+            Icon { anchors.centerIn: parent; anchors.verticalCenterOffset: rma.pressed ? 1 : 0; width: w.s(16) + (rma.pressed ? -2 : (rma.containsMouse ? 2 : 0)); height: width; name: "refresh"
+                   color: rma.containsMouse ? w.cAcc : w.cFg; opacity: poll.running ? 0.4 : 0.8
+                   Behavior on width { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } } }
             MouseArea { id: rma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: w.run() }
         }
 
         // ---- day timeline ----
         Flickable {
             id: dayList
-            anchors { left: parent.left; right: parent.right; top: tabs.bottom; topMargin: w.s(10); bottom: footer.top; bottomMargin: w.s(4) }
+            anchors { left: parent.left; right: parent.right; top: tabs.bottom; topMargin: w.s(10) - (largeView.hitH - w.s(26)); bottom: footer.top; bottomMargin: w.s(4) }
             clip: true; contentHeight: dayCol.height; boundsBehavior: Flickable.StopAtBounds
             visible: opacity > 0.01
             opacity: !largeView.isWeek ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
             Column {
                 id: dayCol
+                property var shown: []
                 width: parent.width; spacing: w.s(3)
-                GText { visible: largeView.es.length === 0; width: parent.width; wrapMode: Text.WordWrap; wstyle: w.style; opacity: 0.86; font.pixelSize: w.fs * 0.95
+                GText { visible: dayCol.shown.length === 0; width: parent.width; wrapMode: Text.WordWrap; wstyle: w.style; opacity: 0.86; font.pixelSize: w.fs * 0.95
                         text: I18n.tr("No lessons (holidays or a day off)") }
                 Repeater {
-                    model: largeView.es
+                    model: dayCol.shown
                     delegate: Item {
                         id: row
                         required property var modelData
@@ -260,16 +303,19 @@ Item {
         // ---- week grid ----
         Item {
             id: weekGrid
-            anchors { left: parent.left; right: parent.right; top: tabs.bottom; topMargin: w.s(10); bottom: footer.top; bottomMargin: w.s(4) }
+            anchors { left: parent.left; right: parent.right; top: tabs.bottom; topMargin: w.s(10) - (largeView.hitH - w.s(26)); bottom: footer.top; bottomMargin: w.s(4) }
             visible: opacity > 0.01
             opacity: largeView.isWeek ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
             readonly property var days: M.weekDays(w.now)
             readonly property var rows: M.trimRows(M.gridRows(w.grid, days), w.lessons, days)
+            readonly property bool none: { var set = {}, i; for (i = 0; i < days.length; i++) set[M.ymd(days[i])] = true; for (i = 0; i < w.lessons.length; i++) if (set[w.lessons[i].date]) return false; return true; }
             readonly property real labelW: w.s(22)
             readonly property real headH: w.s(18)
             readonly property real cw: (width - labelW) / 5
             readonly property real rh: rows.length > 0 ? Math.max(w.s(18), (height - headH) / rows.length) : w.s(24)
+            GText { visible: weekGrid.none; anchors.centerIn: parent; width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.WordWrap; wstyle: w.style; opacity: 0.86; font.pixelSize: w.fs * 0.95
+                    text: I18n.tr("No lessons this week") }
             Repeater {
                 model: weekGrid.days
                 delegate: GText {

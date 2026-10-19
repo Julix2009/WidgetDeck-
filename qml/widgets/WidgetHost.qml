@@ -49,6 +49,9 @@ GlassPanel {
     ]
     Binding { target: ld.item; property: "style"; value: host.style; when: ld.item !== null }
     Binding { target: ld.item; property: "props"; value: host.wprops; when: ld.item !== null }
+    // widgets that keep a user choice (timetable: view) emit persistRequested(key, value); it is saved into the layout
+    Binding { target: ld.item; property: "persistent"; value: true; when: ld.item !== null && ld.item.persistent !== undefined }
+    Connections { target: ld.item; ignoreUnknownSignals: true; function onPersistRequested(k, v) { host.store.setProp(host.wid, k, v); } }
     Binding { target: ld.item; property: "innerRadius"; value: host.innerRadius; when: ld.item !== null }
     // widgets that depend on config.json (location, units) re-fetch when it changes
     Binding { target: ld.item; property: "configRev"; value: host.store.configRev; when: ld.item !== null && ld.item.configRev !== undefined }
