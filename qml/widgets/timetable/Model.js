@@ -97,6 +97,16 @@ function gridRows(grid, days) {
     order.sort(function (a, b) { return mins(a) - mins(b); });
     return order.map(function (k) { return rows[k]; });
 }
+// drop the rows before the first and after the last slot that has a lesson in these days (schools send 13+ units, most are empty)
+function trimRows(rows, lessons, days) {
+    var dates = {}, i;
+    for (i = 0; i < days.length; i++) dates[ymd(days[i])] = true;
+    var used = {};
+    for (i = 0; i < lessons.length; i++) if (dates[lessons[i].date]) used[lessons[i].start] = true;
+    var first = -1, last = -1;
+    for (i = 0; i < rows.length; i++) if (used[rows[i].start]) { if (first < 0) first = i; last = i; }
+    return first < 0 ? rows.slice(0, 6) : rows.slice(first, last + 1);
+}
 // the entry of `date` whose start equals `start` (week grid cell)
 function cell(lessons, date, start, group) {
     var es = entries(lessons, ymd(date), group);

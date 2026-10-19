@@ -29,6 +29,7 @@ ELEM = {"CLASS": 1, "TEACHER": 2, "SUBJECT": 3, "ROOM": 4, "STUDENT": 5}
 class AuthError(Exception): pass
 class NetError(Exception): pass
 class ServerError(Exception): pass
+class NoData(ServerError): pass                              # -7004 "no allowed date": that week is not published (yet)
 
 
 # ---------------------------------------------------------------------------------------------- secret
@@ -108,6 +109,8 @@ class Session:
             code = err.get("code") if isinstance(err, dict) else None
             if code in (-8504, -8520, -8509, -8998):            # bad credentials / not authenticated / no right
                 raise AuthError()
+            if code == -7004:
+                raise NoData()
             raise ServerError()
         return data.get("result") if isinstance(data, dict) else None
 
@@ -146,6 +149,12 @@ DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 
 def hhmm(v):
+    """800 | "0800" | "08:00" | "T08:00" | "08:00:00" -> "08:00" (servers differ)"""
+    if isinstance(v, str):
+        m = re.search(r"(\d{1,2}):(\d{2})", v)
+        if m:
+            return "%02d:%02d" % (int(m.group(1)), int(m.group(2)))
+        v = v.strip().lstrip("T")
     try:
         v = int(v)
         return "%02d:%02d" % (v // 100, v % 100)
@@ -158,7 +167,8 @@ def norm_grid(days, units=None):
     if isinstance(days, list):
         for d in days:
             name = str(d.get("day", ""))[:3].upper()
-            out[name] = [{"label": str(u.get("label", "")), "start": hhmm(u.get("startTime")), "end": hhmm(u.get("endTime"))} for u in d.get("units", [])]
+            # some schools send empty labels: then the units are simply numbered
+            out[name] = [{"label": str(u.get("label") or (i + 1)), "start": hhmm(u.get("startTime")), "end": hhmm(u.get("endTime"))} for i, u in enumerate(d.get("units", []))]
     elif isinstance(units, list):                              # getTimegridUnits: day 1 = Sunday ... 7 = Saturday
         for d in units:
             try:
@@ -272,8 +282,16 @@ def cmd_fetch():
                 grid = {}
         d0, d1 = week_range(datetime.date.today())
         lessons = []
-        for ws in (d0, d0 + datetime.timedelta(days=7)):         # this week and the next one
-            for l in s.timetable(etype, eid, ws, ws + datetime.timedelta(days=6)):
+        for i, ws in enumerate((d0, d0 + datetime.timedelta(days=7))):         # this week and the next one
+            try:
+                got = s.timetable(etype, eid, ws, ws + datetime.timedelta(days=6))
+            except NoData:
+                continue                                          # not published yet (e.g. next week): nothing to show, not an error
+            except ServerError:
+                if i == 0:
+                    raise                                         # the current week is required
+                continue
+            for l in got:
                 n = norm_lesson(l, grid) if isinstance(l, dict) else None
                 if n:
                     lessons.append(n)

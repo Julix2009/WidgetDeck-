@@ -265,7 +265,7 @@ Item {
             opacity: largeView.isWeek ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
             readonly property var days: M.weekDays(w.now)
-            readonly property var rows: M.gridRows(w.grid, days)
+            readonly property var rows: M.trimRows(M.gridRows(w.grid, days), w.lessons, days)
             readonly property real labelW: w.s(22)
             readonly property real headH: w.s(18)
             readonly property real cw: (width - labelW) / 5

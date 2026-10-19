@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Local test server that speaks the small part of the Untis Mobile JSON-RPC interface the widget uses. INVENTED data only.
-  tools/untis-mock.py <port> <cert.pem> <key.pem> [mode]      mode: ok (default) | revoked | broken | slow
+  tools/untis-mock.py <port> <cert.pem> <key.pem> [mode]      mode: ok (default) | revoked | broken | slow | quirks
 The test secret is TESTKEY (base32); the mock checks the one-time code like a real server would.
 """
 import base64, datetime, hashlib, hmac, json, ssl, struct, sys, time
@@ -54,13 +54,18 @@ class H(BaseHTTPRequestHandler):
             a = p[0].get("auth", {})
             ok = MODE != "revoked" and a.get("user") == USER and "%06d" % int(a.get("otp", -1)) in {totp(time.time() + k * 30) for k in (-1, 0, 1)}
             if not ok: return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -8504, "message": "bad credentials"}})
-            days = [{"day": d, "units": [{"label": "1", "startTime": 800, "endTime": 850}, {"label": "2", "startTime": 855, "endTime": 945}, {"label": "3", "startTime": 1000, "endTime": 1050}]} for d in ("MON", "TUE", "WED", "THU", "FRI")]
+            if MODE == "quirks":        # what real schools send: ISO times, empty labels
+                days = [{"day": d, "units": [{"label": "", "startTime": "T08:00", "endTime": "T08:50"}, {"label": "", "startTime": "T08:55", "endTime": "T09:45"}, {"label": "", "startTime": "T10:00", "endTime": "T10:50"}]} for d in ("MON", "TUE", "WED", "THU", "FRI")]
+            else:
+                days = [{"day": d, "units": [{"label": "1", "startTime": 800, "endTime": 850}, {"label": "2", "startTime": 855, "endTime": 945}, {"label": "3", "startTime": 1000, "endTime": 1050}]} for d in ("MON", "TUE", "WED", "THU", "FRI")]
             return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "result": {"userData": {"elemType": "STUDENT", "elemId": 42, "displayName": "Test Student", "schoolName": "Testschule"},
                                                                                 "masterData": {"timeGrid": {"days": days}}}}, cookie=True)
         if "JSESSIONID=TESTSESSION" not in (self.headers.get("Cookie") or ""):
             return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -8520, "message": "not authenticated"}})
         if m == "getTimetable":
             o = p[0]["options"]
+            if MODE == "quirks" and str(o["startDate"]) > (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y%m%d") and datetime.datetime.strptime(str(o["startDate"]), "%Y%m%d").date() > datetime.date.today():
+                return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -7004, "message": "no allowed date"}})   # next week not published yet
             return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "result": lessons_for(str(o["startDate"]))})
         return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -32601, "message": "method not found"}})
 

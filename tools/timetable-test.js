@@ -1,7 +1,7 @@
 // Tests of qml/widgets/timetable/Model.js with the invented demo data. node tools/timetable-test.js
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 const src = fs.readFileSync(path.join(__dirname, '..', 'qml', 'widgets', 'timetable', 'Model.js'), 'utf8').split('\n').slice(1).join('\n');
-const M = new Function(src + '; return {entries,currentIndex,nextIndex,progress,remaining,summary,nextSchoolDay,gridRows,weekDays,cell,ymd,mins,addDays};')();
+const M = new Function(src + '; return {trimRows,entries,currentIndex,nextIndex,progress,remaining,summary,nextSchoolDay,gridRows,weekDays,cell,ymd,mins,addDays};')();
 let fail = 0; const ok = (n, c, v) => { if (!c) { fail++; console.log('FAIL', n, JSON.stringify(v)); } else console.log('ok  ', n); };
 const demo = JSON.parse(cp.execFileSync('python3', ['-I', path.join(__dirname, '..', 'qml', 'widgets', 'timetable', 'untis.py'), 'demo']).toString());
 const L = demo.lessons;
@@ -53,5 +53,6 @@ ok('substitution (teacher) on Wednesday', es.some(e => e.main.state === 'changed
 // week grid rows come from the school grid
 const rows = M.gridRows(demo.grid, M.weekDays(monday));
 ok('grid rows from the school time grid (7 slots)', rows.length === 7 && rows[0].start === '08:00' && rows[6].end === '15:15', rows.length);
+ok('empty leading / trailing grid rows are trimmed', M.trimRows(M.gridRows(demo.grid, M.weekDays(monday)), L, M.weekDays(monday)).length === 7, 0);
 ok('cell lookup', M.cell(L, monday, '08:00', '').main.subject === 'M', 0);
 process.exit(fail ? 1 : 0);

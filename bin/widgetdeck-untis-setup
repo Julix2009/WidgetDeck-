@@ -36,7 +36,7 @@ say() { printf '%s\n' "$(t "$1")"; }
 yn() { local a; read -r -p "$(t "$1") $([ "$L" = de ] && echo '[J/n]' || echo '[Y/n]') " a || a=n; case "${a,,}" in ""|j|ja|y|yes) return 0 ;; *) return 1 ;; esac; }
 yn_no() { local a; read -r -p "$(t "$1") $([ "$L" = de ] && echo '[j/N]' || echo '[y/N]') " a || a=n; case "${a,,}" in j|ja|y|yes) return 0 ;; *) return 1 ;; esac; }
 
-HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+SELF="$(readlink -f -- "${BASH_SOURCE[0]}")"; HERE="$(dirname -- "$SELF")"        # follows a symlink in ~/.local/bin
 CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
 CLIENT=""
 for d in "$CFG/quickshell/widgetdeck/widgets/timetable" /usr/share/widgetdeck/qml/widgets/timetable "$HERE/../qml/widgets/timetable"; do [ -f "$d/untis.py" ] && { CLIENT="$d/untis.py"; break; }; done
@@ -45,12 +45,13 @@ CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck/timetable.json"
 
 if [ "${1:-}" = "--terminal" ]; then
     shift
+    hold='"$0" "$@"; printf "\n[Enter]"; read -r _'          # keep the window open so the result can be read
     for term in "${TERMINAL:-}" kitty alacritty foot wezterm ghostty konsole gnome-terminal xfce4-terminal xterm; do
         [ -n "$term" ] && command -v "$term" >/dev/null 2>&1 || continue
         case "$term" in
-            gnome-terminal|xfce4-terminal) exec "$term" -- "$0" "$@" ;;
-            wezterm) exec "$term" start -- "$0" "$@" ;;
-            *) exec "$term" -e "$0" "$@" ;;
+            gnome-terminal|xfce4-terminal) exec "$term" -- sh -c "$hold" "$SELF" "$@" ;;
+            wezterm) exec "$term" start -- sh -c "$hold" "$SELF" "$@" ;;
+            *) exec "$term" -e sh -c "$hold" "$SELF" "$@" ;;
         esac
     done
     echo "widgetdeck-untis-setup: no terminal emulator found (set \$TERMINAL or run this command in a terminal)" >&2; exit 1
@@ -123,5 +124,4 @@ if [ -n "$qrfile" ] && [ -f "$qrfile" ]; then
     say 'Also remove copies of the QR code: Downloads, trash, screenshot folders, cloud sync, clipboard history. Anyone with the image can read your timetable.'
 fi
 [ "$store" = 1 ] && { echo; say 'Done. Add the Timetable widget in the builder (or run: widgetdeck wizard).'; }
-if [ -t 0 ] && [ -n "${WIDGETDECK_PAUSE:-}" ]; then read -r -p "[Enter] " _; fi
 exit 0

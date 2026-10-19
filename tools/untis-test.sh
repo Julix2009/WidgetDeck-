@@ -30,6 +30,7 @@ start broken;   check "server error -> stale with cache" "$(python3 -I "$CLIENT"
 kill "$MPID"; wait "$MPID" 2>/dev/null; MPID=""
 check "server down -> stale with cache" "$(st)" stale
 rm -rf "$T/cache"; check "server down, no cache -> offline" "$(st)" offline
+start quirks;   check "ISO times, empty labels, unpublished next week (-7004) -> ok" "$(python3 -I "$CLIENT" fetch | jq -r '"\(.state) \(.grid.MON[0].start) \(.grid.MON[0].label) \(.lessons|length)"')" "ok 08:00 1 3"
 start ok;       check "untrusted certificate is refused" "$(WIDGETDECK_UNTIS_CAFILE='' python3 -I "$CLIENT" verify)" net
 if grep -rq GEZDGNBVGY3TQOJQ "$T/cache" "$T/mock.log" 2>/dev/null; then bad "secrecy" "key found in cache or log"; else ok "key is not in the cache or the server log"; fi
 out="$(python3 -I "$CLIENT" fetch; python3 -I "$CLIENT" verify; python3 -I "$CLIENT" doctor 2>&1)"
