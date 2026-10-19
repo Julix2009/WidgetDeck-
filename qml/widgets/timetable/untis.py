@@ -329,7 +329,7 @@ def cmd_doctor():
     if have_tool:
         try:
             r = subprocess.run(["secret-tool", "search", "--all", "application", "widgetdeck", "kind", "untis"], capture_output=True, timeout=30)
-            service = "yes" if r.returncode in (0, 1) and b"Cannot" not in r.stderr and b"rror" not in r.stderr else "no"
+            service = "yes" if r.returncode in (0, 1) and not r.stderr.strip() else "no"
         except (OSError, subprocess.SubprocessError):
             service = "no"
     print("secret-service: " + service)
