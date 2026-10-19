@@ -123,6 +123,12 @@ Scope {
     }
     // one write for many widgets: { id: {x, y, w, h} }
     // smooth size change (width and height, no scale transform): used by the Small / Large buttons of widgets that declare `sizes`
+    // size table lookup: a type may override its sizes per skin (`skinSizes: { <skin>: { small, large } }`, chosen by the widget prop `skin`)
+    function sizeFor(id, which) {
+        var c = raw(id), t = c ? typeInfo(c.type) : null; if (!t || !t.sizes) return null;
+        var sk = c.props ? c.props.skin : undefined, o = (t.skinSizes && sk && t.skinSizes[sk]) ? t.skinSizes[sk] : t.sizes;
+        return o[which] || null;
+    }
     property var sizeAnim: null
     function animateGeom(id, target, ms) {
         var c = raw(id); if (!c || !target) return;

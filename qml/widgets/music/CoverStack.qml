@@ -18,6 +18,7 @@ Item {
     property real radius: 16
     property bool playing: true
     property bool glowOn: false
+    property bool shadowOn: true           // soft drop shadow under the cover (off for the round record label)
     property bool started: false
     property string shownUrl: ""
     readonly property int effDur: animate ? dur : 0
@@ -86,6 +87,7 @@ Item {
 
         // soft shadow (follows the pause shrink with the holder)
         RectangularShadow {
+            visible: cs.shadowOn
             anchors.fill: parent
             radius: cs.radius
             blur: 18

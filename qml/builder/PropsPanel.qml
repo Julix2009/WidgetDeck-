@@ -83,8 +83,8 @@ Item {
                 width: parent.width; height: visible ? 32 : 0
                 Row {
                     spacing: 6; width: parent.width
-                    GButton { th: pp.th; label: I18n.tr("Small"); width: (col.width - 6) / 2; onClicked: pp.store.animateGeom(pp.sel, pp.tinfo.sizes.small, 320) }
-                    GButton { th: pp.th; label: I18n.tr("Large"); width: (col.width - 6) / 2; onClicked: pp.store.animateGeom(pp.sel, pp.tinfo.sizes.large, 320) }
+                    GButton { th: pp.th; label: I18n.tr("Small"); width: (col.width - 6) / 2; onClicked: pp.store.animateGeom(pp.sel, pp.store.sizeFor(pp.sel, "small"), 320) }
+                    GButton { th: pp.th; label: I18n.tr("Large"); width: (col.width - 6) / 2; onClicked: pp.store.animateGeom(pp.sel, pp.store.sizeFor(pp.sel, "large"), 320) }
                 }
             }
 
@@ -125,11 +125,23 @@ Item {
                 delegate: Loader {
                     required property var modelData
                     width: col.width
+                    // `when: { key, is }` shows an option only while another option has that value (e.g. turntable settings)
+                    visible: !modelData.when || pp.propValue(modelData.when.key) === modelData.when.is
+                    height: visible ? implicitHeight : 0
                     sourceComponent: ctl
                     onLoaded: { item.p = modelData; item.group = "props"; }
                 }
             }
         }
+    }
+
+    // current value of a widget option, falling back to its default from the registry
+    function propValue(key) {
+        var v = pp.wp ? pp.wp[key] : undefined;
+        if (v !== undefined) return String(v);
+        var ps = pp.tinfo ? pp.tinfo.props : [];
+        for (var i = 0; i < ps.length; i++) if (ps[i].key === key) return String(ps[i].def);
+        return "";
     }
 
     // one generic editor, chosen by prop kind

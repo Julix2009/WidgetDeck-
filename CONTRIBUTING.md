@@ -14,6 +14,7 @@ Thanks for helping! Bug reports and small fixes are the most useful things right
   ```
   The same checks run on GitHub for every pull request (they only check, nothing is deployed).
 * **Texts:** English is the source language. In QML use `I18n.tr("English text")`, in shell scripts `t 'English text %s' arg`. German goes into `qml/core/i18n.js` and `lib/i18n.sh`. More languages: add a table next to `de`.
+* **Another style for a widget** (see the music widget): add a choice option `skin` to the widget in `qml/widgets/Registry.js` (options that only apply to one style get `when: { key: "skin", is: "<value>" }`, per-style sizes go into `skinSizes`), put the new look into its own file next to the widget (`qml/widgets/<name>/<Skin>View.qml`, state and logic stay in the widget and are passed in as `host`), and let the widget crossfade between the views with a `Loader` that is only active while its style is selected. Add the new texts to `qml/core/i18n.js` and run the checks above.
 * **Icons** are drawn by the project (`qml/core/Icons.js`, 24x24 line icons). Do not add icon fonts or copy icons from elsewhere without a compatible licence.
 * **Licences:** only contribute code you wrote or that carries a free licence; say where it comes from in the pull request. Code without a licence cannot be accepted.
 * **Scope:** Arch Linux + Hyprland + Quickshell only. Config changes always go to a separate file and only after asking; nothing may stop or disable other programs.

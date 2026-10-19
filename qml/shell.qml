@@ -135,7 +135,7 @@ ShellRoot {
         function dismissNotifications(): string { var n = shell.moduleItem(notifyLoader); if (n) { n.dismissAll(); return "ok"; } return "disabled"; }
         function toggleDnd(): string { var n = shell.moduleItem(notifyLoader); if (n) { n.dnd = !n.dnd; return n.dnd ? "dnd on" : "dnd off"; } return "disabled"; }
         function wallpaperInfo(): string { return JSON.stringify({ path: theWall.path, usable: theWall.usable, tool: theWall.tool, manual: theWall.override !== "", liquidOk: shell.liquidOk }); }
-        function animateSize(id: string, which: string): string { var t = theStore.typeInfo((theStore.cfg(id) || {}).type); if (!t || !t.sizes || !t.sizes[which]) return "no such size"; theStore.animateGeom(id, t.sizes[which], 320); return "ok"; }
+        function animateSize(id: string, which: string): string { var sz = theStore.sizeFor(id, which); if (!sz) return "no such size"; theStore.animateGeom(id, sz, 320); return "ok"; }
         function wizard(): void { theStore.setConfig("setup.done", false); }
         function wizardStep(n: int): void { setupWizard.step = n; }
         function wizardPick(json: string): void { setupWizard.apply(JSON.parse(json)); }

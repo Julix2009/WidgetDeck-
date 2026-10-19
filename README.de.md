@@ -50,6 +50,13 @@ Widgets (an), Builder und Raster (an), Leiste (**aus**), Benachrichtigungen und 
 
 **Setup prüfen:** `widgetdeck-doctor` gibt OK / WARN / FAIL mit Lösungsvorschlag aus. Die Ausgabe verbirgt dein Home-Verzeichnis und enthält weder Standort noch Wallpaper-Pfad – du kannst sie in ein GitHub-Issue kopieren.
 
+## Musik-Widget: zwei Stile
+
+![Musik: Normal und Schallplattenspieler (Liquid Glass)](docs/music-turntable.png)
+_Demo-Daten (erfunden), neutraler Hintergrund._
+
+Das Musik-Widget zeigt den aktuellen Titel eines beliebigen MPRIS-Players. Die Option **Stil** (Widget-Einstellungen im Builder) schaltet live und mit Überblendung zwischen **Normal** (Cover, Fortschrittsbalken, Tasten) und **Schallplattenspieler** um: eine drehende Platte mit Rillen und dem Cover als Label, ein Tonarm, der beim Start auf die Platte schwenkt, dem Fortschritt folgt und bei Pause oder Songwechsel abhebt, daneben Titel, Interpret, Zeit und Tasten (klein: darunter, Tasten beim Darüberfahren). Ein Klick auf Platte oder Tonarm schaltet Play/Pause. Optionen: Drehzahl (33 / 45 U/min), Tonarm folgt dem Fortschritt, Vinyl-Farbe (Schwarz / aus dem Cover), Lichtreflex. Beide Stile lesen denselben Zustand, das Glas dahinter ist in beiden die gemeinsame Glas-Komponente. Bei Pause, ohne Player oder wenn das Widget nicht sichtbar ist, läuft nichts. Die Größen stellst du mit *Klein / Groß* im Builder passend zum gewählten Stil ein.
+
 ## Stundenplan-Widget (WebUntis / Untis Mobile)
 
 ![Timetable: Liquid Glass and Frosted Glass](docs/timetable-liquid.png)

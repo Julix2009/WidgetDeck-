@@ -96,6 +96,13 @@ bind = SUPER, N, exec, widgetdeck ipc toggleDnd           # do not disturb
 * **Liquid Glass** refracts your wallpaper, so it needs the wallpaper file. It is found automatically for awww, swww, hyprpaper, swaybg and wpaperd; otherwise choose a picture. If there is none (or the shader cannot be built) every widget uses Frosted Glass.
 * **Check your setup:** `widgetdeck-doctor` prints OK / WARN / FAIL lines with a suggested fix (Hyprland version and config, Quickshell, shaders, packages, wallpaper detection, conflicts, sensors, network). Its output hides your home directory and prints no location or wallpaper path, so you can paste it into a GitHub issue.
 
+## Music widget: two styles
+
+![Music: Normal and Turntable (Liquid Glass)](docs/music-turntable.png)
+_Demo data (invented), neutral wallpaper._
+
+The music widget shows the current track of any MPRIS player. Its option **Style** (widget properties in the builder) switches live, with a crossfade, between **Normal** (cover, progress bar, buttons) and **Turntable**: a spinning record with grooves and the cover as its label, a tonearm that swings onto the record when playback starts, follows the progress and lifts off on pause or when the track changes, and title / artist / time / buttons next to it (small size: below, buttons on hover). Clicking the record or the arm toggles play / pause. Options for the turntable: speed (33 / 45 RPM), tonearm follows the progress, vinyl colour (black / from the cover), light reflection. Both styles read the same state; the glass behind is the shared glass panel in both. Nothing runs while paused, without a player or while the widget is not visible. Use the *Small / Large* buttons in the builder for the sizes of the chosen style.
+
 ## Timetable widget (WebUntis / Untis Mobile)
 
 ![Timetable: Liquid Glass and Frosted Glass](docs/timetable-liquid.png)

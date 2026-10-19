@@ -36,6 +36,7 @@ SONGS = [
     ("Slow Cover (2.5 s)", "Patient Pixels", f"http://127.0.0.1:{PORT}/art3.png"),
     ("Green Hour", "Chlorophyll", f"file://{ART}/art2.png"),
     ("Broken Cover Link", "404 Collective", f"file://{ART}/does-not-exist.png"),
+    ("Live Radio (no length)", "On Air", f"file://{ART}/art2.png"),
     ("Purple Rain Check", "Violet Static", f"file://{ART}/art4.png"),
     ("Cyan Drift", "Teal Tide", f"file://{ART}/art5.png"),
 ]
@@ -68,12 +69,14 @@ XML = """<node>
 
 idx, status, t0, pos0 = 0, "Playing", time.time(), 0.0
 LENGTH = 200 * 1_000_000
+NAME = os.environ.get("MOCK_NAME", "widgetdeck_mock")              # a second instance (MOCK_NAME=widgetdeck_mock2) tests player switching
+LIVE = "Live Radio"                                                # this title has no length (stream)
 
 def metadata():
     t, a, art = SONGS[idx]
-    d = {"mpris:trackid": GLib.Variant("o", f"/org/mock/track/{idx}_{int(time.time()*1000)}"), "mpris:length": GLib.Variant("x", LENGTH),
-         "xesam:title": GLib.Variant("s", t), "xesam:artist": GLib.Variant("as", [a]), "xesam:album": GLib.Variant("s", "Mock Album")}
+    d = {"mpris:trackid": GLib.Variant("o", f"/org/mock/track/{idx}_{int(time.time()*1000)}"), "xesam:title": GLib.Variant("s", t), "xesam:artist": GLib.Variant("as", [a]), "xesam:album": GLib.Variant("s", "Mock Album")}
     if art: d["mpris:artUrl"] = GLib.Variant("s", art)
+    if not t.startswith(LIVE): d["mpris:length"] = GLib.Variant("x", LENGTH)
     return d
 
 def position():
@@ -110,6 +113,10 @@ def on_call(c, sender, path, iface, method, params, inv):
         pos0 = position() / 1e6; t0 = time.time()
         status = ("Paused" if status == "Playing" else "Playing") if method == "PlayPause" else ("Paused" if method == "Pause" else "Playing")
         emit(["PlaybackStatus"])
+    elif method == "Seek":
+        off = params.unpack()[0]; pos0 = max(0.0, position() / 1e6 + off / 1e6); t0 = time.time(); emit(["Position"])
+    elif method == "SetPosition":
+        pos0 = params.unpack()[1] / 1e6; t0 = time.time(); emit(["Position"])
     elif method == "Stop":
         status = "Stopped"; emit(["PlaybackStatus"])
     inv.return_value(None)
@@ -122,6 +129,6 @@ def on_bus(c, name):
 
 make_art()
 threading.Thread(target=lambda: http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Slow).serve_forever(), daemon=True).start()
-Gio.bus_own_name(Gio.BusType.SESSION, "org.mpris.MediaPlayer2.widgetdeck_mock", Gio.BusNameOwnerFlags.NONE, on_bus, None, None)
+Gio.bus_own_name(Gio.BusType.SESSION, "org.mpris.MediaPlayer2." + NAME, Gio.BusNameOwnerFlags.NONE, on_bus, None, None)
 print("mock player up: playerctl -p widgetdeck_mock next", flush=True)
 GLib.MainLoop().run()

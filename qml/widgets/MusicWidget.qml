@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import Quickshell.Io
 import Quickshell.Services.Mpris
 import "../core"
@@ -12,7 +13,7 @@ Item {
 
     // handed to the glass panel (WidgetHost): subtle light movement while a song changes, tint from the cover
     property real lightPulse: 0
-    readonly property var tintOverride: (props.cover_colors && coverColor.valid) ? tintCol.toString() : undefined
+    readonly property var tintOverride: (props.cover_colors && !turntable && coverColor.valid) ? tintCol.toString() : undefined
     property color tintCol: coverColor.color
     Behavior on tintCol { ColorAnimation { duration: 650; easing.type: Easing.OutCubic } }
 
@@ -29,6 +30,17 @@ Item {
         return best;
     }
     readonly property bool playing: player !== null && player.playbackState === MprisPlaybackState.Playing
+    readonly property bool idle: player === null || player.playbackState === MprisPlaybackState.Stopped
+
+    // ───────────── style: "normal" (cover + progress bar) or "turntable" (record + tonearm); both read the state below ─────────────
+    readonly property bool turntable: props.skin === "turntable"
+    readonly property bool live: Window.window !== null && Window.window.visible          // no animation work while the widget is not on screen
+    function prevTrack() { noteSkip(-1); if (player) player.previous(); }
+    function nextTrack() { noteSkip(1); if (player) player.next(); }
+    function togglePlay() { if (player) player.togglePlaying(); }
+    function fmt(sec) { sec = Math.max(0, Math.floor(sec)); var r = sec % 60; return Math.floor(sec / 60) + ":" + (r < 10 ? "0" : "") + r; }
+    readonly property bool hasLen: player !== null && player.lengthSupported && player.length > 0
+    readonly property string timeText: !player ? "" : ((player.positionSupported ? fmt(player.position) : "") + (hasLen ? " / " + fmt(player.length) : ""))
 
     // ───────────── animation settings ─────────────
     readonly property bool animOn: props.anim_enabled !== false
@@ -98,9 +110,25 @@ Item {
         else if (!progAnim.running) prog = progTarget;                                              // normal 1 Hz tick: no animation
     }
     NumberAnimation { id: progAnim; target: w; property: "prog"; duration: 460; easing.type: Easing.OutCubic }
-    Timer { interval: 1000; repeat: true; running: w.playing && w.props.show_progress !== false; onTriggered: { try { w.player.positionChanged(); } catch (e) { } } }
+    Timer { interval: 1000; repeat: true; running: w.playing && (w.props.show_progress !== false || w.turntable); onTriggered: { try { w.player.positionChanged(); } catch (e) { } } }
 
     // ───────────── layout ─────────────
+    // the style switch is a crossfade between the two views (the glass behind is not touched)
+    Loader {
+        id: ttLoader
+        anchors.fill: parent
+        opacity: w.turntable ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
+        active: w.turntable || opacity > 0.01
+        visible: opacity > 0.01
+        sourceComponent: TurntableView { host: w }
+    }
+    Item {
+      id: normalView
+      anchors.fill: parent
+      opacity: w.turntable ? 0 : 1
+      visible: opacity > 0.01
+      Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
     Row {
         anchors.fill: parent
         spacing: 14
@@ -190,5 +218,6 @@ Item {
                 }
             }
         }
+    }
     }
 }
