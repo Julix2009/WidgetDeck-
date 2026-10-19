@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # WidgetDeck installer (Arch Linux + Hyprland + Quickshell).
-#   git clone https://github.com/<user>/widgetdeck && cd widgetdeck && ./install.sh
+#   git clone https://github.com/Julix2009/WidgetDeck-.git && cd WidgetDeck- && ./install.sh
 # Running it again is an update: program files are replaced, YOUR settings (layout, glass sliders, location) are never touched.
 set -euo pipefail
 

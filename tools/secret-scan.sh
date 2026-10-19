@@ -20,13 +20,16 @@ WORDS=()
 u="$(id -un 2>/dev/null)"; [ "${#u}" -ge 4 ] && WORDS+=("$u")
 if [ -f .release-denylist ]; then while IFS= read -r w; do [ -n "$w" ] && [ "${w:0:1}" != "#" ] && WORDS+=("$w"); done < .release-denylist; fi
 
-EXCL=(':!tools/secret-scan.sh' ':!LICENSES' ':!.release-denylist')
+EXCL=(':!tools/secret-scan.sh' ':!tools/scan-allow.txt' ':!LICENSES' ':!.release-denylist')
 bad=0
 report() { printf '  [FUND] %s\n' "$1"; bad=1; }
 
 scan_stream() {   # scan_stream <label>   (stdin = text)
     local label="$1" txt p w hit
     txt="$(cat)"
+    if [ -f tools/scan-allow.txt ]; then
+        while IFS= read -r w; do [ -n "$w" ] && [ "${w:0:1}" != "#" ] && txt="${txt//"$w"/}"; done < tools/scan-allow.txt
+    fi
     for p in "${PATTERNS[@]}"; do
         hit="$(printf '%s\n' "$txt" | grep -nE -- "$p" | head -n3 || true)"; [ -n "$hit" ] && report "$label: Muster /$p/: $(printf '%s' "$hit" | head -n1 | cut -c1-120)"
     done
@@ -38,7 +41,7 @@ scan_stream() {   # scan_stream <label>   (stdin = text)
 echo "Suche in den Dateien ..."
 while IFS= read -r f; do
     [ -f "$f" ] || continue
-    case "$f" in tools/secret-scan.sh|LICENSES/*) continue ;; esac
+    case "$f" in tools/secret-scan.sh|tools/scan-allow.txt|LICENSES/*) continue ;; esac
     grep -Iq . "$f" 2>/dev/null || continue
     scan_stream "$f" < "$f"
 done < <(git ls-files)

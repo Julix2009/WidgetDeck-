@@ -19,7 +19,7 @@ _Screenshots from a clean test session: neutral wallpaper, demo location and net
 ## Install
 
 ```bash
-git clone https://github.com/<user>/widgetdeck && cd widgetdeck && ./install.sh
+git clone https://github.com/Julix2009/WidgetDeck-.git && cd WidgetDeck- && ./install.sh
 ```
 
 The installer asks before it changes anything that belongs to you. Then run `hyprctl reload` (or log in again): WidgetDeck starts with your session, and a short **setup assistant** opens once (wallpaper, location, units, style, size, widgets). Nothing needs a restart or manual editing.
