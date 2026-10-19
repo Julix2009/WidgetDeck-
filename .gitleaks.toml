@@ -1,0 +1,8 @@
+# gitleaks: the Untis tests use the public RFC 6238 test secret (not a credential)
+[extend]
+useDefault = true
+
+[allowlist]
+description = "RFC 6238 test secret used by the Untis mock tests"
+regexes = ['''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''']
+paths = ['''tools/untis-mock\.py''', '''tools/untis-test\.sh''']

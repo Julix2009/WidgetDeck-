@@ -18,7 +18,9 @@ PATTERNS=(
 )
 # personal words: the current user name and the denylist
 WORDS=()
-u="$(id -un 2>/dev/null)"; [ "${#u}" -ge 4 ] && WORDS+=("$u")
+u="$(id -un 2>/dev/null)"
+case "$u" in root|runner|nobody|builder|ubuntu|admin|user|vagrant) u="" ;; esac     # generic accounts (CI containers run as root) are not personal data
+[ "${#u}" -ge 4 ] && WORDS+=("$u")
 if [ -f .release-denylist ]; then while IFS= read -r w; do [ -n "$w" ] && [ "${w:0:1}" != "#" ] && WORDS+=("$w"); done < .release-denylist; fi
 
 EXCL=(':!tools/secret-scan.sh' ':!tools/scan-allow.txt' ':!LICENSES' ':!.release-denylist')
