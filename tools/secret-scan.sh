@@ -14,6 +14,7 @@ PATTERNS=(
     '-----BEGIN [A-Z ]*PRIVATE KEY-----'
     '(api[_-]?key|apikey|secret|token|passwd|password)[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9_./+-]{12,}["'"'"']'
     '"(lat|lon|latitude|longitude)"[[:space:]]*:[[:space:]]*-?[0-9]+\.[0-9]{2,}'
+    'untis://setschool|[A-Za-z0-9-]+\.webuntis\.com|[?&]key=[A-Z2-7]{16,}|schoolNumber=[0-9]+'
 )
 # personal words: the current user name and the denylist
 WORDS=()

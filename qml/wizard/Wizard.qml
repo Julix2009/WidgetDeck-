@@ -37,8 +37,9 @@ FloatingWindow {
     property string lang: store.cget("language", "auto")
     property string style: "frosted"
     property string size: "M"
-    property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false })
-    readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "airquality", "netmon", "thermals", "sysstatus"]
+    property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false, timetable: false })
+    readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "airquality", "netmon", "thermals", "sysstatus", "timetable"]
+    function openTimetableSetup() { Quickshell.execDetached(["sh", "-c", "exec \"$1\" --terminal 2>/dev/null || exec widgetdeck-untis-setup --terminal", "sh", Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup"]); }
 
     function apply(o) {                  // automation: set choices by name (locMode, units, timeFmt, lang, style, size, lat, lon)
         for (var k in o) wz[k] = o[k];
@@ -156,6 +157,12 @@ FloatingWindow {
                         width: parent.width; th: wz.uiTheme; label: wz.typeLabel(modelData); checked: !!wz.picked[modelData]
                         onToggled: v => { var p = Object.assign({}, wz.picked); p[modelData] = v; wz.picked = p; }
                     }
+                }
+                Row {
+                    visible: !!wz.picked.timetable; spacing: 10
+                    GButton { th: th; label: I18n.tr("Set up the timetable access …"); onClicked: wz.openTimetableSetup() }
+                    Text { anchors.verticalCenter: parent.verticalCenter; width: 340; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 11
+                           text: I18n.tr("The timetable needs your own Untis Mobile access (QR code from WebUntis). Until it is set up the widget only shows a hint.") }
                 }
             }
 

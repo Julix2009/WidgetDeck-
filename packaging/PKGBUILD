@@ -16,7 +16,10 @@ optdepends=('hyprland: the compositor this is made for'
             'networkmanager: Wi-Fi name and signal in the network widget'
             'playerctl: music widget controls'
             'cava: visualizer widget'
-            'matugen: colours from the wallpaper')
+            'matugen: colours from the wallpaper'
+            'python: timetable widget (Untis client)'
+            'zbar: timetable widget (reads the QR code)'
+            'libsecret: timetable widget (keyring, secret-tool)')
 source=()                           # built from the surrounding clone, nothing is downloaded
 sha256sums=()
 
@@ -42,6 +45,7 @@ package() {
     chmod +x "$pkgdir"/usr/share/widgetdeck/qml/widgets/sysmon/*.sh "$pkgdir"/usr/share/widgetdeck/qml/core/*.sh "$pkgdir"/usr/share/widgetdeck/qml/modules/*.sh
     install -Dm755 bin/widgetdeck "$pkgdir/usr/bin/widgetdeck"
     install -Dm755 bin/widgetdeck-doctor "$pkgdir/usr/bin/widgetdeck-doctor"
+    install -Dm755 bin/widgetdeck-untis-setup "$pkgdir/usr/bin/widgetdeck-untis-setup"
     install -Dm644 NOTICE.md "$pkgdir/usr/share/licenses/$pkgname/NOTICE.md"
     install -Dm644 LICENSES/MIT-MacShell.txt "$pkgdir/usr/share/licenses/$pkgname/MIT-MacShell.txt"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

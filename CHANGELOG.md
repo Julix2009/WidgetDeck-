@@ -5,6 +5,10 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 
 ## [Unveröffentlicht]
 
+### Hinzugefügt
+- Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
+- Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
+
 ## [0.1.0] - 2026-10-18
 
 ### Hinzugefügt

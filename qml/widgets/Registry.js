@@ -77,6 +77,17 @@ var TYPES = {
             { key: "debug_weather", label: "Test: force weather", kind: "choice", def: "auto", options: [["auto", "Real weather"], ["rain", "Rain"], ["snow", "Snow"], ["off", "Dry"]] }
         ]
     },
+    timetable: {
+        label: "Timetable", desc: "Your WebUntis timetable (Untis Mobile access): now / next lesson, day and week", icon: "calendar", size: [380, 220], file: "TimetableWidget.qml",
+        sizes: { small: [380, 220], large: [640, 460] },
+        props: [
+            { key: "default_view", label: "Start view (large size)", kind: "choice", def: "today", options: [["today", "Today"], ["tomorrow", "Tomorrow"], ["week", "Week"]] },
+            { key: "group", label: "My group (empty = all)", kind: "text", def: "" },
+            { key: "show_room", label: "Show room", kind: "bool", def: true },
+            { key: "show_teacher", label: "Show teacher", kind: "bool", def: true },
+            { key: "source", label: "Data source", kind: "choice", def: "auto", options: [["auto", "Untis Mobile"], ["demo", "Demo (invented lessons)"], ["demo-holiday", "Demo (holidays)"]] }
+        ]
+    },
     visualizer: {
         label: "Music visualizer", desc: "Audio-reactive bars (cava)", icon: "bars", size: [460, 150], file: "VisualizerWidget.qml",
         style: { bg_alpha: 0.45 },

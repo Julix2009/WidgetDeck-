@@ -1,6 +1,7 @@
 // The settings column of the builder: grid, monitor, modules, location & units, theme, glass background, version & updates, assistant.
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "../core"
 import "../core/Defaults.js" as D
 
@@ -14,6 +15,17 @@ Column {
     required property var th
     property string screenName: ""
     property bool liquidOk: false
+    property bool ttKey: false
+    readonly property string ttDir: decodeURIComponent(Qt.resolvedUrl("../widgets/timetable/").toString().replace("file://", ""))
+    function runSetup(arg) {
+        var p = Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup";
+        Quickshell.execDetached(["sh", "-c", "exec \"$1\" $2 --terminal 2>/dev/null || exec widgetdeck-untis-setup --terminal", "sh", p, arg]);
+        ttRecheck.restart();
+    }
+    Process { id: ttProc; command: ["python3", "-I", sp.ttDir + "untis.py", "doctor"]
+        stdout: StdioCollector { onStreamFinished: sp.ttKey = /^key: yes/m.test(this.text) } }
+    Timer { id: ttRecheck; interval: 15000; onTriggered: ttProc.running = true }
+    Component.onCompleted: ttProc.running = true
     signal pickWallpaper()
     signal runWizard()
     spacing: 8
@@ -140,6 +152,17 @@ Column {
         Note { opacity: 0.8; text: I18n.tr("Nothing is installed automatically: the terminal shows the changes and asks first. Your settings are kept.") }
     }
     GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Check for updates daily"); checked: sp.store.cget("update.check", true); onToggled: v => sp.store.setConfig("update.check", v) }
+
+    // ───────────── timetable (Untis Mobile) ─────────────
+    Section { text: I18n.tr("TIMETABLE (UNTIS MOBILE)") }
+    Note { text: I18n.tr("Reads only your own timetable. The key is stored in the Secret Service (keyring) and never shown. Set it up in a terminal with the QR code from WebUntis > Profile > Releases > Untis Mobile.") }
+    Text { width: parent.width; wrapMode: Text.WordWrap; color: sp.ttKey ? sp.th.dim : sp.th.danger; font.family: sp.th.font; font.pixelSize: 12
+        text: sp.ttKey ? I18n.tr("Access: key stored") : I18n.tr("Access: not set up") }
+    Row {
+        spacing: 8
+        GButton { th: sp.th; label: sp.ttKey ? I18n.tr("Set up again …") : I18n.tr("Set up …"); onClicked: sp.runSetup("") }
+        GButton { th: sp.th; visible: sp.ttKey; danger: true; label: I18n.tr("Remove access"); onClicked: sp.runSetup("--remove") }
+    }
 
     // ───────────── assistant ─────────────
     Section { text: I18n.tr("SETUP") }

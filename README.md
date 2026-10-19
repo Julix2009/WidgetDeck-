@@ -96,6 +96,28 @@ bind = SUPER, N, exec, widgetdeck ipc toggleDnd           # do not disturb
 * **Liquid Glass** refracts your wallpaper, so it needs the wallpaper file. It is found automatically for awww, swww, hyprpaper, swaybg and wpaperd; otherwise choose a picture. If there is none (or the shader cannot be built) every widget uses Frosted Glass.
 * **Check your setup:** `widgetdeck-doctor` prints OK / WARN / FAIL lines with a suggested fix (Hyprland version and config, Quickshell, shaders, packages, wallpaper detection, conflicts, sensors, network). Its output hides your home directory and prints no location or wallpaper path, so you can paste it into a GitHub issue.
 
+## Timetable widget (WebUntis / Untis Mobile)
+
+![Timetable: Liquid Glass and Frosted Glass](docs/timetable-liquid.png)
+![Timetable: Frosted Glass](docs/timetable-frosted.png)
+![Timetable: week](docs/timetable-week.png)
+_Demo data (invented), neutral wallpaper._
+
+Shows your own WebUntis timetable: the running and the next lesson (small layout), or a day timeline and a week grid (large layout, drag the widget bigger or use the *Small / Large* buttons in the builder). Cancellations are struck through in red, substitutions are green, exams yellow; parallel groups are folded (`+2 parallel`, choose your own group in the widget properties); breaks, free periods, weekends and holidays are recognised from the school's own time grid.
+
+It uses the **Untis Mobile access** of your own account - the only access many schools offer, because the normal login is often behind a Microsoft login. Set it up once:
+
+1. In WebUntis open *Profile → Releases → Untis Mobile → Show* (the QR code). Save a screenshot or photo of it **locally**.
+2. Run `widgetdeck-untis-setup` and give the path of the image when asked (or type the values by hand). It reads the QR code with `zbarimg` (package `zbar`), checks the access with one login, and stores the key in your **keyring** (Secret Service, via `secret-tool` from `libsecret`).
+3. Let the setup delete the image and remove other copies (Downloads, trash, cloud sync). Anyone with the image can read your timetable.
+4. Add the *Timetable* widget in the builder (or tick it in the first-run assistant).
+
+Packages (official repositories): `python`, `zbar`, `libsecret`, plus a running Secret Service (gnome-keyring, KeePassXC with Secret Service enabled, KWallet). Without a Secret Service the setup offers a private file (`chmod 600`) outside the repository - only if you agree.
+
+**What it reads:** only your own timetable (lessons, cancellations, substitutions, room, teacher and class short names, group, a short note, exam marking) and the school's time grid, via the Untis Mobile interface (`getUserData2017`, `getTimetable`). **What it never reads:** marks, absences, homework, messages, student numbers, names or e-mail addresses (such text is removed before anything is stored). Data is fetched every 15 minutes while the widget is visible, kept in a cache with a timestamp (`~/.cache/widgetdeck/timetable.json`, mode 600), and shown as "As of HH:MM" when you are offline. The key never appears in code, config, logs or the command line: the server only receives a one-time code computed from it, over HTTPS with certificate verification. If the key is revoked ("log out devices" in WebUntis) the widget shows "Access expired - please set it up again" and keeps the last data. `widgetdeck-untis-setup --remove` deletes the key and the cache.
+
+The interface is the one of the Untis Mobile app; it is not officially documented and a school may disable it. If your school does not allow it, the setup says so ("The server refused the access") and nothing is stored. `widgetdeck-doctor` checks the Secret Service, whether a key exists (yes/no), whether the server answers and whether the last fetch worked. For screenshots and tests the widget has a data source *Demo (invented lessons)*.
+
 ## Updates and removal
 
 ```bash

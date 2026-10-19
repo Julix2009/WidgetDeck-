@@ -50,6 +50,28 @@ Widgets (an), Builder und Raster (an), Leiste (**aus**), Benachrichtigungen und 
 
 **Setup prüfen:** `widgetdeck-doctor` gibt OK / WARN / FAIL mit Lösungsvorschlag aus. Die Ausgabe verbirgt dein Home-Verzeichnis und enthält weder Standort noch Wallpaper-Pfad – du kannst sie in ein GitHub-Issue kopieren.
 
+## Stundenplan-Widget (WebUntis / Untis Mobile)
+
+![Timetable: Liquid Glass and Frosted Glass](docs/timetable-liquid.png)
+![Timetable: Frosted Glass](docs/timetable-frosted.png)
+![Timetable: week](docs/timetable-week.png)
+_Demo-Daten (erfunden), neutrales Wallpaper._
+
+Zeigt deinen eigenen WebUntis-Stundenplan: aktuelle und nächste Stunde (kleines Layout) oder Tageszeitleiste und Wochenraster (großes Layout; Widget größer ziehen oder die Knöpfe *Small / Large* im Builder). Entfall ist rot durchgestrichen, Vertretung grün, Prüfung gelb; parallele Gruppen werden zusammengefasst (`+2 parallel`, eigene Gruppe in den Widget-Eigenschaften wählen); Pausen, Freistunden, Wochenende und Ferien erkennt es am Zeitraster der Schule.
+
+Es nutzt den **Untis-Mobile-Zugang** deines eigenen Kontos - oft der einzige Zugang, weil der normale Login hinter einem Microsoft-Login liegt. Einmal einrichten:
+
+1. In WebUntis *Profil → Freigaben → Untis Mobile → Anzeigen* öffnen (der QR-Code). Screenshot oder Foto **lokal** speichern.
+2. `widgetdeck-untis-setup` ausführen und den Pfad der Bilddatei angeben (oder die Werte von Hand eintippen). Es liest den QR-Code mit `zbarimg` (Paket `zbar`), prüft den Zugang mit einem Login und legt den Schlüssel im **Schlüsselbund** ab (Secret Service, über `secret-tool` aus `libsecret`).
+3. Das Bild vom Setup löschen lassen und andere Kopien entfernen (Downloads, Papierkorb, Cloud-Sync). Wer das Bild hat, kann deinen Stundenplan lesen.
+4. Das Widget *Stundenplan* im Builder hinzufügen (oder im Einrichtungsassistenten ankreuzen).
+
+Pakete (offizielle Repos): `python`, `zbar`, `libsecret`, dazu ein laufender Secret Service (gnome-keyring, KeePassXC mit aktiviertem Secret Service, KWallet). Ohne Secret Service bietet das Setup eine private Datei (`chmod 600`) außerhalb des Repos an - nur mit deiner Zustimmung.
+
+**Was gelesen wird:** nur dein eigener Stundenplan (Stunden, Entfall, Vertretung, Raum, Lehrkräfte- und Klassen-Kürzel, Gruppe, kurze Notiz, Prüfungsmarkierung) und das Zeitraster der Schule, über die Untis-Mobile-Schnittstelle (`getUserData2017`, `getTimetable`). **Nie gelesen:** Noten, Abwesenheiten, Hausaufgaben, Nachrichten, Schülernummern, Namen oder E-Mail-Adressen (solche Texte werden entfernt, bevor etwas gespeichert wird). Abruf alle 15 Minuten, solange das Widget sichtbar ist; Cache mit Zeitstempel (`~/.cache/widgetdeck/timetable.json`, Modus 600); offline steht „As of HH:MM“. Der Schlüssel steht nie im Code, in Configs, Logs oder der Kommandozeile: Der Server bekommt nur einen aus ihm berechneten Einmalcode, per HTTPS mit Zertifikatsprüfung. Wird der Schlüssel widerrufen („Geräte abmelden“ in WebUntis), zeigt das Widget „Zugang abgelaufen, bitte neu einrichten“ und behält den letzten Stand. `widgetdeck-untis-setup --remove` löscht Schlüssel und Cache.
+
+Die Schnittstelle ist die der Untis-Mobile-App, nicht offiziell dokumentiert, und eine Schule kann sie abschalten. Erlaubt deine Schule das nicht, sagt das Setup es („Der Server hat den Zugang verweigert“) und speichert nichts. `widgetdeck-doctor` prüft Secret Service, ob ein Schlüssel existiert (ja/nein), ob der Server antwortet und ob der letzte Abruf geklappt hat. Für Screenshots und Tests gibt es die Datenquelle *Demo (erfundene Stunden)*.
+
 ## Updates
 
 ```bash

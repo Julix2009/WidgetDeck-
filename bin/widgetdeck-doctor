@@ -112,6 +112,19 @@ if [ -f "$CONF/config.json" ]; then
 else warn "no config.json yet (created by ./install.sh)"; fi
 if [ -f "$CONF/widgets.json" ]; then jq -e . "$CONF/widgets.json" >/dev/null 2>&1 && ok "widgets.json: $(jq '.widgets|length' "$CONF/widgets.json") widgets" || fail "widgets.json is not valid JSON"; fi
 
+head_ "Timetable widget (Untis Mobile)"
+if [ -f "$QML/widgets/timetable/untis.py" ] && command -v python3 >/dev/null 2>&1; then
+    tt="$(python3 -I "$QML/widgets/timetable/untis.py" doctor 2>/dev/null)"
+    case "$tt" in *"secret-tool: yes"*) ok "secret-tool (libsecret) installed" ;; *) echo "[info] timetable: secret-tool missing (pacman -S libsecret) - only needed if you use the timetable widget" ;; esac
+    command -v zbarimg >/dev/null 2>&1 && ok "zbarimg (zbar) installed - can read the QR code" || echo "[info] timetable: zbarimg missing (pacman -S zbar) - only needed to read the QR code from an image; typing the values works without it"
+    case "$tt" in *"key: yes"*) ok "an access key is stored (not shown)"
+        case "$tt" in *"secret-service: yes"*) ok "Secret Service answers" ;; *) warn "no Secret Service answers (keyring locked or not running)" "start gnome-keyring / enable the Secret Service in KeePassXC" ;; esac
+        case "$tt" in *"server: reachable"*) ok "the school server is reachable" ;; *"server: not reachable"*) warn "the school server is not reachable" "check your connection" ;; esac
+        lf="$(sed -n 's/^last fetch: //p' <<<"$tt")"; if [ -f "$CACHE/timetable.json" ] && [ "$(jq -r '.lessons|length' "$CACHE/timetable.json" 2>/dev/null)" -ge 0 ] 2>/dev/null; then ok "last successful fetch: ${lf:-?} (cached timetable is valid)"; else warn "no successful fetch yet" "open the widget, or run: widgetdeck-untis-setup"; fi ;;
+        *) echo "[info] timetable: not set up (run widgetdeck-untis-setup if you want the widget)" ;;
+    esac
+fi
+
 head_ "Hardware (widgets hide what is missing)"
 cpu=0; [ -d /sys/class/hwmon ] && grep -lqE 'coretemp|k10temp' /sys/class/hwmon/hwmon*/name 2>/dev/null && cpu=1
 [ "$cpu" = 1 ] && ok "CPU temperature sensor" || echo "[info] no CPU temperature sensor (the thermals widget leaves it out)"

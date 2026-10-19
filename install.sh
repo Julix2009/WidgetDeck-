@@ -188,9 +188,10 @@ install_files() {
     ok "$(t 'Launcher: %s' "$BIN_DEST")"
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-update" "$UPD_DEST"
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-doctor" "$DOC_DEST"
+    run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-untis-setup" "$UNT_DEST"
     ok "$(t 'Update and check commands: %s, %s' "$UPD_DEST" "$DOC_DEST")"
     case ":$PATH:" in *":$BIN_DIR:"*) ;; *) [ "$UPDATE_MODE" = 1 ] || warn "$(t '%s is not in your PATH. Add it to your shell config (e.g. export PATH="$HOME/.local/bin:$PATH").' "$BIN_DIR")" ;; esac
-    state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set UPD_DEST "$UPD_DEST"; state_set DOC_DEST "$DOC_DEST"; state_set VERSION "$VERSION"
+    state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set UPD_DEST "$UPD_DEST"; state_set DOC_DEST "$DOC_DEST"; state_set UNT_DEST "$UNT_DEST"; state_set VERSION "$VERSION"
 
     # your settings: created only where nothing exists yet
     run mkdir -p "$CONF_DIR"
@@ -271,6 +272,8 @@ do_uninstall() {
     if [ -f "$upd" ]; then run rm -f "$upd"; ok "$(t 'removed: %s' "$upd")"; fi
     doc="$(state_get DOC_DEST)"; doc="${doc:-$DOC_DEST}"
     if [ -f "$doc" ]; then run rm -f "$doc"; ok "$(t 'removed: %s' "$doc")"; fi
+    local unt; unt="$(state_get UNT_DEST)"; unt="${unt:-$UNT_DEST}"
+    if [ -f "$unt" ]; then run rm -f "$unt"; ok "$(t 'removed: %s' "$unt")"; fi
     tpl="$(state_get MATUGEN_TEMPLATE)"
     if [ -n "$tpl" ] && [ -f "$tpl" ]; then run rm -f "$tpl"; ok "$(t 'removed: %s' "$tpl")"; fi
     local toml bak

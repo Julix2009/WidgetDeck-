@@ -8,6 +8,8 @@ Thanks for helping! Bug reports and small fixes are the most useful things right
   shellcheck -x -S warning install.sh update.sh uninstall.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/modules/*.sh tools/*.sh
   python3 tools/check-i18n.py        # every UI text needs an English source and a German entry
   node tools/snapengine-test.js      # grid / snapping tests
+  node tools/timetable-test.js       # timetable logic
+  tools/untis-test.sh                # Untis client against a local mock server (invented data)
   tools/secret-scan.sh               # no personal paths, tokens or coordinates
   ```
   The same checks run on GitHub for every pull request (they only check, nothing is deployed).

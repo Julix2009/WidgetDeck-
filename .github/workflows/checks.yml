@@ -11,7 +11,7 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install tools
-        run: pacman -Syu --noconfirm --needed git shellcheck qt6-declarative python nodejs gitleaks jq
+        run: pacman -Syu --noconfirm --needed git shellcheck qt6-declarative python nodejs gitleaks jq openssl
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Mark the checkout as safe
@@ -26,5 +26,9 @@ jobs:
         run: python3 tools/check-i18n.py
       - name: grid tests
         run: node tools/snapengine-test.js
+      - name: timetable model tests
+        run: node tools/timetable-test.js
+      - name: Untis client tests (local mock server)
+        run: tools/untis-test.sh
       - name: secret scan
         run: tools/secret-scan.sh

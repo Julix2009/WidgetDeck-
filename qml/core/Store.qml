@@ -122,6 +122,22 @@ Scope {
         return out;
     }
     // one write for many widgets: { id: {x, y, w, h} }
+    // smooth size change (width and height, no scale transform): used by the Small / Large buttons of widgets that declare `sizes`
+    property var sizeAnim: null
+    function animateGeom(id, target, ms) {
+        var c = raw(id); if (!c || !target) return;
+        sizeAnim = { id: id, w0: c.w, h0: c.h, w1: target[0], h1: target[1], t0: Date.now(), ms: ms || 320 };
+        sizeTimer.restart();
+    }
+    Timer {
+        id: sizeTimer; interval: 16; repeat: true
+        onTriggered: {
+            var a = root.sizeAnim; if (!a) { stop(); return; }
+            var t = Math.min(1, (Date.now() - a.t0) / a.ms), e = 1 - Math.pow(1 - t, 3);
+            root.setGeom(a.id, { w: a.w0 + (a.w1 - a.w0) * e, h: a.h0 + (a.h1 - a.h0) * e });
+            if (t >= 1) { stop(); root.sizeAnim = null; root.clampAll(); }
+        }
+    }
     function setGeomMany(map) {
         var any = false;
         for (var id in map) { var c = raw(id); if (!c) continue; for (var k in map[id]) { var v = Math.round(map[id][k]); if (c[k] !== v) { c[k] = v; any = true; } } }

@@ -33,5 +33,11 @@ var PATHS = {
  "logout": "M10 4H5v16h5 M15 8l4 4-4 4 M19 12H9",
  "image": "M3 5h18v14H3z M3 16l5-5 4 4 3-3 6 6 M8.5 9.5h.01",
  "folder": "M3 6h6l2 2h10v11H3z",
- "grid": "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"
+ "grid": "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z",
+ "calendar": "M4 6h16v14H4z M4 10h16 M8 3v4 M16 3v4",
+ "refresh": "M20 12a8 8 0 1 1-2.6-5.9 M20 4v5h-5",
+ "swap": "M4 8h14 M14 4l4 4-4 4 M20 16H6 M10 12l-4 4 4 4",
+ "pencil": "M4 20l1-4L16 5l3 3L8 19z M14 7l3 3",
+ "note": "M6 3h9l4 4v14H6z M9 12h7 M9 16h7",
+ "cancel": "M6 6l12 12 M18 6L6 18"
 };

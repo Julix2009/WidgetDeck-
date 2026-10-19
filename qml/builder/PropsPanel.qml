@@ -78,7 +78,17 @@ Item {
                 }
             }
 
-            Text { text: "GLAS"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
+            Item {
+                visible: !!pp.tinfo && !!pp.tinfo.sizes
+                width: parent.width; height: visible ? 32 : 0
+                Row {
+                    spacing: 6; width: parent.width
+                    GButton { th: pp.th; label: I18n.tr("Small"); width: (col.width - 6) / 2; onClicked: pp.store.animateGeom(pp.sel, pp.tinfo.sizes.small, 320) }
+                    GButton { th: pp.th; label: I18n.tr("Large"); width: (col.width - 6) / 2; onClicked: pp.store.animateGeom(pp.sel, pp.tinfo.sizes.large, 320) }
+                }
+            }
+
+            Text { text: I18n.tr("GLASS"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
             GChoice {
                 width: parent.width; th: pp.th; label: I18n.tr("Glass style"); options: D.MODES; value: pp.st ? pp.st.mode : "frosted"
                 onPicked: v => pp.store.setStyle(pp.sel, "mode", v)

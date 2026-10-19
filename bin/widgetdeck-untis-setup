@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+# widgetdeck-untis-setup - connect the Timetable widget to YOUR Untis Mobile access (WebUntis > Profile > Releases > Untis Mobile > Show).
+#   widgetdeck-untis-setup            interactive setup
+#   widgetdeck-untis-setup --remove   delete the stored key (keyring and file) and the cached timetable
+#   widgetdeck-untis-setup --terminal re-run inside a terminal window (used by the widget's "Set up" button)
+# The key is never shown, never put in a config, a log or a command line. It is stored in the Secret Service (secret-tool).
+set -uo pipefail
+umask 077
+
+# ---- language: English, German when the system language is German ----
+L="${WIDGETDECK_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}"; L="${L:0:2}"
+declare -A DE=(
+ ['Timetable widget: connect your Untis Mobile access']='Stundenplan-Widget: Untis-Mobile-Zugang verbinden'
+ ['The widget reads ONLY your own timetable (lessons, cancellations, substitutions, rooms, teacher short names). No marks, absences, homework or messages. The key stays in the Secret Service of your desktop and is never shown or written anywhere else.']='Das Widget liest NUR deinen eigenen Stundenplan (Stunden, Entfall, Vertretung, Räume, Lehrkräfte-Kürzel). Keine Noten, Abwesenheiten, Hausaufgaben oder Nachrichten. Der Schlüssel bleibt im Schlüsselbund (Secret Service) deines Desktops und wird nirgends angezeigt oder sonst gespeichert.'
+ ['Needed tools are missing:']='Benötigte Programme fehlen:' ['Install them with:']='Installiere sie mit:'
+ ['Read the QR code from an image file']='QR-Code aus einer Bilddatei lesen' ['Type the values in by hand']='Werte von Hand eingeben' ['Choice']='Auswahl'
+ ['Path of the QR code image (screenshot or photo): ']='Pfad der QR-Code-Bilddatei (Screenshot oder Foto): '
+ ['That file does not exist.']='Diese Datei gibt es nicht.' ['No QR code found in the image (is it sharp and complete?).']='Kein QR-Code im Bild gefunden (scharf und vollständig?).'
+ ['That is not an Untis Mobile QR code.']='Das ist kein Untis-Mobile-QR-Code.' ['QR code read: server, school, user and key found.']='QR-Code gelesen: Server, Schule, Benutzer und Schlüssel gefunden.'
+ ['The QR code lacks some values.']='Dem QR-Code fehlen Angaben.' ['Server (e.g. xyz.webuntis.com): ']='Server (z. B. xyz.webuntis.com): ' ['School name: ']='Schulname: ' ['User name: ']='Benutzername: '
+ ['Key (not shown): ']='Schlüssel (wird nicht angezeigt): ' ['Checking the access (one login, nothing else) ...']='Zugang prüfen (ein Login, sonst nichts) ...'
+ ['The access works.']='Der Zugang funktioniert.' ['The server refused the access. Possible reasons: wrong values, the key was revoked ("log out devices"), or your school does not allow Untis Mobile / uses a Microsoft login that blocks it. Nothing was stored.']='Der Server hat den Zugang verweigert. Mögliche Gründe: falsche Werte, der Schlüssel wurde widerrufen („Geräte abmelden“) oder deine Schule erlaubt Untis Mobile nicht / nutzt einen Microsoft-Login, der es sperrt. Es wurde nichts gespeichert.'
+ ['The server could not be reached (network, wrong server name?). Store the values anyway?']='Der Server war nicht erreichbar (Netz, falscher Servername?). Werte trotzdem speichern?'
+ ['Stored in the Secret Service (keyring).']='Im Schlüsselbund (Secret Service) gespeichert.'
+ ['No Secret Service is running (e.g. gnome-keyring or KeePassXC with Secret Service enabled), so the key cannot go into a keyring.']='Es läuft kein Secret Service (z. B. gnome-keyring oder KeePassXC mit aktiviertem Secret Service), der Schlüssel kann also nicht in einen Schlüsselbund.'
+ ['Alternative: a private file (chmod 600) outside the repository. Anyone who can read your files can then read the key. Use it?']='Alternative: eine private Datei (chmod 600) außerhalb des Repositorys. Wer deine Dateien lesen kann, kann dann den Schlüssel lesen. Verwenden?'
+ ['Stored in a private file:']='In privater Datei gespeichert:' ['Nothing was stored.']='Es wurde nichts gespeichert.'
+ ['Delete the QR code image now (overwritten, then removed)?']='QR-Code-Bild jetzt löschen (überschrieben, dann entfernt)?' ['Image deleted.']='Bild gelöscht.'
+ ['Also remove copies of the QR code: Downloads, trash, screenshot folders, cloud sync, clipboard history. Anyone with the image can read your timetable.']='Entferne auch Kopien des QR-Codes: Downloads, Papierkorb, Screenshot-Ordner, Cloud-Sync, Zwischenablage-Verlauf. Wer das Bild hat, kann deinen Stundenplan lesen.'
+ ['Done. Add the Timetable widget in the builder (or run: widgetdeck wizard).']='Fertig. Füge das Stundenplan-Widget im Builder hinzu (oder starte: widgetdeck wizard).'
+ ['Stored key and cached timetable removed.']='Gespeicherter Schlüssel und zwischengespeicherter Stundenplan entfernt.'
+ ['Continue?']='Weiter?'
+)
+t() { if [ "$L" = de ] && [ -n "${DE[$1]:-}" ]; then printf '%s' "${DE[$1]}"; else printf '%s' "$1"; fi; }
+say() { printf '%s\n' "$(t "$1")"; }
+yn() { local a; read -r -p "$(t "$1") $([ "$L" = de ] && echo '[J/n]' || echo '[Y/n]') " a || a=n; case "${a,,}" in ""|j|ja|y|yes) return 0 ;; *) return 1 ;; esac; }
+yn_no() { local a; read -r -p "$(t "$1") $([ "$L" = de ] && echo '[j/N]' || echo '[y/N]') " a || a=n; case "${a,,}" in j|ja|y|yes) return 0 ;; *) return 1 ;; esac; }
+
+HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+CLIENT=""
+for d in "$CFG/quickshell/widgetdeck/widgets/timetable" /usr/share/widgetdeck/qml/widgets/timetable "$HERE/../qml/widgets/timetable"; do [ -f "$d/untis.py" ] && { CLIENT="$d/untis.py"; break; }; done
+PRIV="${XDG_DATA_HOME:-$HOME/.local/share}/widgetdeck-private/untis.json"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck/timetable.json"
+
+if [ "${1:-}" = "--terminal" ]; then
+    shift
+    for term in "${TERMINAL:-}" kitty alacritty foot wezterm ghostty konsole gnome-terminal xfce4-terminal xterm; do
+        [ -n "$term" ] && command -v "$term" >/dev/null 2>&1 || continue
+        case "$term" in
+            gnome-terminal|xfce4-terminal) exec "$term" -- "$0" "$@" ;;
+            wezterm) exec "$term" start -- "$0" "$@" ;;
+            *) exec "$term" -e "$0" "$@" ;;
+        esac
+    done
+    echo "widgetdeck-untis-setup: no terminal emulator found (set \$TERMINAL or run this command in a terminal)" >&2; exit 1
+fi
+
+if [ "${1:-}" = "--remove" ]; then
+    secret-tool clear application widgetdeck kind untis 2>/dev/null
+    rm -f "$PRIV" "$CACHE"
+    say 'Stored key and cached timetable removed.'; exit 0
+fi
+
+echo; say 'Timetable widget: connect your Untis Mobile access'; echo; say 'The widget reads ONLY your own timetable (lessons, cancellations, substitutions, rooms, teacher short names). No marks, absences, homework or messages. The key stays in the Secret Service of your desktop and is never shown or written anywhere else.'; echo
+miss=(); command -v secret-tool >/dev/null 2>&1 || miss+=(libsecret); command -v python3 >/dev/null 2>&1 || miss+=(python)
+[ -n "$CLIENT" ] || { echo "widgetdeck-untis-setup: the WidgetDeck program files were not found (run ./install.sh)" >&2; exit 1; }
+if [ "${#miss[@]}" -gt 0 ]; then say 'Needed tools are missing:'; echo "  ${miss[*]}"; say 'Install them with:'; echo "  sudo pacman -S ${miss[*]} zbar"; exit 1; fi
+yn 'Continue?' || exit 0
+
+server=""; school=""; user=""; key=""; qrfile=""
+echo; echo "  1) $(t 'Read the QR code from an image file')"; echo "  2) $(t 'Type the values in by hand')"
+read -r -p "  $(t 'Choice') [1] " choice; choice="${choice:-1}"
+if [ "$choice" = 1 ]; then
+    command -v zbarimg >/dev/null 2>&1 || { say 'Needed tools are missing:'; echo "  zbar"; say 'Install them with:'; echo "  sudo pacman -S zbar"; exit 1; }
+    read -r -p "$(t 'Path of the QR code image (screenshot or photo): ')" qrfile
+    qrfile="${qrfile/#\~/$HOME}"; qrfile="${qrfile%\"}"; qrfile="${qrfile#\"}"
+    [ -f "$qrfile" ] || { say 'That file does not exist.'; exit 1; }
+    raw="$(zbarimg --raw -q "$qrfile" 2>/dev/null | head -n1)"
+    [ -n "$raw" ] || { say 'No QR code found in the image (is it sharp and complete?).'; exit 1; }
+    case "$raw" in untis://setschool\?*) ;; *) say 'That is not an Untis Mobile QR code.'; exit 1 ;; esac
+    parsed="$(printf '%s' "$raw" | jq -Rr 'sub("^[^?]*\\?";"") | split("&") | map(split("=") | {(.[0]): ((.[1] // "") | @urid)}) | add | [.url, .school, .user, .key] | .[]' 2>/dev/null)"
+    { IFS= read -r server; IFS= read -r school; IFS= read -r user; IFS= read -r key; } <<<"$parsed"
+    unset raw parsed
+    if [ -z "$server" ] || [ -z "$school" ] || [ -z "$user" ] || [ -z "$key" ]; then say 'The QR code lacks some values.'; exit 1; fi
+    say 'QR code read: server, school, user and key found.'
+else
+    read -r -p "$(t 'Server (e.g. xyz.webuntis.com): ')" server
+    read -r -p "$(t 'School name: ')" school
+    read -r -p "$(t 'User name: ')" user
+    read -r -s -p "$(t 'Key (not shown): ')" key; echo
+fi
+server="${server#https://}"; server="${server%%/*}"
+build() { printf '%s\n%s\n%s\n%s\n' "$server" "$school" "$user" "$key" | jq -Rn '[inputs] | {server: .[0], school: .[1], user: .[2], key: .[3]}'; }
+
+echo; say 'Checking the access (one login, nothing else) ...'
+res="$(build | python3 -I "$CLIENT" verify --stdin 2>/dev/null)"
+store=0
+case "$res" in
+    ok) say 'The access works.'; store=1 ;;
+    auth) say 'The server refused the access. Possible reasons: wrong values, the key was revoked ("log out devices"), or your school does not allow Untis Mobile / uses a Microsoft login that blocks it. Nothing was stored.' ;;
+    *) yn_no 'The server could not be reached (network, wrong server name?). Store the values anyway?' && store=1 ;;
+esac
+
+if [ "$store" = 1 ]; then
+    if build | secret-tool store --label="WidgetDeck Untis (timetable)" application widgetdeck kind untis 2>/dev/null; then
+        say 'Stored in the Secret Service (keyring).'
+    else
+        say 'No Secret Service is running (e.g. gnome-keyring or KeePassXC with Secret Service enabled), so the key cannot go into a keyring.'
+        if yn_no 'Alternative: a private file (chmod 600) outside the repository. Anyone who can read your files can then read the key. Use it?'; then
+            mkdir -p "$(dirname "$PRIV")" && chmod 700 "$(dirname "$PRIV")" && build > "$PRIV" && chmod 600 "$PRIV" && { printf '%s %s\n' "$(t 'Stored in a private file:')" "$PRIV"; }
+        else say 'Nothing was stored.'; store=0; fi
+    fi
+fi
+key=""; server=""; school=""; user=""
+
+if [ -n "$qrfile" ] && [ -f "$qrfile" ]; then
+    echo
+    if yn 'Delete the QR code image now (overwritten, then removed)?'; then
+        shred -u "$qrfile" 2>/dev/null || rm -f "$qrfile"
+        say 'Image deleted.'
+    fi
+    say 'Also remove copies of the QR code: Downloads, trash, screenshot folders, cloud sync, clipboard history. Anyone with the image can read your timetable.'
+fi
+[ "$store" = 1 ] && { echo; say 'Done. Add the Timetable widget in the builder (or run: widgetdeck wizard).'; }
+if [ -t 0 ] && [ -n "${WIDGETDECK_PAUSE:-}" ]; then read -r -p "[Enter] " _; fi
+exit 0

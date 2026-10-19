@@ -1,0 +1,740 @@
+{
+ "grid": {
+  "MON": [
+   {
+    "label": "1",
+    "start": "08:00",
+    "end": "08:50"
+   },
+   {
+    "label": "2",
+    "start": "08:55",
+    "end": "09:45"
+   },
+   {
+    "label": "3",
+    "start": "10:00",
+    "end": "10:50"
+   },
+   {
+    "label": "4",
+    "start": "10:55",
+    "end": "11:45"
+   },
+   {
+    "label": "5",
+    "start": "11:50",
+    "end": "12:40"
+   },
+   {
+    "label": "6",
+    "start": "13:30",
+    "end": "14:20"
+   },
+   {
+    "label": "7",
+    "start": "14:25",
+    "end": "15:15"
+   }
+  ],
+  "TUE": [
+   {
+    "label": "1",
+    "start": "08:00",
+    "end": "08:50"
+   },
+   {
+    "label": "2",
+    "start": "08:55",
+    "end": "09:45"
+   },
+   {
+    "label": "3",
+    "start": "10:00",
+    "end": "10:50"
+   },
+   {
+    "label": "4",
+    "start": "10:55",
+    "end": "11:45"
+   },
+   {
+    "label": "5",
+    "start": "11:50",
+    "end": "12:40"
+   },
+   {
+    "label": "6",
+    "start": "13:30",
+    "end": "14:20"
+   },
+   {
+    "label": "7",
+    "start": "14:25",
+    "end": "15:15"
+   }
+  ],
+  "WED": [
+   {
+    "label": "1",
+    "start": "08:00",
+    "end": "08:50"
+   },
+   {
+    "label": "2",
+    "start": "08:55",
+    "end": "09:45"
+   },
+   {
+    "label": "3",
+    "start": "10:00",
+    "end": "10:50"
+   },
+   {
+    "label": "4",
+    "start": "10:55",
+    "end": "11:45"
+   },
+   {
+    "label": "5",
+    "start": "11:50",
+    "end": "12:40"
+   },
+   {
+    "label": "6",
+    "start": "13:30",
+    "end": "14:20"
+   },
+   {
+    "label": "7",
+    "start": "14:25",
+    "end": "15:15"
+   }
+  ],
+  "THU": [
+   {
+    "label": "1",
+    "start": "08:00",
+    "end": "08:50"
+   },
+   {
+    "label": "2",
+    "start": "08:55",
+    "end": "09:45"
+   },
+   {
+    "label": "3",
+    "start": "10:00",
+    "end": "10:50"
+   },
+   {
+    "label": "4",
+    "start": "10:55",
+    "end": "11:45"
+   },
+   {
+    "label": "5",
+    "start": "11:50",
+    "end": "12:40"
+   },
+   {
+    "label": "6",
+    "start": "13:30",
+    "end": "14:20"
+   },
+   {
+    "label": "7",
+    "start": "14:25",
+    "end": "15:15"
+   }
+  ],
+  "FRI": [
+   {
+    "label": "1",
+    "start": "08:00",
+    "end": "08:50"
+   },
+   {
+    "label": "2",
+    "start": "08:55",
+    "end": "09:45"
+   },
+   {
+    "label": "3",
+    "start": "10:00",
+    "end": "10:50"
+   },
+   {
+    "label": "4",
+    "start": "10:55",
+    "end": "11:45"
+   },
+   {
+    "label": "5",
+    "start": "11:50",
+    "end": "12:40"
+   }
+  ]
+ },
+ "lessons": [
+  {
+   "day": 0,
+   "start": "08:00",
+   "end": "08:50",
+   "slot": "1",
+   "subject": "M",
+   "room": "A12",
+   "teacher": "KOL",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "08:55",
+   "end": "09:45",
+   "slot": "2",
+   "subject": "D",
+   "room": "A12",
+   "teacher": "WEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "10:00",
+   "end": "10:50",
+   "slot": "3",
+   "subject": "E",
+   "room": "B03",
+   "teacher": "SEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "Vocab test",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "10:55",
+   "end": "11:45",
+   "slot": "4",
+   "subject": "PH",
+   "room": "C21",
+   "teacher": "BRA",
+   "klass": "3B",
+   "group": "",
+   "state": "changed",
+   "note": "Room changed",
+   "subst": {
+    "teacher": false,
+    "room": true,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "11:50",
+   "end": "12:40",
+   "slot": "5",
+   "subject": "SP",
+   "room": "Sporthalle",
+   "teacher": "MUS",
+   "klass": "3B",
+   "group": "",
+   "state": "cancelled",
+   "note": "Cancelled",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "13:30",
+   "end": "14:20",
+   "slot": "6",
+   "subject": "INF",
+   "room": "PC1",
+   "teacher": "LAN",
+   "klass": "3B",
+   "group": "G1",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "13:30",
+   "end": "14:20",
+   "slot": "6",
+   "subject": "INF",
+   "room": "PC2",
+   "teacher": "HOF",
+   "klass": "3B",
+   "group": "G2",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 0,
+   "start": "13:30",
+   "end": "14:20",
+   "slot": "6",
+   "subject": "INF",
+   "room": "PC3",
+   "teacher": "RAU",
+   "klass": "3B",
+   "group": "G3",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "08:00",
+   "end": "08:50",
+   "slot": "1",
+   "subject": "E",
+   "room": "B03",
+   "teacher": "SEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "08:55",
+   "end": "09:45",
+   "slot": "2",
+   "subject": "E",
+   "room": "B03",
+   "teacher": "SEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "10:00",
+   "end": "10:50",
+   "slot": "3",
+   "subject": "BIO",
+   "room": "C14",
+   "teacher": "FUC",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "10:55",
+   "end": "11:45",
+   "slot": "4",
+   "subject": "M",
+   "room": "A12",
+   "teacher": "KOL",
+   "klass": "3B",
+   "group": "",
+   "state": "exam",
+   "note": "Exam",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "11:50",
+   "end": "12:40",
+   "slot": "5",
+   "subject": "M",
+   "room": "A12",
+   "teacher": "KOL",
+   "klass": "3B",
+   "group": "",
+   "state": "exam",
+   "note": "Exam",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "13:30",
+   "end": "14:20",
+   "slot": "6",
+   "subject": "RE",
+   "room": "A07",
+   "teacher": "PIC",
+   "klass": "3B",
+   "group": "kath.",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 1,
+   "start": "13:30",
+   "end": "14:20",
+   "slot": "6",
+   "subject": "RE",
+   "room": "A08",
+   "teacher": "DAN",
+   "klass": "3B",
+   "group": "evang.",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 2,
+   "start": "08:00",
+   "end": "08:50",
+   "slot": "1",
+   "subject": "D",
+   "room": "A12",
+   "teacher": "WEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 2,
+   "start": "08:55",
+   "end": "09:45",
+   "slot": "2",
+   "subject": "GS",
+   "room": "A12",
+   "teacher": "ENG",
+   "klass": "3B",
+   "group": "",
+   "state": "changed",
+   "note": "Substitute teacher",
+   "subst": {
+    "teacher": true,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 2,
+   "start": "10:00",
+   "end": "10:50",
+   "slot": "3",
+   "subject": "BIO",
+   "room": "C14",
+   "teacher": "FUC",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 2,
+   "start": "11:50",
+   "end": "12:40",
+   "slot": "5",
+   "subject": "M",
+   "room": "A12",
+   "teacher": "KOL",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "Worksheet",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "08:00",
+   "end": "08:50",
+   "slot": "1",
+   "subject": "SP",
+   "room": "Sporthalle",
+   "teacher": "MUS",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "08:55",
+   "end": "09:45",
+   "slot": "2",
+   "subject": "SP",
+   "room": "Sporthalle",
+   "teacher": "MUS",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "10:00",
+   "end": "10:50",
+   "slot": "3",
+   "subject": "D",
+   "room": "A12",
+   "teacher": "WEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "10:55",
+   "end": "11:45",
+   "slot": "4",
+   "subject": "E",
+   "room": "B03",
+   "teacher": "SEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "11:50",
+   "end": "12:40",
+   "slot": "5",
+   "subject": "PH",
+   "room": "C21",
+   "teacher": "BRA",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "13:30",
+   "end": "14:20",
+   "slot": "6",
+   "subject": "GS",
+   "room": "A12",
+   "teacher": "ENG",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 3,
+   "start": "14:25",
+   "end": "15:15",
+   "slot": "7",
+   "subject": "GS",
+   "room": "A12",
+   "teacher": "ENG",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   },
+   "week0only": true
+  },
+  {
+   "day": 4,
+   "start": "08:00",
+   "end": "08:50",
+   "slot": "1",
+   "subject": "M",
+   "room": "A12",
+   "teacher": "KOL",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 4,
+   "start": "08:55",
+   "end": "09:45",
+   "slot": "2",
+   "subject": "INF",
+   "room": "PC1",
+   "teacher": "LAN",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 4,
+   "start": "10:00",
+   "end": "10:50",
+   "slot": "3",
+   "subject": "INF",
+   "room": "PC1",
+   "teacher": "LAN",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 4,
+   "start": "10:55",
+   "end": "11:45",
+   "slot": "4",
+   "subject": "BIO",
+   "room": "C14",
+   "teacher": "FUC",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  },
+  {
+   "day": 4,
+   "start": "11:50",
+   "end": "12:40",
+   "slot": "5",
+   "subject": "D",
+   "room": "A12",
+   "teacher": "WEI",
+   "klass": "3B",
+   "group": "",
+   "state": "normal",
+   "note": "",
+   "subst": {
+    "teacher": false,
+    "room": false,
+    "subject": false
+   }
+  }
+ ]
+}
