@@ -259,7 +259,7 @@ do_rollback() {
     local was_running=0
     if [ "$NO_RESTART" = 0 ] && [ -x "$BIN_DEST" ] && HOME="$H" "$BIN_DEST" status >/dev/null 2>&1 9>&-; then was_running=1; HOME="$H" "$BIN_DEST" stop >/dev/null 2>&1 9>&- || true; sleep 0.5; fi
     if [ -n "$bak" ] && [ -d "$bak" ]; then
-        local pre="$CONFIG_HOME/widgetdeck.pre-rollback-$(stamp)"
+        local pre; pre="$CONFIG_HOME/widgetdeck.pre-rollback-$(stamp)"
         [ -d "$CONF_DIR" ] && cp -a "$CONF_DIR" "$pre"
         rm -rf "$CONF_DIR"; cp -a "$bak" "$CONF_DIR"
         ok "$(t 'Settings restored from the backup (previous state: %s)' "${pre:-none}")"

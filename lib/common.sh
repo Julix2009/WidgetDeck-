@@ -21,7 +21,8 @@ t() {
 }
 
 # ---- paths (one place for install.sh / update.sh / doctor): XDG-aware, or below --prefix ----
-# wd_paths <home> <prefix-or-empty>
+# wd_paths <home> <prefix-or-empty>   (the variables it sets are used by the scripts that source this file)
+# shellcheck disable=SC2034
 wd_paths() {
     H="$1"
     if [ -n "$2" ]; then CONFIG_HOME="$H/.config"; CACHE_HOME="$H/.cache"
@@ -45,7 +46,7 @@ ask() {
     local q="$1" def="${2:-y}" a hint
     if [ "$ASSUME_YES" = 1 ]; then [ "$def" = y ]; return; fi
     if [ ! -t 0 ]; then _log "no terminal: '$q' -> default $def"; [ "$def" = y ]; return; fi
-    if [ "$_wd_lang" = de ]; then if [ "$def" = y ]; then hint="[J/n]"; else hint="[j/N]"; fi; else if [ "$def" = y ]; then hint="[Y/n]"; else hint="[y/N]"; fi; fi
+    if [ "$_wd_lang" = de ]; then hint="[J/n]"; [ "$def" = y ] || hint="[j/N]"; else hint="[Y/n]"; [ "$def" = y ] || hint="[y/N]"; fi
     while true; do
         read -r -p "  ? $q $hint " a || a=""
         a="${a,,}"

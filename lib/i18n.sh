@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC2034
 # German texts for the installer scripts. Key = the English text used in t '...'. English needs no entry.
 # tools/check-i18n.py lists missing entries.
 DE['installer']='Installer'

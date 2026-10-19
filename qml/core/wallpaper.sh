@@ -5,6 +5,8 @@
 CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
 VERBOSE=0; [ "${1:-}" = "--verbose" ] && VERBOSE=1
 
+# the literal "~/" prefix is matched on purpose
+# shellcheck disable=SC2088
 expand() { local p="$1"; case "$p" in "~/"*) p="$HOME/${p#"~/"}" ;; esac; printf '%s' "$p"; }
 clean() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'\$//"; }
 isimg() { case "${1,,}" in *.png|*.jpg|*.jpeg|*.webp|*.bmp|*.gif|*.avif|*.jxl|*.tiff) return 0 ;; esac; return 1; }

@@ -7,7 +7,7 @@ export LC_ALL=C
 TARGET="${1:-1.1.1.1}"
 [[ "$TARGET" =~ ^[A-Za-z0-9._:-]+$ ]] || TARGET="1.1.1.1"
 PF=$(mktemp "${XDG_RUNTIME_DIR:-/tmp}/netmon-ping.XXXXXX")
-cleanup() { kill $(jobs -p) 2>/dev/null; rm -f "$PF"; }
+cleanup() { jobs -p | xargs -r kill 2>/dev/null; rm -f "$PF"; }
 trap cleanup EXIT
 trap 'exit 0' TERM INT
 echo x > "$PF"
@@ -41,7 +41,7 @@ while true; do
 
     if [ -d "/sys/class/net/$IF/wireless" ]; then KIND=wifi
     elif [ -d "/sys/class/net/$IF/device" ] || [[ "$IF" == e* ]]; then KIND=ethernet
-    else KIND=link; fi
+    else KIND="link"; fi
 
     if [ "$KIND" = wifi ] && [ $(( tick % 5 )) -eq 0 ]; then
         LINE=$(nmcli -t -e no -f IN-USE,SIGNAL,SSID dev wifi list --rescan no 2>/dev/null | grep '^\*' | head -n1)

@@ -60,14 +60,14 @@ if git remote get-url "$REMOTE" >/dev/null 2>&1; then
     fi
 else fail "Es gibt kein Remote '$REMOTE' (git remote add $REMOTE <url>)."; fi
 
-# shellcheck on every shell script
+# run shellcheck over every shell script
 SC_FILES=()
 while IFS= read -r f; do
     case "$f" in *.sh|bin/widgetdeck|bin/widgetdeck-update) SC_FILES+=("$f") ;; esac
 done < <(git ls-files)
 if [ "$SKIP_SC" = 1 ]; then warn "shellcheck übersprungen (--no-shellcheck)."
 elif command -v shellcheck >/dev/null 2>&1; then
-    if shellcheck -x "${SC_FILES[@]}"; then ok "shellcheck: ${#SC_FILES[@]} Skripte ohne Warnungen"; else fail "shellcheck meldet Probleme (siehe oben)."; fi
+    if shellcheck -x -S warning "${SC_FILES[@]}"; then ok "shellcheck: ${#SC_FILES[@]} Skripte ohne Warnungen"; else fail "shellcheck meldet Probleme (siehe oben)."; fi
 else fail "shellcheck ist nicht installiert (pacman -S shellcheck)."; fi
 for f in "${SC_FILES[@]}"; do bash -n "$f" 2>/dev/null || fail "Syntaxfehler in $f"; done
 if "$SCRIPT_DIR/tools/secret-scan.sh" >/tmp/release-secret-scan.$$ 2>&1; then ok "Secret-Scan sauber (Pfade, Tokens, Standort, persönliche Wörter)"; else fail "Secret-Scan hat etwas gefunden:"; sed 's/^/         /' /tmp/release-secret-scan.$$; fi

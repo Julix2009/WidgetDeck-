@@ -247,7 +247,7 @@ matugen_setup() {
     if [ -f "$toml" ]; then
         say "  $(t 'I would append this block to %s:' "$toml")"; printf '%s\n' "$block" | sed 's/^/  | /'
         if ask "$(t 'Add it to the matugen config (a backup is made)?')" y; then
-            local bak="$toml.widgetdeck-backup-$(stamp)"
+            local bak; bak="$toml.widgetdeck-backup-$(stamp)"
             if [ "$DRY_RUN" = 1 ]; then printf '  [dry-run] %s\n' "$(t 'backup %s, append the block' "$bak")"; else
                 cp -p "$toml" "$bak"; { printf '\n'; printf '%s\n' "$block"; } >> "$toml"
                 state_set MATUGEN_TOML "$toml"; state_set MATUGEN_BACKUP "$bak"; ok "$(t 'matugen config extended (backup: %s)' "$bak")"; fi

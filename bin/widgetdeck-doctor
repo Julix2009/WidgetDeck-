@@ -78,7 +78,7 @@ else warn "widgetdeck command not in PATH" "add ~/.local/bin to your PATH"; fi
 
 head_ "Packages"
 for p in quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils; do pacman -T "$p" >/dev/null 2>&1 && ok "$p" || fail "$p missing" "pacman -S $p"; done
-for p in adwaita-fonts; do pacman -T "$p" >/dev/null 2>&1 && ok "$p (preferred font)" || warn "$p missing - the next installed font is used" "pacman -S $p"; done
+if pacman -T adwaita-fonts >/dev/null 2>&1; then ok "adwaita-fonts (preferred font)"; else warn "adwaita-fonts missing - the next installed font is used" "pacman -S adwaita-fonts"; fi
 for p in networkmanager:"Wi-Fi name in the network widget" playerctl:"music widget skip direction" cava:"visualizer widget" matugen:"colours from the wallpaper (otherwise the fixed default palette)"; do
     n="${p%%:*}"; w="${p#*:}"; pacman -T "$n" >/dev/null 2>&1 && ok "$n (optional)" || echo "[info] $n not installed (optional): $w"; done
 fonts="$(fc-list 2>/dev/null)"

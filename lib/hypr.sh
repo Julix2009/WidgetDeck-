@@ -82,7 +82,7 @@ hypr_preflight() {
     { printf '\n'; hypr_include_block; } >> "$copy"
     after="$(hypr_verify "$copy")"
     rm -f "$copy"
-    HYPR_PRE_BEFORE="$before"; HYPR_PRE_AFTER="$after"
+    HYPR_PRE_BEFORE="$before"
     # problems that mention OUR file are ours; problems that were there before are the user's own
     printf '%s\n' "$after" | grep -F "$(basename "$HYPR_SNIPPET")" || true
 }
@@ -158,7 +158,7 @@ hypr_apply() {
     HYPR_PRE_BEFORE="$(hypr_verify "$HYPR_MAIN")"
     [ -n "${HYPR_PRE_BEFORE:-}" ] && warn "$(t 'Your Hyprland config already reports problems (not caused by WidgetDeck):')" && printf '%s\n' "$HYPR_PRE_BEFORE" | head -n3 | sed 's/^/         | /'
     if ask "$(t 'Add the include line to %s (a backup is made first)?' "$HYPR_MAIN")" y; then
-        local bak="$HYPR_MAIN.widgetdeck-backup-$(stamp)"
+        local bak; bak="$HYPR_MAIN.widgetdeck-backup-$(stamp)"
         if [ "$DRY_RUN" = 1 ]; then printf '  [dry-run] %s\n' "$(t 'backup %s, then append the include line' "$bak")"; return 0; fi
         cp -p "$HYPR_MAIN" "$bak"
         { printf '\n'; hypr_include_block; } >> "$HYPR_MAIN"
