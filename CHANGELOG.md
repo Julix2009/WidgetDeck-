@@ -9,6 +9,18 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 
+## [0.2.0] - 2026-10-19
+
+### Geändert
+- Ansicht als gespeicherter Zustand, größere Klickflächen, Wochenende, Abruf-Warteschlange
+- Bindungsschleife in der Fußzeile behoben
+- Secret-Scan: Schema-Name des QR-Codes erlaubt (Schlüssel-/Host-Muster bleiben aktiv)
+- Secret-Scan: Platzhalter-Servername erlaubt
+- ISO-Zeiten, leere Zeitraster-Beschriftung, unveröffentlichte Folgewoche (-7004), Wochenraster ohne leere Zeilen; Setup-Skript wie Update-Befehl im Terminal
+- Secret-Service-Erkennung korrigiert (kein Dienst = 'no')
+- Widget Stundenplan (Untis Mobile): Client, Setup, Anzeige, Doku, Tests
+- Reiner MIT-Text, damit GitHub die Lizenz erkennt (Hinweis zum Shader steht in NOTICE.md)
+
 ## [0.1.0] - 2026-10-18
 
 ### Hinzugefügt
