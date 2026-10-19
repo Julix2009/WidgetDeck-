@@ -62,7 +62,7 @@ Scope {
                 Text {
                     anchors.centerIn: parent
                     color: win.pal.on_surface; font.family: Fonts.ui; font.pixelSize: 14; font.bold: true
-                    text: Qt.locale().toString(bar.now, bar.use12h ? "h:mm ap" : "HH:mm") + "   " + Qt.locale().toString(bar.now, "ddd d. MMM")
+                    text: Qt.locale().toString(bar.now, bar.use12h ? "h:mm ap" : "HH:mm") + "   " + Qt.locale().toString(bar.now, "ddd d MMM")
                 }
                 Row {
                     anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }

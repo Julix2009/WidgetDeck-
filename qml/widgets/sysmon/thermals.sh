@@ -2,6 +2,7 @@
 # Temperatures and fans feed: one JSON line every 2.5 s while it runs (the widget starts it only while it is visible).
 # Sensors are detected once from /sys/class/hwmon (CPU: coretemp / k10temp; GPU: amdgpu / i915 / xe / nouveau, or nvidia-smi;
 # SSD: nvme; fans: every fan*_input). A sensor that does not exist is simply absent from the output - never a made-up value.
+case "${LC_ALL:-${LANG:-}}" in de*) FANWORD="Lüfter"; GPUFAN="GPU-Lüfter" ;; *) FANWORD="Fan"; GPUFAN="GPU fan" ;; esac     # label language follows the system
 export LC_ALL=C
 SYS="${WD_SYSFS:-/sys}"                                      # test hook: point at a fake sysfs tree
 shopt -s nullglob
@@ -25,8 +26,8 @@ for h in "$SYS"/class/hwmon/hwmon*; do
     esac
     for f in "$h"/fan*_input; do
         i=${f##*fan}; i=${i%_input}
-        l="Lüfter $i"; [ -r "${f%_input}_label" ] && l=$(<"${f%_input}_label")
-        [ "$n" = amdgpu ] && l="GPU-Lüfter"
+        l="$FANWORD $i"; [ -r "${f%_input}_label" ] && l=$(<"${f%_input}_label")
+        [ "$n" = amdgpu ] && l="$GPUFAN"
         FANF+=("$f"); FANL+=("$l"); FANMAX+=(0)
     done
 done

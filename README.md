@@ -8,6 +8,14 @@ It runs on its own: it needs none of the author's dotfiles, no other Quickshell 
 
 **Only Arch Linux is supported** (Hyprland + Quickshell from the official repositories).
 
+| Liquid Glass | Frosted Glass |
+|---|---|
+| ![Liquid Glass](docs/liquid-glass.png) | ![Frosted Glass](docs/frosted-glass.png) |
+
+![Builder](docs/builder.png)
+
+_Screenshots from a clean test session: neutral wallpaper, demo location and network name, no personal data._
+
 ## Install
 
 ```bash
