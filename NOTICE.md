@@ -24,4 +24,6 @@ Bitte `LICENSES/` und die Dateikopf-Kommentare nicht entfernen.
 
 ## Eigener Code
 
+Die 3D-Wetter-Icons der Wetter-Karte (`qml/widgets/weathercard/icons/*.png`) sind **eigene Arbeit**: sie werden von `tools/weather-icons/render.sh` aus eigenen Formen (`parts.json`) mit dem eigenen Shader `soft3d.frag` gerendert; es wurden keine fremden Bilder oder Icons verwendet, nachgezeichnet oder zugeschnitten.
+
 Alle übrigen Dateien sind eigener Code des Projekts. Die Lizenz dafür steht in `LICENSE` (siehe README, Abschnitt „Lizenz“).

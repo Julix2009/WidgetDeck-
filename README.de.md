@@ -50,6 +50,15 @@ Widgets (an), Builder und Raster (an), Leiste (**aus**), Benachrichtigungen und 
 
 **Setup prüfen:** `widgetdeck-doctor` gibt OK / WARN / FAIL mit Lösungsvorschlag aus. Die Ausgabe verbirgt dein Home-Verzeichnis und enthält weder Standort noch Wallpaper-Pfad – du kannst sie in ein GitHub-Issue kopieren.
 
+## Wetter-Karte (3D-Icons)
+
+![Wetter-Karte: Milchglas und Liquid Glass, groß und klein](docs/weather-card.png)
+_Erfundener Ortsname, neutrale Demo-Sitzung._
+
+Ein zweites Wetter-Widget neben dem schlichten *Wetter*: ein großes 3D-Icon für das aktuelle Wetter, Ort, Beschreibung und Regenwahrscheinlichkeit, die Temperatur in leichter Schrift mit Höchst-/Tiefstwert, eine Leiste mit den nächsten 4-8 Stunden (kleines Icon über der Uhrzeit, 12 h oder 24 h nach deinen Einstellungen) und eine Liste der nächsten 3-7 Tage mit optionalen dünnen Temperaturbalken. Die Größe *Klein* zeigt Icon, Ort, Temperatur, Höchst-/Tiefstwert und vier Stunden; *Klein / Groß* im Builder animiert dazwischen. Die Karte nutzt **dieselben Daten wie das Wetter-Widget** - dasselbe Skript, denselben Standort und dieselben Einheiten, eine Open-Meteo-Abfrage alle 10 Minuten für alle Wetter-Widgets zusammen (eine Sperre lässt gleichzeitige Widgets auf die erste warten) - und zeigt offline „Stand HH:MM“ mit den letzten Werten. Fehlende Felder werden ausgeblendet.
+
+Die Icons sind weiche, knetartige 3D-Objekte (Wolken aus überlappenden weichen Kugeln, leuchtende Sonne, glänzende Tropfen, Mondsichel mit Kratern, Flocken, Blitz, Hagel, Nebel), von links oben beleuchtet, für 12 Wettertypen bei Tag und Nacht. Es sind **vorgerenderte Sprite-Ebenen** (`qml/widgets/weathercard/icons/*.png`), erzeugt von `tools/weather-icons/render.sh`; das Skript zeichnet jedes Teil mit einem eigenen kleinen Signed-Distance-Field-Raymarcher (`soft3d.frag`, einmalig offline). Zur Laufzeit zeigt die Karte nur Bilder und kostet nichts, solange sich nichts bewegt. Optionen: *Animationen* Aus / Dezent (Standard) / Voll - das große Icon schwebt leicht, Wolken driften, die Sonne atmet, Tropfen fallen in kleinen Schlaufen, und beim Darüberfahren neigt sich das Icon zur Maus; bei *Aus* läuft gar nichts. *Himmel-Verlauf* (nur Milchglas, nie bei Liquid Glass) färbt die Karte dezent nach Wetter und Tageszeit. *Test: Wetter erzwingen* / *Test: Tag / Nacht* zeigen jedes Icon, ohne aufs Wetter zu warten. Das Glas hinter der Karte ist allein die gemeinsame Glas-Komponente; Liquid Glass / Milchglas richtet sich nach dem globalen Umschalter.
+
 ## Musik-Widget: zwei Stile
 
 ![Musik: Normal und Schallplattenspieler (Liquid Glass)](docs/music-turntable.png)

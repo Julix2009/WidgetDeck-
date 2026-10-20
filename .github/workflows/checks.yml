@@ -28,6 +28,8 @@ jobs:
         run: node tools/snapengine-test.js
       - name: timetable model tests
         run: node tools/timetable-test.js
+      - name: weather card tests
+        run: node tools/weathercard-test.js
       - name: Untis client tests (local mock server)
         run: tools/untis-test.sh
       - name: secret scan

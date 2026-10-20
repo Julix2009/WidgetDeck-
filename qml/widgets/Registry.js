@@ -84,6 +84,21 @@ var TYPES = {
             { key: "debug_weather", label: "Test: force weather", kind: "choice", def: "auto", options: [["auto", "Real weather"], ["rain", "Rain"], ["snow", "Snow"], ["off", "Dry"]] }
         ]
     },
+    weathercard: {
+        label: "Weather card", desc: "Weather with 3D icons: now, the next hours and days (same data as the weather widget)", icon: "cloud", size: [520, 340], file: "WeatherCardWidget.qml",
+        sizes: { small: [380, 200], large: [520, 340] },
+        props: [
+            { key: "hours", label: "Hours shown (large size)", kind: "range", def: 6, min: 4, max: 8, step: 1 },
+            { key: "days", label: "Days shown (large size)", kind: "range", def: 3, min: 3, max: 7, step: 1 },
+            { key: "day_bars", label: "Temperature bars", kind: "bool", def: true },
+            { key: "show_feels", label: "Show feels-like temperature", kind: "bool", def: false },
+            { key: "sky_gradient", label: "Sky gradient (milk glass only)", kind: "bool", def: true },
+            { key: "animations", label: "Animations", kind: "choice", def: "subtle", options: [["off", "Off"], ["subtle", "Subtle"], ["full", "Full"]] },
+            { key: "font", label: "Font", kind: "font", def: "" },
+            { key: "debug_kind", label: "Test: force weather", kind: "choice", def: "auto", options: [["auto", "Real weather"], ["clear", "Clear"], ["mostly_clear", "Mostly clear"], ["partly", "Partly cloudy"], ["cloudy", "Cloudy"], ["fog", "Fog"], ["drizzle", "Drizzle"], ["rain", "Rain"], ["heavy_rain", "Heavy rain"], ["thunder", "Thunderstorm"], ["snow", "Snow"], ["sleet", "Sleet"], ["hail", "Hail"], ["unknown", "Unknown code"]] },
+            { key: "debug_time", label: "Test: day / night", kind: "choice", def: "auto", options: [["auto", "Real"], ["day", "Day"], ["night", "Night"]] }
+        ]
+    },
     timetable: {
         label: "Timetable", desc: "Your WebUntis timetable (Untis Mobile access): now / next lesson, day and week", icon: "calendar", size: [380, 220], file: "TimetableWidget.qml",
         sizes: { small: [380, 220], large: [640, 460] },

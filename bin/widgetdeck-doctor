@@ -125,6 +125,14 @@ if [ -f "$QML/widgets/timetable/untis.py" ] && command -v python3 >/dev/null 2>&
     esac
 fi
 
+head_ "Weather card"
+if [ -d "$QML/widgets/weathercard" ]; then
+    n_icons="$(find "$QML/widgets/weathercard/icons" -name '*.png' 2>/dev/null | wc -l)"
+    [ "$n_icons" -ge 13 ] && ok "weather card: $n_icons icon sprites present" || warn "weather card: icon sprites missing ($n_icons of 13)" "run ./install.sh again (or regenerate them with tools/weather-icons/render.sh)"
+    if [ -f "$CACHE/weather.json" ] && jq -e '.hourly | length > 0' "$CACHE/weather.json" >/dev/null 2>&1; then ok "weather data has the hourly / daily forecast (shared with the weather widget)"
+    elif [ -f "$CACHE/weather.json" ]; then echo "[info] weather card: the cached weather data is older than this version - it refreshes within 10 minutes"; fi
+fi
+
 head_ "Hardware (widgets hide what is missing)"
 cpu=0; [ -d /sys/class/hwmon ] && grep -lqE 'coretemp|k10temp' /sys/class/hwmon/hwmon*/name 2>/dev/null && cpu=1
 [ "$cpu" = 1 ] && ok "CPU temperature sensor" || echo "[info] no CPU temperature sensor (the thermals widget leaves it out)"

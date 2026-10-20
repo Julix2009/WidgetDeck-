@@ -96,6 +96,15 @@ bind = SUPER, N, exec, widgetdeck ipc toggleDnd           # do not disturb
 * **Liquid Glass** refracts your wallpaper, so it needs the wallpaper file. It is found automatically for awww, swww, hyprpaper, swaybg and wpaperd; otherwise choose a picture. If there is none (or the shader cannot be built) every widget uses Frosted Glass.
 * **Check your setup:** `widgetdeck-doctor` prints OK / WARN / FAIL lines with a suggested fix (Hyprland version and config, Quickshell, shaders, packages, wallpaper detection, conflicts, sensors, network). Its output hides your home directory and prints no location or wallpaper path, so you can paste it into a GitHub issue.
 
+## Weather card (3D icons)
+
+![Weather card: milk glass and Liquid Glass, large and small](docs/weather-card.png)
+_Invented place name, neutral demo session._
+
+A second weather widget next to the plain *Weather* one: a big 3D icon for the current weather, place, description and chance of rain, the temperature in a light weight with high / low, a strip of the next 4-8 hours (small icon above the time, 12 h or 24 h from your settings) and a list of the next 3-7 days with optional thin temperature bars. The *Small* size keeps icon, place, temperature, high / low and four hours; *Small / Large* in the builder animates between the two. It uses the **same data as the weather widget** - the same script, the same location and units, one Open-Meteo request per 10 minutes for all weather widgets together (a lock makes simultaneous widgets wait for the first one) - and shows "As of HH:MM" with the last values when you are offline. Fields that are missing are hidden.
+
+The icons are soft, clay-like 3D objects (clouds from overlapping soft spheres, a glowing sun, glossy drops, a crescent moon with craters, flakes, a bolt, hail, fog) lit from the top left, for 12 weather types by day and night. They are **baked sprite layers** (`qml/widgets/weathercard/icons/*.png`) made by `tools/weather-icons/render.sh`, which draws every part with an own small signed-distance-field ray marcher (`soft3d.frag`, rendered once offline). At run time the card only shows images, so it costs nothing while nothing moves. Options: *Animations* Off / Subtle (default) / Full - the big icon floats a little, clouds drift, the sun breathes, drops fall in small loops, and the icon tilts towards the mouse on hover; with *Off* nothing runs at all. *Sky gradient* (milk glass only, never on Liquid Glass) tints the card softly by weather and time of day. *Test: force weather* / *Test: day / night* show every icon without waiting for the weather. The glass behind the card is the shared glass panel only; Liquid / milk glass follows the global switch.
+
 ## Music widget: two styles
 
 ![Music: Normal and Turntable (Liquid Glass)](docs/music-turntable.png)

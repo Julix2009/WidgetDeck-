@@ -37,8 +37,8 @@ FloatingWindow {
     property string lang: store.cget("language", "auto")
     property string style: "frosted"
     property string size: "M"
-    property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false, timetable: false })
-    readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "airquality", "netmon", "thermals", "sysstatus", "timetable"]
+    property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false, weathercard: false, timetable: false })
+    readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "weathercard", "airquality", "netmon", "thermals", "sysstatus", "timetable"]
     function openTimetableSetup() { Quickshell.execDetached(["sh", "-c", "exec \"$1\" --terminal 2>/dev/null || exec widgetdeck-untis-setup --terminal", "sh", Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup"]); }
 
     function apply(o) {                  // automation: set choices by name (locMode, units, timeFmt, lang, style, size, lat, lon)
@@ -54,7 +54,7 @@ FloatingWindow {
             store.setConfig("location.name", locMode === "manual" ? place : "");
             store.setConfig("units", units); store.setConfig("time_format", timeFmt); store.setConfig("language", lang);
             var types = typeKeys.filter(function (k) { return picked[k] && store.typeInfo(k); });
-            if (locMode === "off") types = types.filter(function (k) { return k !== "weather" && k !== "airquality"; });
+            if (locMode === "off") types = types.filter(function (k) { return k !== "weather" && k !== "weathercard" && k !== "airquality"; });
             store.setupLayout(types, size === "S" ? 0.85 : (size === "L" ? 1.25 : 1), style === "liquid" && liquidOk ? "liquid" : "frosted");
         }
         store.setConfig("setup.done", true);
