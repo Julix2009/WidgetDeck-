@@ -127,8 +127,8 @@ fi
 
 head_ "Weather card"
 if [ -d "$QML/widgets/weathercard" ]; then
-    n_icons="$(find "$QML/widgets/weathercard/icons" -name '*.png' 2>/dev/null | wc -l)"
-    [ "$n_icons" -ge 13 ] && ok "weather card: $n_icons icon sprites present" || warn "weather card: icon sprites missing ($n_icons of 13)" "run ./install.sh again (or regenerate them with tools/weather-icons/render.sh)"
+    n_icons="$(find "$QML/widgets/weathercard/icons3d" -name 'small.png' 2>/dev/null | wc -l)"
+    [ "$n_icons" -ge 16 ] && ok "weather card: $n_icons rendered icon sets present" || warn "weather card: rendered icons missing ($n_icons of 16 sets)" "run ./install.sh again (or regenerate them with tools/blender/render.sh, needs Blender)"
     if [ -f "$CACHE/weather.json" ] && jq -e '.hourly | length > 0' "$CACHE/weather.json" >/dev/null 2>&1; then ok "weather data has the hourly / daily forecast (shared with the weather widget)"
     elif [ -f "$CACHE/weather.json" ]; then echo "[info] weather card: the cached weather data is older than this version - it refreshes within 10 minutes"; fi
 fi

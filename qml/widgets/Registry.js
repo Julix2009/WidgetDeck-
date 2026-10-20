@@ -86,7 +86,7 @@ var TYPES = {
     },
     weathercard: {
         label: "Weather card", desc: "Weather with 3D icons: now, the next hours and days (same data as the weather widget)", icon: "cloud", size: [520, 340], file: "WeatherCardWidget.qml",
-        sizes: { small: [380, 200], large: [520, 340] },
+        sizes: { small: [380, 220], large: [520, 340] },
         props: [
             { key: "hours", label: "Hours shown (large size)", kind: "range", def: 6, min: 4, max: 8, step: 1 },
             { key: "days", label: "Days shown (large size)", kind: "range", def: 3, min: 3, max: 7, step: 1 },

@@ -1,7 +1,7 @@
 // Weather card: current weather with a 3D icon, the next hours and the next days. Shares its data with the weather widget: the same script
 // (sysmon/weather.sh: one Open-Meteo request per 10 minutes, cached on disk), the same location and units (config.json) - nothing is requested twice.
 // Look: the glass behind is the shared GlassPanel only; this item draws NO fill / tint / shapes on the glass. Only in milk-glass mode there is an
-// optional faint sky gradient (switch "Sky gradient"). The icons are baked sprite layers (weathercard/icons, made by tools/weather-icons/render.sh).
+// optional faint sky gradient (switch "Sky gradient"). The icons are Blender renders (weathercard/icons3d, layers from several view angles, made by tools/blender/render.sh).
 // Logic without UI: weathercard/Model.js (tested by tools/weathercard-test.js).
 import QtQuick
 import QtQuick.Window
@@ -29,6 +29,9 @@ Item {
     // 0 = small layout, 1 = large layout, continuous while the size animates (everything below interpolates: no layout jumps)
     readonly property real u: Math.max(0, Math.min(1, (width - s(344)) / s(140)))      // content width: small card 344, large 484 (sizes minus the glass padding)
     function lerp(a, b) { return a + (b - a) * u; }
+    // extra rows appear only when the card is really wide (so a card of an in-between size never shows half-faded entries)
+    readonly property real f: Math.max(0, Math.min(1, (u - 0.55) / 0.45))        // hours 5..8 and the day list
+    readonly property real g: Math.max(0, Math.min(1, (u - 0.1) / 0.2))          // description and rain line
     readonly property bool liquid: style.mode === "liquid"
     readonly property string family: Fonts.has(props.font) ? props.font : (Fonts.has("Inter") ? "Inter" : Fonts.ui)
 
@@ -53,8 +56,9 @@ Item {
 
     // ---- what is shown ---------------------------------------------------------------------------------------------------
     readonly property int hourProp: Math.max(4, Math.min(8, props.hours !== undefined ? Number(props.hours) : 6))
-    readonly property int hourCount: hourProp          // entries that exist; entries 5..8 fade with u (small layout shows 4)
-    readonly property real hourShown: 4 + (hourProp - 4) * u
+    readonly property int hourFit: Math.max(3, Math.floor(width / s(58)))                    // entries that fit the width without cutting anything
+    readonly property int hourCount: Math.min(hourProp, hourFit)                               // entries that exist; entries 5..8 fade with u (small layout shows 4)
+    readonly property real hourShown: Math.min(hourCount, 4 + (hourCount - 4) * f)
     readonly property int dayCount: Math.max(3, Math.min(7, props.days !== undefined ? Number(props.days) : 3))
     readonly property string dbgKind: props.debug_kind && props.debug_kind !== "auto" && M.isKind(props.debug_kind) ? props.debug_kind : ""
     readonly property var real_: M.model(d, hourCount, dayCount)
@@ -121,16 +125,18 @@ Item {
     GText {
         visible: w.asOf !== ""
         anchors { right: parent.right; verticalCenter: head.verticalCenter }
-        wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.66; opacity: 0.7
+        width: Math.min(implicitWidth, Math.max(0, parent.width - head.implicitWidth - w.s(12))); elide: Text.ElideLeft; horizontalAlignment: Text.AlignRight
+        wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.66; opacity: 0.78
         text: I18n.tr("As of") + " " + w.asOf
     }
 
     // ---- top block: icon, place / description / rain, temperature ----------------------------------------------------
-    readonly property real iconSize: lerp(s(64), s(84))
+    readonly property real iconSize: lerp(s(64), s(84))          // the layout height of the top block
+    readonly property real boxSize: iconSize * 1.62              // the rendered object fills ~70 % of its frame: about 1.4x the old icon, and it may reach over the text a little
     readonly property real topY: s(22)
     Item {
         id: iconBox
-        x: 0; y: w.topY; width: w.iconSize; height: w.iconSize
+        x: -w.boxSize * 0.14; y: w.topY + (w.iconSize - w.boxSize) / 2 + w.s(5); width: w.boxSize; height: w.boxSize
         visible: w.has
         // two slots: a new weather blends in (opacity + a small move) over the old one - no flash
         property int act: 0
@@ -161,7 +167,7 @@ Item {
             visible: opacity > 0.01
             Behavior on opacity { enabled: !sl.instant; NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
             Behavior on y { enabled: !sl.instant; NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
-            WeatherIcon { id: icn; anchors.fill: parent; t: w.clock; level: w.level; tilt: iconHover.tx; tiltY: iconHover.ty }
+            WeatherIcon { id: icn; anchors.fill: parent; big: true; t: w.clock; level: w.level; tilt: iconHover.tx; tiltY: iconHover.ty; hovering: iconHover.hovered; shadowStrength: w.liquid ? 0.55 : 0.85 }
         }
         Slot { id: slot0 }
         Slot { id: slot1 }
@@ -175,17 +181,17 @@ Item {
 
     Item {
         id: infoCol
-        x: w.iconSize + w.s(14); y: w.topY
+        x: w.boxSize * 0.8 + w.s(6); y: w.topY
         width: Math.max(0, tempCol.x - x - w.s(10)); height: w.iconSize
         visible: w.has
         readonly property real placeH: w.fs * 1.4
         readonly property real descH: w.fs * 1.25
         readonly property real popH: w.fs * 1.05
-        readonly property real blockH: placeH + w.u * (descH + popH + w.s(4))
+        readonly property real blockH: placeH + w.g * (descH + popH + w.s(4))
         readonly property real y0: (height - blockH) / 2
         GText { y: infoCol.y0; width: parent.width; elide: Text.ElideRight; wstyle: w.style; font.family: w.family; font.bold: true; font.pixelSize: w.fs * w.lerp(1.0, 1.08); text: w.has ? (w.m.place !== "" ? w.m.place : w.descText) : "" }      // no place known: the description takes its line
-        GText { y: infoCol.y0 + infoCol.placeH + w.s(2); width: parent.width; elide: Text.ElideRight; opacity: 0.82 * w.u; visible: w.u > 0.02 && w.has && w.m.place !== ""; wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.92; text: w.descText }
-        GText { y: infoCol.y0 + infoCol.placeH + infoCol.descH + w.s(3); width: parent.width; elide: Text.ElideRight; opacity: 0.76 * w.u; visible: w.u > 0.02 && w.has && w.m.pop !== null; wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.78
+        GText { y: infoCol.y0 + infoCol.placeH + w.s(2); width: parent.width; elide: Text.ElideRight; opacity: 0.82 * w.g; visible: w.g > 0.02 && w.has && w.m.place !== ""; wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.92; text: w.descText }
+        GText { y: infoCol.y0 + infoCol.placeH + infoCol.descH + w.s(3); width: parent.width; elide: Text.ElideRight; opacity: 0.76 * w.g; visible: w.g > 0.02 && w.has && w.m.pop !== null; wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.78
                 text: w.has && w.m.pop !== null ? I18n.trf("Chance of rain: %1 %", w.m.pop) : "" }
     }
     Column {
@@ -218,7 +224,7 @@ Item {
 
     // ---- hourly strip -------------------------------------------------------------------------------------------------------
     readonly property real hourY: topY + iconSize + s(12)
-    readonly property real hourH: lerp(s(66), s(78))
+    readonly property real hourH: lerp(s(74), s(84))
     Rectangle { visible: w.has && w.m.hours.length > 0; x: 0; y: w.hourY - w.s(6); width: parent.width; height: 1; color: Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.16) }
     Row {
         id: hourRow
@@ -232,9 +238,9 @@ Item {
                 required property var modelData
                 required property int index
                 width: hourRow.width / Math.max(1, Math.min(w.hourShown, w.m.hours.length)); height: w.hourH
-                opacity: index < 4 ? 1 : w.u
+                opacity: index < 4 ? 1 : w.f
                 visible: opacity > 0.02
-                readonly property real isz: w.lerp(w.s(30), w.s(36))
+                readonly property real isz: w.lerp(w.s(40), w.s(50))
                 property real frozen: 0
                 property real off: 0
                 HoverHandler {
@@ -244,15 +250,15 @@ Item {
                 }
                 WeatherIcon {
                     x: (parent.width - isz) / 2; y: 0; width: isz; height: isz
-                    kind: modelData.kind; day: modelData.day; shadowOn: true
-                    level: hh.hovered ? w.level : 0
-                    t: hh.hovered ? w.clock + hcell.off : hcell.frozen
+                    kind: modelData.kind; day: modelData.day; shadowOn: true; big: false; shadowStrength: w.liquid ? 0.55 : 0.85
+                    level: 0; hovering: hh.hovered
+                    t: 0
                     tilt: hh.hovered ? Math.max(-1, Math.min(1, hh.point.position.x / hcell.width * 2 - 1)) : 0
                     tiltY: hh.hovered ? Math.max(-1, Math.min(1, hh.point.position.y / isz * 2 - 1)) : 0
                 }
-                GText { x: 0; width: parent.width; y: isz + w.s(3); horizontalAlignment: Text.AlignHCenter; wstyle: w.style; font.family: w.family; opacity: 0.82; font.pixelSize: w.fs * 0.7
+                GText { x: 0; width: parent.width; elide: Text.ElideRight; y: isz + w.s(3); horizontalAlignment: Text.AlignHCenter; wstyle: w.style; font.family: w.family; opacity: 0.82; font.pixelSize: w.fs * 0.7
                         text: index === 0 ? I18n.tr("Now") : M.hourLabel(modelData.t, w.twelve) }
-                GText { x: 0; width: parent.width; y: isz + w.s(3) + w.fs * 0.95; horizontalAlignment: Text.AlignHCenter; visible: modelData.temp !== null; wstyle: w.style; font.family: w.family; font.weight: Font.DemiBold; font.pixelSize: w.fs * 0.82
+                GText { x: 0; width: parent.width; elide: Text.ElideRight; y: isz + w.s(3) + w.fs * 0.95; horizontalAlignment: Text.AlignHCenter; visible: modelData.temp !== null; wstyle: w.style; font.family: w.family; font.weight: Font.DemiBold; font.pixelSize: w.fs * 0.82
                         text: modelData.temp !== null ? modelData.temp + "°" : "" }
             }
         }
@@ -261,13 +267,13 @@ Item {
     // ---- day list (large size only) -----------------------------------------------------------------------------------------
     readonly property real dayY: hourY + hourH + s(8)
     readonly property real rowH: s(30)
-    readonly property int shownDays: u < 0.02 || !has ? 0 : Math.max(0, Math.min(m.days.length, Math.floor((height - dayY) / rowH)))
+    readonly property int shownDays: f < 0.02 || !has ? 0 : Math.max(0, Math.min(m.days.length, Math.floor((height - dayY) / rowH)))
     readonly property var range_: has ? M.dayRange(m.days) : { lo: null, hi: null }
     Column {
         id: dayCol
         x: 0; y: w.dayY; width: parent.width
         visible: w.shownDays > 0
-        opacity: w.u
+        opacity: w.f
         Repeater {
             model: w.shownDays > 0 ? w.m.days.slice(0, w.shownDays) : []
             delegate: Item {
@@ -276,11 +282,18 @@ Item {
                 required property int index
                 width: dayCol.width; height: w.rowH
                 Rectangle { x: 0; y: 0; width: parent.width; height: 1; color: Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.16) }
-                GText { x: 0; anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.92; text: w.dayName(modelData.date, index) }
+                // widths: the values (high / low) keep their space at the right, the name gets what it needs, the bar takes the rest (only if it is big enough);
+                // a name that is too long is cut with an ellipsis - nothing is ever clipped at the card edge
+                readonly property real valW: hiText.implicitWidth + w.s(10) + loText.implicitWidth
+                readonly property real avail: Math.max(0, width - valW - w.s(14))
+                readonly property real barX: Math.max(dayText.implicitWidth + w.s(12), width * 0.40)
+                readonly property real barRoom: Math.min(width * 0.30, avail - barX)
+                readonly property bool showBar: w.props.day_bars !== false && barRoom >= w.s(40) && modelData.min !== null && modelData.max !== null && w.range_.hi !== null && w.range_.hi > w.range_.lo
+                GText { id: dayText; x: 0; width: Math.min(implicitWidth, drow.avail); elide: Text.ElideRight; anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.family: w.family; font.pixelSize: w.fs * 0.92; text: w.dayName(modelData.date, index) }
                 // thin temperature bar: where this day's range lies within the shown days
                 Item {
-                    visible: w.props.day_bars !== false && modelData.min !== null && modelData.max !== null && w.range_.hi !== null && w.range_.hi > w.range_.lo
-                    x: parent.width * 0.40; width: parent.width * 0.30 - w.s(6); height: w.s(4); anchors.verticalCenter: parent.verticalCenter
+                    visible: drow.showBar
+                    x: drow.barX; width: Math.max(0, drow.barRoom); height: w.s(4); anchors.verticalCenter: parent.verticalCenter
                     Rectangle { anchors.fill: parent; radius: height / 2; color: Qt.rgba(w.cFg.r, w.cFg.g, w.cFg.b, 0.16) }
                     Rectangle {
                         readonly property real span: Math.max(1, w.range_.hi - w.range_.lo)
@@ -292,8 +305,8 @@ Item {
                 Row {
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                     spacing: w.s(10)
-                    GText { wstyle: w.style; font.family: w.family; font.weight: Font.DemiBold; font.pixelSize: w.fs * 0.92; text: modelData.max !== null ? modelData.max + "°" : "" }
-                    GText { wstyle: w.style; font.family: w.family; opacity: 0.7; font.pixelSize: w.fs * 0.92; text: modelData.min !== null ? modelData.min + "°" : "" }
+                    GText { id: hiText; wstyle: w.style; font.family: w.family; font.weight: Font.DemiBold; font.pixelSize: w.fs * 0.92; text: modelData.max !== null ? modelData.max + "°" : "" }
+                    GText { id: loText; wstyle: w.style; font.family: w.family; opacity: 0.7; font.pixelSize: w.fs * 0.92; text: modelData.min !== null ? modelData.min + "°" : "" }
                 }
             }
         }

@@ -22,43 +22,36 @@ function kindOf(code) {
 }
 function isKind(k) { return KINDS.indexOf(k) >= 0; }
 
-// ---- icon recipes: layers of baked sprites on a 0..1 box. s = sprite, x / y = centre, w = width (box fraction), d = depth for the hover
-// parallax (-1 far .. 1 near), m = idle motion (float | drift | breathe | fall | spin | twinkle | flicker | none), p = phase
-function L(s, x, y, w, d, m, p) { return { s: s, x: x, y: y, w: w, d: d, m: m || "none", p: p || 0 }; }
+// ---- icon sets: every weather kind has ONE rendered icon (tools/blender: Blender renders of soft clay-like objects) made of aligned layers,
+// back to front. `variantKey` picks the set (day / night only where the sky shows: clear, mostly clear, partly cloudy).
+// Layer hints: d = depth for the idle parallax (-1 far .. 1 near), m = idle motion (float | drift | breathe | fall | sway | twinkle | flicker), p = phase.
+// image format of the rendered sprites (webp needs the Qt image plugin qt6-imageformats; png works everywhere)
+var ICON_EXT = "png";
+var VARIANTS = {
+    clear_day: ["sun"], clear_night: ["moon", "stars"],
+    mostly_clear_day: ["sun", "cloud"], mostly_clear_night: ["moon", "stars", "cloud"],
+    partly_day: ["sun", "cloud"], partly_night: ["moon", "cloud"],
+    cloudy: ["cloud_back", "cloud"], fog: ["cloud", "fog"],
+    drizzle: ["cloud", "drops_a", "drops_b"], rain: ["cloud", "drops_a", "drops_b"], heavy_rain: ["cloud", "drops_a", "drops_b"],
+    thunder: ["cloud", "bolt", "drops_a"], snow: ["cloud", "flakes_a", "flakes_b"], sleet: ["cloud", "drops_a", "flakes_a"],
+    hail: ["cloud", "hail_a", "hail_b"], unknown: ["cloud"]
+};
+// warm glow behind the sun: [x, z, size] in the units of the Blender scene (the frame spans +-1.125)
+var GLOWS = { clear_day: [0, 0, 1.5], mostly_clear_day: [-0.18, 0.2, 1.2], partly_day: [-0.28, 0.28, 1.05] };
+var LAYER_HINTS = {
+    sun: { d: 0.3, m: "breathe" }, moon: { d: 0.3, m: "breathe" }, stars: { d: -0.4, m: "twinkle" },
+    cloud: { d: 0.8, m: "drift" }, cloud_back: { d: 0.2, m: "drift", p: 1 }, fog: { d: 0.4, m: "drift", p: 2 },
+    drops_a: { d: 0.6, m: "fall", p: 0 }, drops_b: { d: 0.6, m: "fall", p: 3 }, flakes_a: { d: 0.6, m: "sway", p: 0 }, flakes_b: { d: 0.6, m: "sway", p: 3 },
+    bolt: { d: 0.5, m: "flicker" }, hail_a: { d: 0.6, m: "fall", p: 0 }, hail_b: { d: 0.6, m: "fall", p: 3 }
+};
+function variantKey(kind, day) {
+    var k = isKind(kind) ? kind : "unknown";
+    return (k === "clear" || k === "mostly_clear" || k === "partly") ? k + (day ? "_day" : "_night") : k;
+}
 function layersFor(kind, day) {
-    var sun = !!day;
-    var drops = function (xs, y0, w) { var o = []; for (var i = 0; i < xs.length; i++) o.push(L("drop", xs[i], y0 + (i % 2) * 0.07, w, 0.6, "fall", i)); return o; };
-    switch (kind) {
-    case "clear":
-        return sun ? [L("glow", 0.5, 0.5, 1.15, -0.6, "breathe"), L("sun", 0.5, 0.5, 0.78, 0.3, "breathe")]
-                   : [L("moon", 0.5, 0.5, 0.78, 0.3, "breathe"), L("star", 0.8, 0.22, 0.2, -0.4, "twinkle", 0), L("star", 0.2, 0.3, 0.13, -0.5, "twinkle", 1), L("star", 0.84, 0.72, 0.11, -0.5, "twinkle", 2)];
-    case "mostly_clear":
-        return sun ? [L("glow", 0.4, 0.4, 1.0, -0.6, "breathe"), L("sun", 0.4, 0.4, 0.66, 0.2, "breathe"), L("cloud", 0.64, 0.66, 0.66, 0.9, "drift", 0)]
-                   : [L("moon", 0.4, 0.4, 0.66, 0.2, "breathe"), L("star", 0.8, 0.2, 0.15, -0.4, "twinkle", 0), L("cloud", 0.64, 0.66, 0.66, 0.9, "drift", 0)];
-    case "partly":
-        return sun ? [L("glow", 0.36, 0.36, 0.95, -0.6, "breathe"), L("sun", 0.36, 0.36, 0.6, 0.2, "breathe"), L("cloud", 0.58, 0.62, 0.98, 0.9, "drift", 0)]
-                   : [L("moon", 0.36, 0.36, 0.58, 0.2, "breathe"), L("star", 0.82, 0.2, 0.13, -0.4, "twinkle", 0), L("cloud", 0.58, 0.62, 0.98, 0.9, "drift", 0)];
-    case "cloudy":
-        return [L("cloud_grey", 0.36, 0.38, 0.74, -0.2, "drift", 1), L("cloud", 0.6, 0.6, 1.02, 0.9, "drift", 0)];
-    case "fog":
-        return [L("cloud_grey", 0.5, 0.34, 0.92, 0.4, "drift", 0), L("fogbar", 0.42, 0.64, 0.62, 0.2, "drift", 1), L("fogbar", 0.58, 0.77, 0.54, 0.3, "drift", 2), L("fogbar", 0.46, 0.9, 0.6, 0.4, "drift", 3)];
-    case "drizzle":
-        return [L("cloud", 0.5, 0.4, 1.0, 0.8, "drift", 0)].concat(drops([0.34, 0.5, 0.66], 0.74, 0.27));
-    case "rain":
-        return [L("cloud_grey", 0.5, 0.38, 1.02, 0.8, "drift", 0)].concat(drops([0.28, 0.43, 0.58, 0.73], 0.73, 0.3));
-    case "heavy_rain":
-        return [L("cloud_dark", 0.5, 0.36, 1.04, 0.8, "drift", 0)].concat(drops([0.24, 0.37, 0.5, 0.63, 0.76], 0.72, 0.32));
-    case "thunder":
-        return [L("cloud_dark", 0.5, 0.34, 1.04, 0.8, "drift", 0), L("bolt", 0.52, 0.76, 0.46, 0.5, "flicker"), L("drop", 0.25, 0.78, 0.28, 0.6, "fall", 0), L("drop", 0.8, 0.76, 0.28, 0.6, "fall", 1)];
-    case "snow":
-        return [L("cloud", 0.5, 0.38, 1.0, 0.8, "drift", 0), L("flake", 0.3, 0.78, 0.27, 0.6, "spin", 0), L("flake", 0.5, 0.89, 0.23, 0.6, "spin", 1), L("flake", 0.7, 0.78, 0.27, 0.6, "spin", 2)];
-    case "sleet":
-        return [L("cloud_grey", 0.5, 0.38, 1.02, 0.8, "drift", 0), L("drop", 0.3, 0.77, 0.28, 0.6, "fall", 0), L("flake", 0.5, 0.88, 0.24, 0.6, "spin", 1), L("drop", 0.7, 0.77, 0.28, 0.6, "fall", 2)];
-    case "hail":
-        return [L("cloud_dark", 0.5, 0.34, 1.04, 0.8, "drift", 0), L("hail", 0.3, 0.78, 0.2, 0.6, "fall", 0), L("hail", 0.46, 0.89, 0.2, 0.6, "fall", 1), L("hail", 0.62, 0.78, 0.2, 0.6, "fall", 2), L("hail", 0.77, 0.89, 0.2, 0.6, "fall", 3)];
-    default:
-        return [L("cloud_grey", 0.5, 0.5, 0.92, 0.4, "drift", 0)];
-    }
+    var key = variantKey(kind, day), ids = VARIANTS[key], out = [];
+    for (var i = 0; i < ids.length; i++) { var h = LAYER_HINTS[ids[i]] || {}; out.push({ key: key, id: ids[i], d: h.d || 0, m: h.m || "none", p: h.p || 0 }); }
+    return out;
 }
 
 // ---- sky gradient (milk-glass mode only): [top, bottom] colours for a weather kind and day / night

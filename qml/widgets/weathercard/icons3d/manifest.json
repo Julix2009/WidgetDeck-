@@ -1,0 +1,120 @@
+{
+ "size": 256,
+ "small": 128,
+ "yaw": [
+  -15.0,
+  -7.5,
+  0.0,
+  7.5,
+  15.0
+ ],
+ "pitch": [
+  -10.0,
+  0.0,
+  10.0
+ ],
+ "variants": {
+  "clear_day": {
+   "layers": [
+    "sun"
+   ]
+  },
+  "clear_night": {
+   "layers": [
+    "moon",
+    "stars"
+   ]
+  },
+  "mostly_clear_day": {
+   "layers": [
+    "sun",
+    "cloud"
+   ]
+  },
+  "mostly_clear_night": {
+   "layers": [
+    "moon",
+    "stars",
+    "cloud"
+   ]
+  },
+  "partly_day": {
+   "layers": [
+    "sun",
+    "cloud"
+   ]
+  },
+  "partly_night": {
+   "layers": [
+    "moon",
+    "cloud"
+   ]
+  },
+  "cloudy": {
+   "layers": [
+    "cloud_back",
+    "cloud"
+   ]
+  },
+  "fog": {
+   "layers": [
+    "cloud",
+    "fog"
+   ]
+  },
+  "drizzle": {
+   "layers": [
+    "cloud",
+    "drops_a",
+    "drops_b"
+   ]
+  },
+  "rain": {
+   "layers": [
+    "cloud",
+    "drops_a",
+    "drops_b"
+   ]
+  },
+  "heavy_rain": {
+   "layers": [
+    "cloud",
+    "drops_a",
+    "drops_b"
+   ]
+  },
+  "thunder": {
+   "layers": [
+    "cloud",
+    "bolt",
+    "drops_a"
+   ]
+  },
+  "snow": {
+   "layers": [
+    "cloud",
+    "flakes_a",
+    "flakes_b"
+   ]
+  },
+  "sleet": {
+   "layers": [
+    "cloud",
+    "drops_a",
+    "flakes_a"
+   ]
+  },
+  "hail": {
+   "layers": [
+    "cloud",
+    "hail_a",
+    "hail_b"
+   ]
+  },
+  "unknown": {
+   "layers": [
+    "cloud"
+   ]
+  }
+ }
+}
