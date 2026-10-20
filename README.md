@@ -46,7 +46,7 @@ Icons are drawn by WidgetDeck itself, so no icon font or icon theme is needed.
 | Quickshell / Qt | 0.3.0 (git), Qt 6.11.1 | Qt 6.7 or newer is required. |
 | GPU | Intel (Arc) | The shader is a plain Qt ShaderEffect; AMD and NVIDIA are **untested**. Without a working shader everything falls back to Frosted Glass. |
 | Wallpaper tools | **awww** (real); swww, hyprpaper (old and new config syntax), swaybg, wpaperd (simulated output / config only) | A manual path in the settings always works. |
-| Monitors | one real monitor, plus virtual monitors incl. scale 1.5 in a nested session | The widgets live on one monitor (choose it in the settings). |
+| Monitors | one real monitor; several virtual (headless) monitors in a nested session: 1920x1080, 2560x1440 at 1.25, 3840x2160 at 1.5, a rotated one, hot-plug | Widgets can live on every monitor. Real serial numbers, a real DisplayPort hot-plug and resume from standby are **untested**. |
 | Config styles | plain file, split config with `source =`, Lua, `XDG_CONFIG_HOME`, read-only / Nix store symlink (shown manually) | uwsm: exec-once works, a hint is printed (untested). |
 | Hardware | no battery, no fans, no sensors, no Wi-Fi, no network: widgets leave out what is missing | NVIDIA temperature via `nvidia-smi` (simulated). |
 | Languages | English (default), German | Chosen by system language or in the settings. |
@@ -95,6 +95,22 @@ bind = SUPER, N, exec, widgetdeck ipc toggleDnd           # do not disturb
 * **Builder:** `widgetdeck builder` (or `widgetdeck toggle`). Drag widgets (Alt = free placement, Shift = multi-select), align and distribute, change the glass per widget, switch modules.
 * **Liquid Glass** refracts your wallpaper, so it needs the wallpaper file. It is found automatically for awww, swww, hyprpaper, swaybg and wpaperd; otherwise choose a picture. If there is none (or the shader cannot be built) every widget uses Frosted Glass.
 * **Check your setup:** `widgetdeck-doctor` prints OK / WARN / FAIL lines with a suggested fix (Hyprland version and config, Quickshell, shaders, packages, wallpaper detection, conflicts, sensors, network). Its output hides your home directory and prints no location or wallpaper path, so you can paste it into a GitHub issue.
+
+## Several monitors
+
+![Builder with the monitor selector](docs/multi-monitor.png)
+
+WidgetDeck finds your monitors by itself (Quickshell + `hyprctl monitors`): name, make / model, position, resolution, scale, rotation, refresh rate, reserved areas (a bar), and a **stable key** (make + model + serial, else the description - the connector alone is never the identity, so DP-1 can be another monitor after a restart; two identical monitors without serial are told apart by their connector). Mirrored monitors count once, disabled ones are ignored. Plugging and unplugging is noticed live, no restart.
+
+* **One monitor:** nothing changes and nothing extra appears.
+* **Several monitors:** the builder shows a selector (cards plus a small map of the arrangement) and a *Show monitors* button (a big number and the name on every screen for a few seconds). Grid, snapping and guides apply to the selected monitor; its widgets are shown on the stage with that monitor's own wallpaper.
+* **Widgets and monitors:** every widget has *Show on*: a chosen monitor, *Primary monitor* (default) or *All monitors* (one instance on each, same offset), plus *Move to…* and *Copy to…*. The same widget type can exist several times, each with its own place and size. Positions are saved in grid cells relative to the usable area of the widget's monitor (a bar only shrinks the monitor it is on). *Copy this monitor's layout to…* converts a whole layout to another resolution. Cell size, edge distance, the size of new widgets and a manual wallpaper can be set per monitor (settings); the glass style and glass parameters stay global.
+* **Unplugging:** widgets of a missing monitor are not deleted, they wait (default) or move to the main monitor (setting) and come back to their place when it returns. A new unknown monitor starts empty, and the builder offers to take the layout of another one. Optional: drag a widget over a monitor edge to move it to the neighbour (setting).
+* **Glass:** every monitor's widgets refract that monitor's own wallpaper (per output for awww, swww, hyprpaper, swaybg, wpaperd; a manual path per monitor always works).
+* **Data is fetched once**, not per monitor: weather, air quality, timetable, network (one ping), CPU / RAM, temperatures, the visualizer and the player watcher run as shared feeds that all widget instances read.
+* **Bar, notifications, power menu:** the bar can be switched per monitor and shows the workspaces of its own monitor; notifications and the power menu appear on the focused, the main or a chosen monitor (settings). The layer rules are per namespace, so they apply to every monitor.
+* **Settings:** `~/.config/widgetdeck/config.json` key `monitors` (`primary`, `unplugged`, `cross_edge`, `notify`, `bar`). The layout file is v3 (an older one is backed up as `widgets.json.v2-backup-<date>` on the first start and converted without moving anything).
+* `widgetdeck-doctor` lists every monitor (short id instead of the serial, resolution, scale, rotation, wallpaper tool, number of widgets).
 
 ## Weather card (3D icons)
 

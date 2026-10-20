@@ -9,19 +9,29 @@ import "../core"
 Scope {
     id: pp
     required property var theme
+    required property var store
+    required property var mons
     property bool open: false
-    function toggle() { open = !open; }
+    property string onScreen: ""                  // the monitor it was opened on (the bar's monitor); empty = by the notify setting
+    function toggle(screenName) { onScreen = screenName || ""; open = !open; }
+    // which monitor: the one asked for, else config monitors.notify (focused | primary | <key>)
+    function pickScreen() {
+        var all = Quickshell.screens, i, want = onScreen, mode = store.cget("monitors.notify", "focused");
+        if (want === "") {
+            if (mode === "primary") { var p = mons.byKey(mons.primaryKey); want = p ? p.name : ""; }
+            else if (mode !== "focused") { var k = mons.byKey(mode); want = k ? k.name : ""; }
+            if (want === "") { var f = Hyprland.focusedMonitor; want = f ? f.name : ""; }
+        }
+        for (i = 0; i < all.length; i++) if (all[i].name === want) return all[i];
+        return all.length > 0 ? all[0] : null;
+    }
 
     Variants {
         model: pp.open ? [1] : []
         PanelWindow {
             id: win
             required property var modelData
-            screen: {
-                var f = Hyprland.focusedMonitor, all = Quickshell.screens;
-                for (var i = 0; i < all.length; i++) if (f && all[i].name === f.name) return all[i];
-                return all.length > 0 ? all[0] : null;
-            }
+            screen: pp.pickScreen()
             anchors { top: true; bottom: true; left: true; right: true }
             color: Qt.rgba(0, 0, 0, 0.35)
             exclusionMode: ExclusionMode.Ignore

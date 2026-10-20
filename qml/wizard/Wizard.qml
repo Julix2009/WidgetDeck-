@@ -38,6 +38,11 @@ FloatingWindow {
     property string style: "frosted"
     property string size: "M"
     property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false, weathercard: false, timetable: false })
+    property var monMap: ({})                // several monitors: type -> monitor key | "all" (default: the main monitor)
+    function monChoices() { var o = [store.primaryKey]; for (var i = 0; i < store.mons.length; i++) if (store.mons[i].key !== store.primaryKey) o.push(store.mons[i].key); o.push("all"); return o; }
+    function monOf(t) { return monMap[t] || store.primaryKey; }
+    function monText(t) { var k = monOf(t); if (k === "all") return I18n.tr("All monitors"); var m = store.monRec(k); return m ? m.name + (k === store.primaryKey ? " ★" : "") : k; }
+    function cycleMon(t) { var c = monChoices(), i = c.indexOf(monOf(t)), m = Object.assign({}, monMap); m[t] = c[(i + 1) % c.length]; monMap = m; }
     readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "weathercard", "airquality", "netmon", "thermals", "sysstatus", "timetable"]
     function openTimetableSetup() { Quickshell.execDetached(["sh", "-c", "exec \"$1\" --terminal 2>/dev/null || exec widgetdeck-untis-setup --terminal", "sh", Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup"]); }
 
@@ -55,7 +60,7 @@ FloatingWindow {
             store.setConfig("units", units); store.setConfig("time_format", timeFmt); store.setConfig("language", lang);
             var types = typeKeys.filter(function (k) { return picked[k] && store.typeInfo(k); });
             if (locMode === "off") types = types.filter(function (k) { return k !== "weather" && k !== "weathercard" && k !== "airquality"; });
-            store.setupLayout(types, size === "S" ? 0.85 : (size === "L" ? 1.25 : 1), style === "liquid" && liquidOk ? "liquid" : "frosted");
+            store.setupLayout(types, size === "S" ? 0.85 : (size === "L" ? 1.25 : 1), style === "liquid" && liquidOk ? "liquid" : "frosted", monMap);
         }
         store.setConfig("setup.done", true);
     }
@@ -152,10 +157,17 @@ FloatingWindow {
                     text: I18n.tr("You can add, remove and move widgets at any time in the builder. Sensors that your computer does not have are simply left out.") }
                 Repeater {
                     model: wz.typeKeys
-                    delegate: GSwitch {
+    delegate: Item {
+                        id: trow
                         required property string modelData
-                        width: parent.width; th: wz.uiTheme; label: wz.typeLabel(modelData); checked: !!wz.picked[modelData]
-                        onToggled: v => { var p = Object.assign({}, wz.picked); p[modelData] = v; wz.picked = p; }
+                        width: parent.width; height: sw.implicitHeight
+                        GSwitch {
+                            id: sw
+                            width: wz.store.multi ? parent.width - 170 : parent.width; th: wz.uiTheme; label: wz.typeLabel(trow.modelData); checked: !!wz.picked[trow.modelData]
+                            onToggled: v => { var p = Object.assign({}, wz.picked); p[trow.modelData] = v; wz.picked = p; }
+                        }
+                        // several monitors: on which monitor the widget starts (click = next); the suggestion is the main monitor
+                        GButton { visible: wz.store.multi && !!wz.picked[trow.modelData]; anchors { right: parent.right; verticalCenter: parent.verticalCenter } width: 160; th: wz.uiTheme; label: wz.monText(trow.modelData); onClicked: wz.cycleMon(trow.modelData) }
                     }
                 }
                 Row {

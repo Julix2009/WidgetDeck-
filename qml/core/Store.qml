@@ -5,13 +5,14 @@ import Quickshell
 import Quickshell.Io
 import "Defaults.js" as D
 import "SnapEngine.js" as SE
+import "MonitorModel.js" as MM
 import "../widgets/Registry.js" as R
 
 Scope {
     id: root
     readonly property string dir: (Quickshell.env("WIDGETDECK_DIR") || ((Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/widgetdeck"))
 
-    property var data: ({ version: 1, monitor: null, engine: "auto", wallpaperPath: "", widgets: [] })
+    property var data: ({ version: 3, engine: "auto", wallpaperPath: "", wallpapers: {}, widgets: [] })
     property var builder: D.BUILDER_DEFAULT
     property var userTypes: ({})          // plugin types discovered in ~/.config/widgetdeck/widgets/
     property int rev: 0                   // bumped on every change: bindings depend on it
@@ -29,6 +30,10 @@ Scope {
         location: { auto: true, lat: null, lon: null, name: "" },
         units: "auto", time_format: "auto", language: "auto",
         modules: { widgets: true, builder: true, bar: false, notifications: false },
+        // several monitors: primary = key of the main monitor (empty = the one at the origin), unplugged = "wait" | "primary" (what the widgets of a
+        // missing monitor do), cross_edge = dragging a widget over a monitor edge moves it to the neighbour, notify = "focused" | "primary" | <key>,
+        // bar = "all" | [keys] (monitors that get the bar), osd = same values as notify (volume / brightness indicators of other tools use it)
+        monitors: { primary: "", unplugged: "wait", cross_edge: false, notify: "focused", bar: "all" },
         update: { check: true, channel: "main" }
     })
     property var config: JSON.parse(JSON.stringify(configDefaults))
@@ -75,50 +80,134 @@ Scope {
     }
     Timer { id: cbump; interval: 400; onTriggered: root.configRev++ }      // the scripts read the file: wait until it is on disk
 
-    // ───────────── snap grid (see SnapEngine.js) ─────────────
-    // Positions are plain logical px at runtime (everything else reads them that way); widgets.json stores them in grid cells.
-    property rect area: Qt.rect(0, 0, 2560, 1600)       // usable area of the monitor: below the bar, without reserved zones
-    property size screen: Qt.size(2560, 1600)
-    property bool areaKnown: false
+    // ───────────── monitors ─────────────
+    // Positions are plain logical px at runtime (everything else reads them that way): px inside the widget's HOME monitor (0,0 = that monitor's
+    // top-left corner). widgets.json stores them in grid cells relative to the usable area of that monitor (see toFile / parseLayout).
+    //   widget.monitor = "<monitor key>" | "primary" (default) | "all"      "all" = one instance on every monitor, same offset
+    property var mons: []                          // connected monitors (core/Monitors.qml records), set by the shell
+    property string primaryKey: ""
+    property string selMon: ""                     // the monitor the builder edits
+    property var monInfo: ({})                     // last known data per monitor key (also of unplugged ones): { name, desc, area: [x, y, w, h], unit, screen: [w, h], scale }
+    property bool monsReady: false
+    readonly property bool multi: mons.length > 1
+    function monRec(key) { for (var i = 0; i < mons.length; i++) if (mons[i].key === key) return mons[i]; return null; }
+    function curKey() { return monRec(selMon) ? selMon : primaryKey; }
+    function areaOfKey(key) {
+        var m = monRec(key);
+        if (m) return { x: m.area.x, y: m.area.y, w: m.area.width, h: m.area.height };
+        var i = monInfo[key];
+        if (i && i.area) return { x: i.area[0], y: i.area[1], w: i.area[2], h: i.area[3] };
+        var p = monRec(primaryKey);
+        return p ? { x: p.area.x, y: p.area.y, w: p.area.width, h: p.area.height } : { x: 0, y: 0, w: 2560, h: 1600 };
+    }
+    function screenOfKey(key) {
+        var m = monRec(key);
+        if (m) return { width: m.w, height: m.h };
+        var i = monInfo[key];
+        return i && i.screen ? { width: i.screen[0], height: i.screen[1] } : { width: 2560, height: 1600 };
+    }
+    function homeKey(w) { var m = w ? w.monitor : ""; return (!m || m === "primary" || m === "all") ? primaryKey : m; }
+    function monSettings(key) { var b = builder.monitors; return (b && b[key]) ? b[key] : {}; }
+    function gridFor(key) { return SE.norm(Object.assign({}, builder.grid || {}, monSettings(key).grid || {})); }
     property bool needsMigration: false
-    readonly property var grid: { builder; return SE.norm(builder.grid); }
+    property int oldVersion: 2
+    property bool areaKnown: false
+    property rect area: { mons; selMon; primaryKey; monInfo; var a = areaOfKey(curKey()); return Qt.rect(a.x, a.y, a.w, a.h); }       // usable area of the edited monitor
+    property size screen: { mons; selMon; primaryKey; monInfo; var s = screenOfKey(curKey()); return Qt.size(s.width, s.height); }
+    readonly property var grid: { builder; mons; selMon; primaryKey; return gridFor(curKey()); }
     function setGrid(key, value) {
         var g = Object.assign({}, builder.grid || {});
         g[key] = value;
         setBuilder("grid", g);
         saveTimer.restart();                // the file carries the cell size: re-express the (unchanged) pixel positions
     }
-    function setArea(sw, sh, ax, ay, aw, ah) {
-        var changed = screen.width !== sw || screen.height !== sh || area.x !== ax || area.y !== ay || area.width !== aw || area.height !== ah;
-        screen = Qt.size(sw, sh);
-        area = Qt.rect(ax, ay, aw, ah);
-        areaKnown = true;
-        if (loaded && (changed || needsMigration)) { clampAll(); maybeMigrate(); }
+    // per-monitor overrides (builder.json "monitors": { key: { grid: { cell, margin }, size: "small" | "large" } }); null / "" removes one
+    function setMonGrid(mkey, key, value) {
+        var all = Object.assign({}, builder.monitors || {}), m = Object.assign({}, all[mkey] || {}), g = Object.assign({}, m.grid || {});
+        if (value === null || value === "") delete g[key]; else g[key] = value;
+        m.grid = g; all[mkey] = m; setBuilder("monitors", all);
+        saveTimer.restart();
+    }
+    function setMonSize(mkey, which) {
+        var all = Object.assign({}, builder.monitors || {}), m = Object.assign({}, all[mkey] || {});
+        m.size = which; all[mkey] = m; setBuilder("monitors", all);
+    }
+    // the shell tells the store which monitors exist (and again whenever that changes: plug, unplug, mode, scale)
+    function setMonitors(list, primary) {
+        mons = list; primaryKey = primary;
+        if (!monRec(selMon)) selMon = primary;
+        var info = Object.assign({}, monInfo);
+        for (var i = 0; i < list.length; i++) {
+            var m = list[i];
+            info[m.key] = { name: m.name, desc: m.description || "", area: [m.area.x, m.area.y, m.area.width, m.area.height], screen: [m.w, m.h], scale: m.scale,
+                            unit: gridFor(m.key).cell };
+        }
+        monInfo = info;
+        var first = !monsReady;
+        monsReady = true; areaKnown = true;
+        if (first && pendingText !== "") {
+            var t = pendingText; pendingText = "";
+            if (t === "__default__") { data = defaultLayout(); widgetIds = data.widgets.map(function (w) { return w.id; }); rev++; geomRev++; saveNow(); }
+            else applyText(t);
+        }
+        if (loaded) { var moved = clampAll(); maybeMigrate(); if (!moved && !first) saveTimer.restart(); }     // a changed monitor list is saved with the layout
     }
     function areaRect() { return { x: area.x, y: area.y, w: area.width, h: area.height }; }
-    // keep every widget inside the usable area (resolution / scale / bar changes never leave one off screen)
+    // the monitors a widget is shown on right now ("all" = every connected one; a missing monitor: wait, or use the primary one - config monitors.unplugged)
+    function targetsOf(w) {
+        if (w.hidden) return [];
+        var m = w.monitor, keys = mons.map(function (k) { return k.key; });
+        if (m === "all") return keys;
+        if (!m || m === "primary") return primaryKey ? [primaryKey] : [];
+        if (keys.indexOf(m) >= 0) return [m];
+        return cget("monitors.unplugged", "wait") === "primary" && primaryKey ? [primaryKey] : [];
+    }
+    function instances() {                         // ["<widget id>|<monitor key>", ...]
+        var out = [], w = data.widgets;
+        for (var i = 0; i < w.length; i++) { var t = targetsOf(w[i]); for (var j = 0; j < t.length; j++) out.push(w[i].id + "|" + t[j]); }
+        return out;
+    }
+    // position of a widget on another monitor than its home one: "all" keeps the offset, a stand-in for a missing monitor keeps the relative place
+    function convertPx(c, fromKey, toKey, keepOffset) { return MM.convert(c, areaOfKey(fromKey), areaOfKey(toKey), keepOffset, gridFor(toKey).cell); }
+    function cfgFor(id, mkey) {                    // the geometry of an instance on monitor `mkey`
+        var c = cfg(id); if (!c) return null;
+        var home = homeKey(c);
+        if (mkey === home || !mkey) return c;
+        var r = convertPx(c, home, mkey, c.monitor === "all");
+        c.x = Math.round(r.x); c.y = Math.round(r.y); c.w = Math.round(r.w); c.h = Math.round(r.h);
+        return c;
+    }
+    // widgets that live on the edited monitor (the builder stage shows these; the other monitors show theirs on the real desktop)
+    readonly property var stageIds: { rev; geomRev; mons; selMon; primaryKey; var k = curKey(); return data.widgets.filter(function (w) { return homeKey(w) === k; }).map(function (w) { return w.id; }); }
+    function monitorLabel(key) {
+        var m = monRec(key); if (m) return m.name;
+        var i = monInfo[key]; return i && i.name ? i.name + " (" + I18n.tr("not connected") + ")" : key;
+    }
+    // keep every widget inside the usable area of ITS monitor (resolution / scale / bar changes never leave one off screen); widgets of a monitor that
+    // is not connected keep their saved place untouched
     function clampAll() {
-        var a = areaRect(), moved = false, w = data.widgets, i, changed = [];
+        var moved = false, w = data.widgets, i, changed = [];
         for (i = 0; i < w.length; i++) {
-            var f = SE.fit({ x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h }, a);
+            var hk = homeKey(w[i]); if (!monRec(hk)) continue;
+            var f = SE.fit({ x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h }, areaOfKey(hk));
             if (f.x !== w[i].x || f.y !== w[i].y || f.w !== w[i].w || f.h !== w[i].h) { w[i].x = Math.round(f.x); w[i].y = Math.round(f.y); w[i].w = Math.round(f.w); w[i].h = Math.round(f.h); moved = true; changed.push(i); }
         }
         // pulling widgets in can make them overlap: the moved ones go to the nearest free grid position (unless overlapping is allowed)
-        if (moved && !grid.overlap) {
-            for (var k = 0; k < changed.length; k++) {
-                var m = w[changed[k]], others = [];
-                for (i = 0; i < w.length; i++) if (i !== changed[k]) others.push({ x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h });
-                var nf = SE.nearestFree([{ x: m.x, y: m.y, w: m.w, h: m.h }], others, a, grid.cell);
-                if (nf) { m.x += nf.dx; m.y += nf.dy; }
-            }
+        for (var k = 0; k < changed.length; k++) {
+            var m = w[changed[k]], mk = homeKey(m), g = gridFor(mk);
+            if (g.overlap) continue;
+            var others = [];
+            for (i = 0; i < w.length; i++) if (i !== changed[k] && homeKey(w[i]) === mk) others.push({ x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h });
+            var nf = SE.nearestFree([{ x: m.x, y: m.y, w: m.w, h: m.h }], others, areaOfKey(mk), g.cell);
+            if (nf) { m.x += nf.dx; m.y += nf.dy; }
         }
         if (moved) touchGeom();
         return moved;
     }
     function rectOf(id) { var c = raw(id); return c ? { id: id, x: c.x, y: c.y, w: c.w, h: c.h } : null; }
-    function rects(excludeIds) {
-        var out = [], w = data.widgets, ex = excludeIds || [];
-        for (var i = 0; i < w.length; i++) if (ex.indexOf(w[i].id) < 0) out.push({ id: w[i].id, x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h });
+    function rects(excludeIds) {                   // the widgets of the edited monitor (collisions and guides only concern them)
+        var out = [], w = data.widgets, ex = excludeIds || [], k = curKey();
+        for (var i = 0; i < w.length; i++) if (ex.indexOf(w[i].id) < 0 && homeKey(w[i]) === k) out.push({ id: w[i].id, x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h });
         return out;
     }
     // one write for many widgets: { id: {x, y, w, h} }
@@ -151,8 +240,9 @@ Scope {
     }
     // every widget onto the grid: top-left corner and size to multiples of the cell; overlaps are resolved when they are not allowed
     function snapAll() {
-        var g = grid, a = areaRect(), done = [], w = data.widgets, i;
+        var g = grid, a = areaRect(), done = [], w = data.widgets, i, ck = curKey();
         for (i = 0; i < w.length; i++) {
+            if (homeKey(w[i]) !== ck) continue;
             var r = { x: SE.gridPos(w[i].x, a.x, g.cell), y: SE.gridPos(w[i].y, a.y, g.cell), w: SE.gridCeil(w[i].w, g.cell), h: SE.gridCeil(w[i].h, g.cell) };
             r = SE.fit(r, a);
             if (!g.overlap) { var nf = SE.nearestFree([r], done, a, g.cell); if (nf) { r.x += nf.dx; r.y += nf.dy; } }
@@ -160,24 +250,44 @@ Scope {
         }
         touchGeom();
     }
-    function resetLayout() {
-        data = Object.assign({}, data, { widgets: defaultLayout().widgets });
+    function resetLayout() {                       // the edited monitor only when there are several, else everything
+        var k = curKey(), keep = multi ? data.widgets.filter(function (w) { return homeKey(w) !== k; }) : [];
+        data = Object.assign({}, data, { widgets: keep.concat(defaultLayout(k).widgets) });
+        widgetIds = data.widgets.map(function (w) { return w.id; });
+        rev++; geomRev++;
+        saveNow();
+    }
+    function resetAllLayouts() {                   // every monitor, also the saved places of unplugged ones
+        var pk = primaryKey;
+        monInfo = Object.fromEntries(Object.entries(monInfo).filter(function (e) { return !!monRec(e[0]); }));
+        data = Object.assign({}, data, { widgets: defaultLayout(pk).widgets });
         widgetIds = data.widgets.map(function (w) { return w.id; });
         rev++; geomRev++;
         saveNow();
     }
 
-    // first-run assistant: replaces the layout with the chosen widget types, flowing in columns over the usable area
-    function setupLayout(types, scale, mode) {
-        var c = grid.cell, a = areaRect(), x = a.x + 4 * c, top = a.y + 3 * c, y = top, colW = 0, list = [];
-        for (var i = 0; i < types.length; i++) {
-            var ti = allTypes[types[i]]; if (!ti) continue;
-            var w = SE.gridCeil(ti.size[0] * scale, c), h = SE.gridCeil(ti.size[1] * scale, c);
-            if (colW > 0 && y + h > a.y + a.h - c) { x += colW + 2 * c; y = top; colW = 0; }
-            var st = Object.assign({ mode: mode }, D.MODE_PRESETS[mode] || {});
-            if (scale !== 1) st.font_size = Math.round(16 * scale);
-            list.push({ id: uid(types[i]), type: types[i], x: x, y: y, w: w, h: h, style: st, props: {} });
-            y += h + 2 * c; colW = Math.max(colW, w);
+    // first-run assistant: replaces the layout with the chosen widget types, flowing in columns over the usable area of each monitor.
+    // monMap: { type: "primary" | "all" | <monitor key> } (several monitors only; default everything on the primary one)
+    function setupLayout(types, scale, mode, monMap) {
+        var list = [], groups = {}, order = [], i;
+        for (i = 0; i < types.length; i++) {
+            var tg = multi && monMap && monMap[types[i]] && monMap[types[i]] !== "all" ? monMap[types[i]] : primaryKey;
+            if (!groups[tg]) { groups[tg] = []; order.push(tg); }
+            groups[tg].push(types[i]);
+        }
+        for (var gi = 0; gi < order.length; gi++) {
+            var mk = order[gi], gr = gridFor(mk), c = gr.cell, a = areaOfKey(mk), x = a.x + 4 * c, top = a.y + 3 * c, y = top, colW = 0;
+            for (i = 0; i < groups[mk].length; i++) {
+                var type = groups[mk][i], ti = allTypes[type]; if (!ti) continue;
+                var w = SE.gridCeil(ti.size[0] * scale, c), h = SE.gridCeil(ti.size[1] * scale, c);
+                if (colW > 0 && y + h > a.y + a.h - c) { x += colW + 2 * c; y = top; colW = 0; }
+                var st = Object.assign({ mode: mode }, D.MODE_PRESETS[mode] || {});
+                if (scale !== 1) st.font_size = Math.round(16 * scale);
+                var o = { id: uid(type), type: type, x: x, y: y, w: w, h: h, style: st, props: {} };
+                if (multi) o.monitor = (monMap && monMap[type] === "all") ? "all" : mk;
+                list.push(o);
+                y += h + 2 * c; colW = Math.max(colW, w);
+            }
         }
         data = Object.assign({}, data, { widgets: list });
         widgetIds = list.map(function (w) { return w.id; });
@@ -194,16 +304,17 @@ Scope {
     }
 
     function uid(type) { return type + "-" + Math.random().toString(16).slice(2, 8); }
-    function defaultLayout() {
+    function defaultLayout(mkey) {
         // a tidy column on the grid: cell-multiple sizes, two cells apart, starting four cells in from the usable area
-        var c = grid.cell, a = areaRect(), y = a.y + 3 * c;
+        var k = mkey || primaryKey, c = gridFor(k).cell, a = areaOfKey(k), y = a.y + 3 * c;
         var mk = function (t) {
             var s = R.TYPES[t].size, w = SE.gridCeil(s[0], c), h = SE.gridCeil(s[1], c);
             var o = { id: uid(t), type: t, x: a.x + 4 * c, y: y, w: w, h: h, style: {}, props: {} };
+            if (multi) o.monitor = k;
             y += h + 2 * c;
             return o;
         };
-        return { version: 2, monitor: null, engine: "auto", wallpaperPath: "",
+        return { version: 3, engine: "auto", wallpaperPath: "", wallpapers: {},
                  widgets: [mk("clock"), mk("sysmon"), mk("music"), mk("visualizer")] };
     }
 
@@ -229,8 +340,9 @@ Scope {
     }
     function peers(id) {
         var out = [], w = data.widgets;
+        var me = raw(id), hk = me ? homeKey(me) : "";
         for (var i = 0; i < w.length; i++) {
-            if (w[i].id === id) continue;
+            if (w[i].id === id || homeKey(w[i]) !== hk) continue;
             out.push({ x: w[i].x, y: w[i].y, w: w[i].w, h: w[i].h, style: styleOf(w[i].id) });
         }
         return out;
@@ -271,10 +383,60 @@ Scope {
     }
     function add(type, x, y) {
         var t = typeInfo(type); if (!t) return "";
-        var id = uid(type);
-        data.widgets.push({ id: id, type: type, x: Math.round(x), y: Math.round(y), w: t.size[0], h: t.size[1], style: {}, props: {} });
+        var id = uid(type), k = curKey(), sz = t.size, pref = monSettings(k).size;
+        if (pref && t.sizes && t.sizes[pref]) sz = t.sizes[pref];                // optional default size per monitor (large for a 4K screen, small for a side screen)
+        var o = { id: id, type: type, x: Math.round(x), y: Math.round(y), w: sz[0], h: sz[1], style: {}, props: {} };
+        if (multi) o.monitor = k;
+        data.widgets.push(o);
         touch(true);
         return id;
+    }
+    function setHidden(id, hidden) { var c = raw(id); if (!c) return; if (hidden) c.hidden = true; else delete c.hidden; touch(true); }
+    // ---- monitor assignment of one widget
+    function setMonitor(id, value) {              // value: a monitor key | "primary" | "all"
+        var c = raw(id); if (!c) return;
+        var old = homeKey(c);
+        c.monitor = value;
+        var nk = homeKey(c);
+        if (nk !== old) { var r = convertPx(c, old, nk, false); c.x = Math.round(r.x); c.y = Math.round(r.y); c.w = Math.round(r.w); c.h = Math.round(r.h); }
+        touch(true);
+    }
+    function copyToMonitor(id, key) {
+        var c = raw(id); if (!c) return "";
+        var n = JSON.parse(JSON.stringify(c)), old = homeKey(c);
+        n.id = uid(c.type); n.monitor = key;
+        var r = convertPx(c, old, key, false); n.x = Math.round(r.x); n.y = Math.round(r.y); n.w = Math.round(r.w); n.h = Math.round(r.h);
+        data.widgets.push(n);
+        touch(true);
+        return n.id;
+    }
+    function monitorAtGlobal(gx, gy) { for (var i = 0; i < mons.length; i++) { var m = mons[i]; if (gx >= m.x && gx < m.x + m.w && gy >= m.y && gy < m.y + m.h) return m; } return null; }
+    // a group dragged over a monitor edge: it lands on the neighbour with its centre where the pointer went (cx / cy in that monitor's px)
+    function moveIdsToMonitor(ids, starts, bb, key, cx, cy) {
+        var a = areaOfKey(key), g = gridFor(key);
+        for (var i = 0; i < ids.length; i++) {
+            var c = raw(ids[i]), st = starts[ids[i]]; if (!c || !st) continue;
+            c.monitor = key;
+            var r = SE.fit({ x: cx + (st.x - (bb.x + bb.w / 2)), y: cy + (st.y - (bb.y + bb.h / 2)), w: st.w, h: st.h }, a);
+            if (g.snap) { r.x = SE.gridPos(r.x, a.x, g.cell); r.y = SE.gridPos(r.y, a.y, g.cell); r = SE.fit(r, a); }
+            c.x = Math.round(r.x); c.y = Math.round(r.y); c.w = Math.round(r.w); c.h = Math.round(r.h);
+        }
+        selMon = key;
+        touch(true);
+    }
+    // copy the whole layout of one monitor to another (positions are converted to the other resolution; the target's own widgets are replaced)
+    function transferLayout(fromKey, toKey) {
+        if (fromKey === toKey) return 0;
+        var src = data.widgets.filter(function (w) { return homeKey(w) === fromKey && w.monitor !== "all"; });
+        var keep = data.widgets.filter(function (w) { return homeKey(w) !== toKey || w.monitor === "all"; });
+        for (var i = 0; i < src.length; i++) {
+            var n = JSON.parse(JSON.stringify(src[i])), r = convertPx(src[i], fromKey, toKey, false);
+            n.id = uid(n.type); n.monitor = toKey; n.x = Math.round(r.x); n.y = Math.round(r.y); n.w = Math.round(r.w); n.h = Math.round(r.h);
+            keep.push(n);
+        }
+        data.widgets = keep;
+        touch(true);
+        return src.length;
     }
     function remove(id) {
         data.widgets = data.widgets.filter(function (w) { return w.id !== id; });
@@ -304,14 +466,28 @@ Scope {
 
     // ───────────── persistence ─────────────
     property string lastWritten: ""
+    property string pendingText: ""                // a layout file read before the monitors are known: parsed as soon as they are
     function parseLayout(text) {
+        if (!monsReady) { pendingText = text; return true; }
+        return applyText(text);
+    }
+    function applyText(text) {
         try {
             var o = JSON.parse(text);
             if (!o || !Array.isArray(o.widgets)) return false;
-            var cells = (o.version || 1) >= 2, u = Number(o.unit) || 20, org = Array.isArray(o.origin) ? o.origin : [0, 0];
+            var ver = o.version || 1, cells = ver >= 2, fileMons = (ver >= 3 && o.monitors) ? o.monitors : {}, primFile = o.primary || "";
+            var legU = Number(o.unit) || 20, legOrg = Array.isArray(o.origin) ? o.origin : [0, 0];
+            var info = Object.assign({}, monInfo), k;
+            for (k in fileMons) if (!monRec(k)) info[k] = fileMons[k];                // places of monitors that are not connected right now
+            monInfo = info;
             for (var i = 0; i < o.widgets.length; i++) {
                 var w = o.widgets[i];
-                if (cells) {         // v2: grid cells relative to the usable area -> logical px
+                if (cells) {         // v2 / v3: grid cells relative to the usable area of the widget's monitor -> logical px
+                    var hk = (w.monitor && w.monitor !== "primary" && w.monitor !== "all") ? w.monitor : (primFile || primaryKey), fm = fileMons[hk], u = legU, org = legOrg;
+                    if (ver >= 3) {
+                        if (fm) { u = Number(fm.unit) || 20; org = fm.origin || [0, 0]; }
+                        else { u = gridFor(hk).cell; var ha = areaOfKey(hk); org = [ha.x, ha.y]; }
+                    }
                     w.x = Math.round(org[0] + (+w.x || 0) * u); w.y = Math.round(org[1] + (+w.y || 0) * u);
                     w.w = Math.round((+w.w || 15) * u); w.h = Math.round((+w.h || 8) * u);
                 } else {
@@ -319,13 +495,16 @@ Scope {
                 }
                 w.style = w.style || {}; w.props = w.props || {};
             }
-            needsMigration = !cells;
-            o.version = 2; delete o.unit; delete o.origin;
+            needsMigration = ver < 3; oldVersion = ver;
+            // the old single-monitor choice (a connector name) becomes the preferred primary monitor when there are several
+            if (ver < 3 && multi && o.monitor && configLoaded && !cget("monitors.primary", "")) { var lm = null; for (var q = 0; q < mons.length; q++) if (mons[q].name === o.monitor) lm = mons[q]; if (lm) setConfig("monitors.primary", lm.key); }
+            o.version = 3; delete o.unit; delete o.origin; delete o.monitor; delete o.monitors; delete o.primary;
+            o.wallpapers = o.wallpapers || {};
             data = o;
             widgetIds = o.widgets.map(function (w) { return w.id; });
             rev++; geomRev++;
             return true;
-        } catch (e) { return false; }
+        } catch (e) { console.log("[widgetdeck] layout error:", e); return false; }
     }
     FileView {
         id: lfile
@@ -340,28 +519,43 @@ Scope {
             if (root.areaKnown) { root.clampAll(); root.maybeMigrate(); }
         }
         onLoadFailed: error => {
-            if (!root.loaded) { root.data = root.defaultLayout(); root.widgetIds = root.data.widgets.map(function (w) { return w.id; }); root.rev++; root.geomRev++; root.saveNow(); root.loaded = true; }
+            if (!root.loaded) {
+                if (!root.monsReady) root.pendingText = "__default__";
+                else { root.data = root.defaultLayout(); root.widgetIds = root.data.widgets.map(function (w) { return w.id; }); root.rev++; root.geomRev++; root.saveNow(); }
+                root.loaded = true;
+            }
         }
         onFileChanged: reload()
     }
-    // widgets.json v2: x / y / w / h in grid cells (relative to the usable area), "unit" = cell size in px, "origin" = the usable area's
-    // top-left. A layout stays coherent when the cell size changes (it is re-expressed, not moved).
+    // widgets.json v3: x / y / w / h in grid cells relative to the usable area of the widget's own monitor ("monitors": { key: { unit, origin, ... } } holds
+    // that area and the cell size, also of monitors that are unplugged right now), "primary" = the main monitor when it was saved. A layout stays coherent
+    // when the cell size changes (it is re-expressed, not moved).
     function toFile() {
-        var u = grid.cell, o = Object.assign({}, data, { version: 2, unit: u, origin: [area.x, area.y] });
+        var info = Object.assign({}, monInfo), i, k;
+        for (i = 0; i < mons.length; i++) {
+            k = mons[i].key;
+            var a = areaOfKey(k);
+            info[k] = Object.assign({}, info[k] || {}, { name: mons[i].name, desc: mons[i].description || "", area: [a.x, a.y, a.w, a.h], origin: [a.x, a.y], unit: gridFor(k).cell, screen: [mons[i].w, mons[i].h], scale: mons[i].scale });
+        }
+        for (k in info) if (!info[k].origin && info[k].area) info[k] = Object.assign({}, info[k], { origin: [info[k].area[0], info[k].area[1]] });
+        var o = Object.assign({}, data, { version: 3, primary: primaryKey, monitors: info });
+        delete o.monitor;
         var r4 = function (v) { return Math.round(v * 10000) / 10000; };
         o.widgets = data.widgets.map(function (w) {
+            var hk = homeKey(w), fi = info[hk] || { unit: gridFor(hk).cell, origin: [areaOfKey(hk).x, areaOfKey(hk).y] };
+            var u = Number(fi.unit) || 20, org = fi.origin || [0, 0];
             var n = Object.assign({}, w);
-            n.x = r4((w.x - area.x) / u); n.y = r4((w.y - area.y) / u); n.w = r4(w.w / u); n.h = r4(w.h / u);
+            n.x = r4((w.x - org[0]) / u); n.y = r4((w.y - org[1]) / u); n.w = r4(w.w / u); n.h = r4(w.h / u);
             return n;
         });
         return o;
     }
-    // first start with an old px file: back it up, then rewrite it in cells (exactly the same positions)
+    // first start with an older file (px, or cells without monitors): back it up, then rewrite it as v3 (exactly the same positions)
     function maybeMigrate() {
         if (!needsMigration || !loaded || !areaKnown) return;
         needsMigration = false;
         // the backup must be finished BEFORE the new file is written
-        bak.command = ["sh", "-c", "f=\"$1/widgets.json\"; [ -f \"$f\" ] && cp -n \"$f\" \"$f.px-backup-$(date +%Y%m%d-%H%M%S)\"; exit 0", "sh", dir];
+        bak.command = ["sh", "-c", "f=\"$1/widgets.json\"; [ -f \"$f\" ] && cp -n \"$f\" \"$f.v$2-backup-$(date +%Y%m%d-%H%M%S)\"; exit 0", "sh", dir, String(oldVersion)];
         bak.running = true;
     }
     Process { id: bak; onExited: root.saveNow() }

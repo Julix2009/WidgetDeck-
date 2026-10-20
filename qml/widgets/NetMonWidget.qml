@@ -64,14 +64,15 @@ Item {
     readonly property var dl: fmt(online ? d.rx : 0)
     readonly property var ul: fmt(online ? d.tx : 0)
 
-    Process {
+    Feed {                                                  // one ping / one traffic reader for every netmon instance (the same target shares)
         id: feed
-        running: w.live
+        key: "netmon:" + String(w.props.ping_target || "1.1.1.1")
         command: ["bash", w.dir + "netmon.sh", String(w.props.ping_target || "1.1.1.1")]
-        stdout: SplitParser { onRead: line => { try { w.sample(JSON.parse(line)); } catch (e) { } } }
-        onRunningChanged: if (!running) w.reset()
+        interval: 0
+        active: w.live
+        onGot: line => { try { w.sample(JSON.parse(line)); } catch (e) { } }
     }
-    onPropsChanged: { var t = String(props.ping_target || "1.1.1.1"); if (feed.running && feed.command[2] !== t) { feed.running = false; Qt.callLater(function () { feed.running = true; }); } }
+    onLiveChanged: if (!live) w.reset()
 
     // ---- top line: name, signal, ping ------------------------------------------------------------------------
     Item {

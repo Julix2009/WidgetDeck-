@@ -53,14 +53,14 @@ Item {
     property double dirStamp: 0
     function noteSkip(d) { dirHint = d; dirStamp = Date.now(); }
     function currentDir() { return (Date.now() - dirStamp < 2500) ? dirHint : 0; }
-    Process {
-        running: w.animOn && w.animStyle !== "crossfade"
+    Feed {                                                  // one D-Bus monitor for all music widgets
+        key: "mpris-skips"
         command: ["dbus-monitor", "--session", "type='method_call',interface='org.mpris.MediaPlayer2.Player'"]
-        stdout: SplitParser {
-            onRead: line => {
-                if (line.indexOf("member=Next") >= 0) w.noteSkip(1);
-                else if (line.indexOf("member=Previous") >= 0) w.noteSkip(-1);
-            }
+        interval: 0
+        active: w.animOn && w.animStyle !== "crossfade"
+        onGot: line => {
+            if (line.indexOf("member=Next") >= 0) w.noteSkip(1);
+            else if (line.indexOf("member=Previous") >= 0) w.noteSkip(-1);
         }
     }
 

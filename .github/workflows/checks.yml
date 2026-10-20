@@ -30,6 +30,8 @@ jobs:
         run: node tools/timetable-test.js
       - name: weather card tests
         run: node tools/weathercard-test.js
+      - name: monitor tests
+        run: node tools/monitors-test.js
       - name: Untis client tests (local mock server)
         run: tools/untis-test.sh
       - name: secret scan

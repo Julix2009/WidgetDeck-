@@ -37,14 +37,15 @@ Item {
     }
     readonly property var fans: props.show_fans === false ? [] : (d.fans || [])
 
-    Process {
+    Feed {
         id: feed
-        running: w.live
+        key: "thermals:" + Math.round(w.warn)
         command: ["bash", w.dir + "thermals.sh", String(Math.round(w.warn))]
-        stdout: SplitParser { onRead: line => { try { w.d = JSON.parse(line); } catch (e) { } } }
-        onRunningChanged: if (!running) w.d = ({})
+        interval: 0
+        active: w.live
+        onGot: line => { try { w.d = JSON.parse(line); } catch (e) { } }
     }
-    onWarnChanged: if (feed.running) { feed.running = false; Qt.callLater(function () { feed.running = true; }); }
+    onLiveChanged: if (!live) w.d = ({})
 
     // ---- temperatures: rings -------------------------------------------------------------------------------------
     Row {

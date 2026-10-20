@@ -21,14 +21,15 @@ Item {
     }
 
     // one long-lived shell prints a sample per interval (cheaper than spawning a process every time)
-    Process {
+    Feed {
         id: poll
-        running: true
+        key: "sysmon:" + w.props.interval
         command: ["sh", "-c", "while :; do head -n1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo; echo; sleep " + (w.props.interval / 1000) + "; done"]
-        stdout: SplitParser {
-            property real total: 0
-            property real avail: 0
-            onRead: line => {
+        interval: 0
+        active: true
+        property real total: 0
+        property real avail: 0
+        onGot: line => {
                 if (line.indexOf("cpu ") === 0) {
                     var v = line.trim().split(/\s+/).slice(1).map(Number);
                     var idle = v[3] + v[4], tot = v.reduce(function (a, b) { return a + b; }, 0);
@@ -40,9 +41,7 @@ Item {
                     if (total > 0) { w.ram = (total - avail) / total; w.ramUsedGb = (total - avail) / 1048576; w.ramTotalGb = total / 1048576; }
                 }
             }
-        }
     }
-    onPropsChanged: if (poll.running) { poll.running = false; Qt.callLater(function () { poll.running = true; }); }
 
     // rings
     Row {

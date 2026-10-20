@@ -111,6 +111,11 @@ check_system() {
     if [ "${#found[@]}" -gt 0 ]; then
         warn "$(t 'Found: %s. WidgetDeck only draws desktop widgets (bottom layer) unless you switch on its bar or notification module; widgets of eww/ags/conky can overlap visually. Nothing is stopped or disabled.' "${found[*]}")"
     fi
+    # several monitors: a hint only (inside a Hyprland session; nothing to configure here)
+    if command -v hyprctl >/dev/null 2>&1; then
+        local nm; nm="$(hyprctl -j monitors 2>/dev/null | jq '[.[] | select((.mirrorOf // "none") == "none")] | length' 2>/dev/null || echo 0)"
+        if [ "${nm:-0}" -gt 1 ] 2>/dev/null; then info "$(t '%s monitors found. The widgets start on the main monitor; assign widgets to the other monitors in the builder (a monitor selector appears there).' "$nm")"; fi
+    fi
     return 0
 }
 

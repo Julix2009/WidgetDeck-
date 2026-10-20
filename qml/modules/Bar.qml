@@ -11,7 +11,14 @@ Scope {
     id: bar
     required property var theme
     required property var store
-    signal powerRequested()
+    required property var mons                    // Monitors.qml
+    signal powerRequested(string screenName)
+    // the monitors that get a bar: all (default) or the ones chosen in the settings (config monitors.bar = [keys])
+    readonly property var barMons: {
+        var b = store.cget("monitors.bar", "all"), l = mons.list;
+        if (b === "all" || !Array.isArray(b)) return l;
+        return l.filter(function (m) { return b.indexOf(m.key) >= 0; });
+    }
 
     readonly property bool use12h: {
         var t = store.cget("time_format", "auto");
@@ -23,11 +30,11 @@ Scope {
     Timer { interval: 1000; running: true; repeat: true; onTriggered: bar.now = new Date() }
 
     Variants {
-        model: Quickshell.screens
+        model: bar.barMons
         PanelWindow {
             id: win
             required property var modelData
-            screen: modelData
+            screen: modelData.screen
             anchors { top: true; left: true; right: true }
             implicitHeight: 46
             color: "transparent"
@@ -49,9 +56,11 @@ Scope {
                         model: Hyprland.workspaces
                         delegate: Rectangle {
                             required property var modelData
-                            visible: modelData.id > 0
+                            // several monitors: every bar shows the workspaces of ITS monitor (one monitor: all of them, as before)
+                            visible: modelData.id > 0 && (!bar.mons.multi || (modelData.monitor && modelData.monitor.name === win.modelData.name))
                             width: visible ? 26 : 0; height: 24; radius: 12
-                            readonly property bool focused: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === modelData.id
+                            readonly property bool focused: bar.mons.multi ? (modelData.monitor && modelData.monitor.activeWorkspace && modelData.monitor.activeWorkspace.id === modelData.id)
+                                                                           : (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === modelData.id)
                             color: focused ? win.pal.primary : (wma.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.07))
                             Text { anchors.centerIn: parent; text: modelData.id; color: parent.focused ? win.pal.on_primary : win.pal.on_surface
                                    font.family: Fonts.ui; font.pixelSize: 12; font.bold: true }
@@ -82,7 +91,7 @@ Scope {
                     Item {
                         width: 24; height: 24; anchors.verticalCenter: parent.verticalCenter
                         Icon { anchors.fill: parent; name: "power"; color: pma.containsMouse ? win.pal.primary : win.pal.on_surface }
-                        MouseArea { id: pma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: bar.powerRequested() }
+                        MouseArea { id: pma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: bar.powerRequested(win.modelData.name) }
                     }
                 }
             }

@@ -37,6 +37,7 @@ DE['Quickshell %s is older than 0.2.0 - WidgetDeck needs a newer version.']='Qui
 DE['Quickshell %s (tested: %s)']='Quickshell %s (getestet: %s)'
 DE['Quickshell is not installed yet (offered below).']='Quickshell ist noch nicht installiert (wird unten angeboten).'
 DE['Qt %s is older than 6.7: the blur and path renderers need 6.7+.']='Qt %s ist älter als 6.7: Weichzeichner und Pfad-Renderer brauchen 6.7+.'
+DE['%s monitors found. The widgets start on the main monitor; assign widgets to the other monitors in the builder (a monitor selector appears there).']='%s Monitore gefunden. Die Widgets starten auf dem Hauptmonitor; ordne Widgets den anderen Monitoren im Builder zu (dort erscheint eine Monitor-Auswahl).'
 DE['Found: %s. WidgetDeck only draws desktop widgets (bottom layer) unless you switch on its bar or notification module; widgets of eww/ags/conky can overlap visually. Nothing is stopped or disabled.']='Gefunden: %s. WidgetDeck zeichnet nur Desktop-Widgets (unterste Ebene), außer du schaltest sein Leisten- oder Benachrichtigungsmodul ein; Widgets von eww/ags/conky können sich optisch überlappen. Es wird nichts beendet oder deaktiviert.'
 DE['unknown module: %s (widgets, builder, bar, notifications)']='unbekanntes Modul: %s (widgets, builder, bar, notifications)'
 DE['Modules']='Module'

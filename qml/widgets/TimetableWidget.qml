@@ -50,25 +50,19 @@ Item {
     readonly property bool compact: width < s(500) || height < s(290)
     readonly property string asOf: d && d.fetched ? Qt.formatTime(new Date(d.fetched * 1000), "HH:mm") : ""
 
-    property bool runAgain: false
     readonly property string srcKey: props.source ? String(props.source) : "auto"
-    function run() {
-        if (poll.running) { runAgain = true; return; }          // a change during a running fetch is not lost: it runs again afterwards
-        var src = props.source && props.source !== "auto" ? ["demo"].concat(String(props.source).indexOf("holiday") >= 0 ? ["holiday"] : []) : ["fetch"];
-        poll.command = ["python3", "-I", w.dir + "untis.py"].concat(src);
-        poll.running = true;
-    }
-    Process {
+    readonly property var srcArgs: props.source && props.source !== "auto" ? ["demo"].concat(String(props.source).indexOf("holiday") >= 0 ? ["holiday"] : []) : ["fetch"]
+    // one fetch for all timetable widgets (and monitors) with the same source
+    Feed {
         id: poll
-        onRunningChanged: if (!running && w.runAgain) { w.runAgain = false; Qt.callLater(w.run); }
-        stdout: StdioCollector {
-            onStreamFinished: { try { var o = JSON.parse(this.text); if (o && o.state) w.d = o; } catch (e) { if (!w.d) w.d = { state: "error", lessons: [], grid: {}, fetched: 0 }; } }
-        }
+        key: "timetable:" + w.srcArgs.join(",")
+        command: ["python3", "-I", w.dir + "untis.py"].concat(w.srcArgs)
+        interval: 900000                                   // 15 min, only while a widget is visible
+        active: w.live
+        onGot: text => { try { var o = JSON.parse(text); if (o && o.state) w.d = o; } catch (e) { if (!w.d) w.d = { state: "error", lessons: [], grid: {}, fetched: 0 }; } }
     }
-    Timer { interval: 900000; repeat: true; running: w.live; triggeredOnStart: true; onTriggered: w.run() }          // 15 min, only while visible
-    onLiveChanged: if (live) run()
+    function run() { poll.refresh(); }
     onConfigRevChanged: if (live) run()
-    onSrcKeyChanged: if (live) Qt.callLater(run)               // only a new data source needs a fetch (not every layout change / view switch)
     Timer { interval: 30000; repeat: true; running: w.live; onTriggered: w.now = new Date() }                          // minute resolution is enough
     function openSetup() {
         var p = Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup";
@@ -246,7 +240,7 @@ Item {
             anchors { right: parent.right; verticalCenter: tabs.verticalCenter }
             width: largeView.hitH; height: width
             Icon { anchors.centerIn: parent; anchors.verticalCenterOffset: rma.pressed ? 1 : 0; width: w.s(16) + (rma.pressed ? -2 : (rma.containsMouse ? 2 : 0)); height: width; name: "refresh"
-                   color: rma.containsMouse ? w.cAcc : w.cFg; opacity: poll.running ? 0.4 : 0.8
+                   color: rma.containsMouse ? w.cAcc : w.cFg; opacity: 0.8
                    Behavior on width { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } } }
             MouseArea { id: rma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: w.run() }
         }

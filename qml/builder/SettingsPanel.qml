@@ -13,7 +13,7 @@ Column {
     required property var backend
     required property var update
     required property var th
-    property string screenName: ""
+    required property var mons
     property bool liquidOk: false
     property bool ttKey: false
     readonly property string ttDir: decodeURIComponent(Qt.resolvedUrl("../widgets/timetable/").toString().replace("file://", ""))
@@ -50,21 +50,65 @@ Column {
             id: resetBtn
             property bool armed: false
             width: parent.width
-            th: sp.th; danger: true; label: armed ? I18n.tr("Really reset? (click again)") : I18n.tr("Reset layout")
+            th: sp.th; danger: true; label: armed ? I18n.tr("Really reset? (click again)") : (sp.store.multi ? I18n.tr("Reset layout of this monitor") : I18n.tr("Reset layout"))
             onClicked: { if (armed) { sp.store.resetLayout(); armed = false; } else { armed = true; armTimer.restart(); } }
             Timer { id: armTimer; interval: 3500; onTriggered: resetBtn.armed = false }
         }
     }
     Note { opacity: 0.8; text: I18n.trf("Usable area: %1 × %2 px from (%3, %4) - grid and limits apply per monitor.", sp.store.area.width, sp.store.area.height, sp.store.area.x, sp.store.area.y) }
 
-    // ───────────── monitor ─────────────
-    Section { visible: Quickshell.screens.length > 1; text: I18n.tr("MONITOR") }
-    GChoice {
-        visible: Quickshell.screens.length > 1
-        width: parent.width; th: sp.th; label: I18n.tr("Show the widgets on")
-        options: Quickshell.screens.map(function (s) { return [s.name, s.name + "  (" + s.width + "×" + s.height + ")"]; })
-        value: sp.screenName
-        onPicked: v => { sp.store.data.monitor = v; sp.store.touch(false); }
+    // ───────────── monitors (only with more than one) ─────────────
+    readonly property bool multi: store.multi
+    readonly property string ck: { store.mons; store.selMon; return store.curKey(); }
+    readonly property var cmon: { store.mons; return store.monRec(sp.ck); }
+    function monOpts(extra) {
+        var o = extra ? extra.slice() : [], l = store.mons;
+        for (var i = 0; i < l.length; i++) o.push([l[i].key, (i + 1) + "  " + l[i].name + "  (" + l[i].w + "×" + l[i].h + ")"]);
+        return o;
+    }
+    Section { visible: sp.multi; text: I18n.tr("MONITORS"); height: visible ? implicitHeight : 0 }
+    Note { visible: sp.multi; height: visible ? implicitHeight : 0; text: I18n.trf("Editing: %1. Pick another monitor at the top of the builder. Grid size and distance above apply to every monitor unless you override them below.", sp.cmon ? sp.cmon.name : "") }
+    GChoice { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Main monitor"); options: sp.monOpts([["", I18n.tr("Automatic")]]); value: sp.cfgStr("monitors.primary", ""); onPicked: v => sp.store.setConfig("monitors.primary", v) }
+    GChoice { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("When a monitor is unplugged")
+        options: [["wait", I18n.tr("Wait for it")], ["primary", I18n.tr("Use the main monitor")]]; value: sp.cfgStr("monitors.unplugged", "wait"); onPicked: v => sp.store.setConfig("monitors.unplugged", v) }
+    GSwitch { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Drag a widget over the edge to the next monitor"); checked: sp.store.cget("monitors.cross_edge", false); onToggled: v => sp.store.setConfig("monitors.cross_edge", v) }
+    Section { visible: sp.multi; height: visible ? implicitHeight : 0; text: I18n.trf("THIS MONITOR (%1)", sp.cmon ? sp.cmon.name : "") }
+    GSpin { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Grid size here (px)"); from: 8; to: 64; step: 2; value: sp.store.gridFor(sp.ck).cell; onMoved: v => sp.store.setMonGrid(sp.ck, "cell", v) }
+    GSpin { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Distance to the screen edge here (px)"); from: 0; to: 100; step: 4; value: sp.store.gridFor(sp.ck).margin; onMoved: v => sp.store.setMonGrid(sp.ck, "margin", v) }
+    GChoice { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Size of new widgets here")
+        options: [["", I18n.tr("Normal")], ["small", I18n.tr("Small")], ["large", I18n.tr("Large")]]; value: { sp.store.builder; return String(sp.store.monSettings(sp.ck).size || ""); } onPicked: v => sp.store.setMonSize(sp.ck, v) }
+    GField { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Wallpaper of this monitor (empty = automatic)")
+        value: { sp.store.data; return (sp.store.data.wallpapers || {})[sp.ck] || ""; }
+        onCommitted: v => { var w = Object.assign({}, sp.store.data.wallpapers || {}); if (v) w[sp.ck] = v; else delete w[sp.ck]; sp.store.data.wallpapers = w; sp.store.touch(false); } }
+    Column {
+        visible: sp.multi; width: parent.width; spacing: 6; height: visible ? implicitHeight : 0
+        GButton { th: sp.th; width: parent.width; label: I18n.tr("Copy this monitor's layout to …"); onClicked: sp.th.pickList(this, sp.monOpts().filter(function (o) { return o[0] !== sp.ck; }), "", function (k) { sp.store.transferLayout(sp.ck, k); }) }
+        GButton {
+            id: resetAll
+            property bool armed: false
+            width: parent.width
+            th: sp.th; danger: true; label: armed ? I18n.tr("Really reset? (click again)") : I18n.tr("Reset the layout of all monitors")
+            onClicked: { if (armed) { sp.store.resetAllLayouts(); armed = false; } else { armed = true; resetAllTimer.restart(); } }
+            Timer { id: resetAllTimer; interval: 3500; onTriggered: resetAll.armed = false }
+        }
+    }
+    Section { visible: sp.multi; height: visible ? implicitHeight : 0; text: I18n.tr("BAR, NOTIFICATIONS") }
+    GChoice { visible: sp.multi; height: visible ? implicitHeight : 0; width: parent.width; th: sp.th; label: I18n.tr("Notifications and pop-ups appear on")
+        options: sp.monOpts([["focused", I18n.tr("The focused monitor")], ["primary", I18n.tr("The main monitor")]]); value: sp.cfgStr("monitors.notify", "focused"); onPicked: v => sp.store.setConfig("monitors.notify", v) }
+    Repeater {
+        model: (sp.multi && sp.store.cget("modules.bar", false)) ? sp.store.mons : []
+        delegate: GSwitch {
+            required property var modelData
+            width: sp.width; th: sp.th; label: I18n.trf("Bar on %1", modelData.name)
+            checked: { var b = sp.store.cget("monitors.bar", "all"); return b === "all" || (Array.isArray(b) && b.indexOf(modelData.key) >= 0); }
+            onToggled: v => {
+                var b = sp.store.cget("monitors.bar", "all"), keys = sp.store.mons.map(function (m) { return m.key; });
+                var cur = (b === "all" || !Array.isArray(b)) ? keys : b.slice();
+                var i = cur.indexOf(modelData.key);
+                if (v && i < 0) cur.push(modelData.key); else if (!v && i >= 0) cur.splice(i, 1);
+                sp.store.setConfig("monitors.bar", cur.length === keys.length ? "all" : cur);
+            }
+        }
     }
 
     // ───────────── modules ─────────────

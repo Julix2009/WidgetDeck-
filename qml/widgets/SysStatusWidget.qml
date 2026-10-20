@@ -32,16 +32,13 @@ Item {
     readonly property var failed: (d.sys || []).concat(d.user || [])
     readonly property bool ok: failed.length === 0
 
-    Process {
+    Feed {                                                          // fresh reading when the widget appears and every N seconds (default 30), shared by all instances
         id: poll
+        key: "sysstatus:" + Math.max(5, Number(w.props.poll_s || 30))
         command: ["bash", w.dir + "sysstatus.sh"]
-        stdout: StdioCollector {
-            onStreamFinished: { try { w.d = JSON.parse(this.text); w.sampleMs = Date.now(); w.nowMs = w.sampleMs; } catch (e) { } }
-        }
-    }
-    Timer {                                                         // fresh reading when the widget appears and every N seconds (default 30)
-        interval: Math.max(5, Number(w.props.poll_s || 30)) * 1000; repeat: true; running: w.live; triggeredOnStart: true
-        onTriggered: if (!poll.running) poll.running = true
+        interval: Math.max(5, Number(w.props.poll_s || 30)) * 1000
+        active: w.live
+        onGot: text => { try { w.d = JSON.parse(text); w.sampleMs = Date.now(); w.nowMs = w.sampleMs; } catch (e) { } }
     }
     Timer { interval: 10000; repeat: true; running: w.live; onTriggered: w.nowMs = Date.now() }     // the clock part counts locally
 

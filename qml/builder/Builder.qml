@@ -12,12 +12,18 @@ FloatingWindow {
     required property var backend
     required property var wall
     required property var update
-    property string screenName: ""
+    required property var mons                 // Monitors.qml
     signal settingsClose()
+    signal identifyRequested()
     onSettingsClose: settings.visible = false
     function showSettings(on) { settings.visible = on; }
     function scrollSettings(y) { setFlick.contentY = Math.max(0, Math.min(y, setFlick.contentHeight - setFlick.height)); }
-    property size screenSize: Qt.size(2560, 1600)
+    // the monitor this window is on (its own glass refracts THAT monitor's picture) and the one that is being edited (the stage)
+    property var bmon: null
+    readonly property size screenSize: bmon ? Qt.size(bmon.w, bmon.h) : (mons.list.length > 0 ? Qt.size(mons.list[0].w, mons.list[0].h) : Qt.size(2560, 1600))
+    MonitorWall { id: bwall; wall: win.wall; key: win.bmon ? win.bmon.key : ""; name: win.bmon ? win.bmon.name : "" }
+    readonly property var selRec: { store.mons; store.selMon; return store.monRec(store.curKey()); }
+    MonitorWall { id: swall; wall: win.wall; key: win.store.curKey(); name: win.selRec ? win.selRec.name : "" }
     property string sel: ""                  // primary selection (props panel)
     property var sels: []                    // all selected widgets (Shift+click / rubber band)
     property real propsScroll: -1
@@ -48,12 +54,12 @@ FloatingWindow {
     implicitHeight: 920
     minimumSize: Qt.size(1100, 700)
 
-    readonly property bool liquidUi: store.builder.glass === "liquid" && backend.ready && wall.usable
+    readonly property bool liquidUi: store.builder.glass === "liquid" && backend.ready && bwall.usable
     readonly property bool liveOn: store.builder.liveCapture === true && liquidUi
     Loader {
         id: liveLoader
         active: win.liveOn && win.visible
-        sourceComponent: LiveBackdrop { wall: win.wall; screenSize: win.screenSize }
+        sourceComponent: LiveBackdrop { wall: bwall; screenSize: win.screenSize }
     }
     readonly property Item liveItem: liveLoader.item
     Theme { id: th; themeStore: win.theme; liquid: win.liquidUi }
@@ -65,7 +71,15 @@ FloatingWindow {
         for (var i = 0; i < ts.length; i++) {
             if (ts[i].title !== "WidgetDeck") continue;
             var o = ts[i].lastIpcObject;
-            if (o && o.at) { winPos = Qt.point(o.at[0], o.at[1]); return; }
+            if (o && o.at) {
+                // `at` is in the layout of ALL monitors: subtract the origin of the monitor the window is on
+                var m = null;
+                for (var j = 0; j < mons.list.length; j++) if (mons.list[j].hyprId === o.monitor) m = mons.list[j];
+                if (!m) m = mons.at(o.at[0] + 20, o.at[1] + 20) || (mons.list.length > 0 ? mons.list[0] : null);
+                if (m !== bmon) bmon = m;
+                winPos = Qt.point(o.at[0] - (m ? m.x : 0), o.at[1] - (m ? m.y : 0));
+                return;
+            }
         }
     }
     Timer {
@@ -129,7 +143,7 @@ FloatingWindow {
         GlassPanel {
             id: winGlass
             width: root.width; height: root.height
-            style: win.winStyle; backend: win.backend; wall: win.wall; backdrop: win.liveItem
+            style: win.winStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
             screenX: win.winPos.x; screenY: win.winPos.y; screenSize: win.screenSize
             padPx: 0; interactive: false
         }
@@ -144,7 +158,9 @@ FloatingWindow {
                 onPressed: mouse => { if (typeof win.startSystemMove === "function") win.startSystemMove(); }
             }
             Text { anchors.verticalCenter: parent.verticalCenter; text: "◈  WidgetDeck"; color: th.fg; font.family: th.font; font.pixelSize: 16; font.bold: true }
-            Text { x: 150; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
+            Text { visible: !win.store.multi; x: 150; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
+            // several monitors: pick the one you edit (cards + a small map of the arrangement); with one monitor none of this exists
+            MonitorStrip { visible: win.store.multi; x: 150; width: parent.width - 150 - 190; height: parent.height; store: win.store; th: th; mons: win.mons; onIdentify: win.identifyRequested() }
             Row {
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 8
                 GButton { th: th; label: I18n.tr("Settings"); checked: settings.visible; onClicked: settings.visible = !settings.visible }
@@ -162,7 +178,7 @@ FloatingWindow {
             GlassPanel {
                 id: leftGlass
                 x: 0; y: 0; width: body.leftW; height: body.height
-                style: win.panelStyle; backend: win.backend; wall: win.wall; backdrop: win.liveItem
+                style: win.panelStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
                 screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
                 padPx: 0; interactive: false
                 WidgetPalette {
@@ -175,27 +191,59 @@ FloatingWindow {
                         ghost.visible = false;
                         if (canvas.containsGlobal(gx, gy)) canvas.dropAt(type, gx, gy);
                     }
-                    onLayerPicked: id => win.sel = id
+                    onLayerPicked: id => { var c = win.store.raw(id); if (c && win.store.monRec(win.store.homeKey(c))) win.store.selMon = win.store.homeKey(c); win.sel = id; }
                 }
             }
             GlassPanel {
                 id: midGlass
                 x: body.leftW + 12; y: 0; width: body.width - body.leftW - body.rightW - 24; height: body.height
-                style: win.panelStyle; backend: win.backend; wall: win.wall; backdrop: win.liveItem
+                style: win.panelStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
                 screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
                 padPx: 0; interactive: false
+                // a monitor without any widget (new / unknown monitor): offer to take the layout of another one
+                Rectangle {
+                    id: emptyHint
+                    readonly property var donors: {
+                        win.store.rev; win.store.mons; win.store.selMon;
+                        var out = [], k = win.store.curKey(), l = win.store.mons;
+                        for (var i = 0; i < l.length; i++) {
+                            if (l[i].key === k) continue;
+                            var n = win.store.data.widgets.filter(function (w) { return win.store.homeKey(w) === l[i].key && w.monitor !== "all"; }).length;
+                            if (n > 0) out.push({ key: l[i].key, name: l[i].name, n: n });
+                        }
+                        return out;
+                    }
+                    readonly property var thm: th
+                    visible: win.store.multi && win.store.stageIds.length === 0 && donors.length > 0
+                    z: 5
+                    anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 18 }
+                    width: hintCol.width + 28; height: hintCol.height + 22; radius: 14
+                    color: Qt.rgba(0.05, 0.06, 0.09, 0.86); border.width: 1; border.color: th.line
+                    Column {
+                        id: hintCol
+                        anchors.centerIn: parent; spacing: 8
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13; text: I18n.tr("This monitor has no widgets yet.") }
+                        Row {
+                            anchors.horizontalCenter: parent.horizontalCenter; spacing: 8
+                            Repeater {
+                                model: emptyHint.donors
+                                delegate: GButton { required property var modelData; th: emptyHint.thm; label: I18n.trf("Take the layout of %1", modelData.name); onClicked: win.store.transferLayout(modelData.key, win.store.curKey()) }
+                            }
+                        }
+                    }
+                }
                 StageCanvas {
                     id: canvas
                     anchors.fill: parent; anchors.margins: 10
-                    store: win.store; theme: win.theme; th: th; backend: win.backend; wall: win.wall
-                    screenSize: win.screenSize; sel: win.sel; sels: win.sels
+                    store: win.store; theme: win.theme; th: th; backend: win.backend; wall: swall
+                    screenSize: win.store.screen; sel: win.sel; sels: win.sels
                     onSelectionRequested: (ids, primary) => win.selectIds(ids, primary)
                 }
             }
             GlassPanel {
                 id: rightGlass
                 x: body.width - body.rightW; y: 0; width: body.rightW; height: body.height
-                style: win.panelStyle; backend: win.backend; wall: win.wall; backdrop: win.liveItem
+                style: win.panelStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
                 screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
                 padPx: 0; interactive: false
                 PropsPanel {
@@ -229,7 +277,7 @@ FloatingWindow {
             visible: false; z: 50
             x: root.width - width - 22; y: 56; width: 360
             height: Math.min(root.height - 80, setCol.height + 36)
-            style: win.gstyle(26, 1.2); backend: win.backend; wall: win.wall; backdrop: win.liveItem
+            style: win.gstyle(26, 1.2); backend: win.backend; wall: bwall; backdrop: win.liveItem
             screenX: win.winPos.x + x; screenY: win.winPos.y + y; screenSize: win.screenSize
             padPx: 0; interactive: false
             Flickable {
@@ -240,7 +288,7 @@ FloatingWindow {
                     id: setCol
                     width: parent.width - 8
                     store: win.store; theme: win.theme; wall: win.wall; backend: win.backend; update: win.update; th: th
-                    screenName: win.screenName; liquidOk: win.backend.ready && win.wall.usable
+                    mons: win.mons; liquidOk: win.backend.ready && bwall.usable
                     onPickWallpaper: { wallPicker.startPath = ""; wallPicker.open(); }
                     onRunWizard: { win.settingsClose(); win.store.setConfig("setup.done", false); }
                 }

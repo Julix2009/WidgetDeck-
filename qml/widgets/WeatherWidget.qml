@@ -48,23 +48,19 @@ Item {
     }
     readonly property real particleDensity: props.particle_density !== undefined ? Number(props.particle_density) : 1.0
 
-    Process {
+    Feed {                                                  // one weather request for all weather widgets (and monitors); the script also caches and locks
         id: poll
+        key: "weather"
         command: ["bash", w.dir + "weather.sh"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    var o = JSON.parse(this.text);
-                    if (o && o.current_temp !== undefined) { w.d = o; w.err = ""; }
-                    else if (o && o.error) w.err = o.error;
-                } catch (e) { w.err = "offline"; }
-            }
+        interval: 600000
+        active: w.live
+        onGot: text => {
+            try {
+                var o = JSON.parse(text);
+                if (o && o.current_temp !== undefined) { w.d = o; w.err = ""; }
+                else if (o && o.error) w.err = o.error;
+            } catch (e) { w.err = "offline"; }
         }
-    }
-    onConfigRevChanged: if (live && !poll.running) poll.running = true
-    Timer {
-        interval: 600000; repeat: true; running: w.live; triggeredOnStart: true
-        onTriggered: if (!poll.running) poll.running = true
     }
 
     // ---- main: icon, temperature, condition ------------------------------------------------------------------------------
@@ -103,6 +99,6 @@ Item {
     GText {
         anchors.centerIn: parent; visible: !w.has; wstyle: w.style; opacity: 0.65
         horizontalAlignment: Text.AlignHCenter; width: parent.width - w.s(20); wrapMode: Text.WordWrap
-        text: w.err === "no-location" ? I18n.tr("No location known.") + "\n" + I18n.tr("Builder → Settings → Location & units") : (poll.running ? I18n.tr("Loading …") : (w.err === "offline" ? I18n.tr("No connection") : I18n.tr("No weather data")))
+        text: w.err === "no-location" ? I18n.tr("No location known.") + "\n" + I18n.tr("Builder → Settings → Location & units") : (w.err === "" ? I18n.tr("Loading …") : (w.err === "offline" ? I18n.tr("No connection") : I18n.tr("No weather data")))
     }
 }

@@ -42,21 +42,16 @@ Item {
     function clock(iso) { return iso ? String(iso).substring(11, 16) : ""; }
     function ago(sec) { return sec < 90 ? I18n.tr("just now") : sec < 5400 ? I18n.trf("%1 min ago", Math.round(sec / 60)) : I18n.trf("%1 h ago", Math.round(sec / 3600)); }
 
-    Process {
+    Feed {                                                  // one request for all air-quality widgets (and monitors)
         id: poll
+        key: "aq:" + String(w.props.lat || "") + "," + String(w.props.lon || "")
         command: ["bash", w.dir + "aq.sh", String(w.props.lat || ""), String(w.props.lon || "")]
-        stdout: StdioCollector { onStreamFinished: { try { w.d = JSON.parse(this.text); } catch (e) { } } }
-    }
-    Timer {
-        interval: 1800000; repeat: true; running: w.live; triggeredOnStart: true
-        onTriggered: if (!poll.running) poll.running = true
+        interval: 1800000
+        active: w.live
+        onGot: text => { try { w.d = JSON.parse(text); } catch (e) { } }
     }
     property int configRev: 0               // bumped by WidgetHost when config.json changes (location)
-    onConfigRevChanged: if (live && !poll.running) poll.running = true
-    Connections {
-        target: w
-        function onPropsChanged() { if (w.live && !poll.running) poll.running = true; }
-    }
+    onConfigRevChanged: if (live) poll.refresh()
 
     // ---- level + AQI -----------------------------------------------------------------------------------------------------
     Row {

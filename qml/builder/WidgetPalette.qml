@@ -72,7 +72,10 @@ Item {
                 Behavior on color { ColorAnimation { duration: 160 } }
                 TypeGlyph { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 18; height: 18; ti: row.ti; color: th.fg; size: 16 }
                 Text { x: 40; anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
-                    text: (row.ti ? I18n.tr(row.ti.label) : modelData) + (row.c ? "   ·  " + row.c.x + "," + row.c.y : "") }
+                    text: (row.ti ? I18n.tr(row.ti.label) : modelData) + (row.c && !pal.store.multi ? "   ·  " + row.c.x + "," + row.c.y : "") }
+                // several monitors: where the widget lives
+                Text { visible: pal.store.multi && !!row.c; anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter } color: th.dim; font.family: th.font; font.pixelSize: 11
+                    text: { if (!row.c) return ""; pal.store.mons; if (row.c.monitor === "all") return I18n.tr("All monitors"); var k = pal.store.homeKey(row.c); var r = pal.store.monRec(k); return r ? r.name : pal.store.monitorLabel(k); } }
                 MouseArea { id: lma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: pal.layerPicked(modelData) }
             }
         }

@@ -21,25 +21,21 @@ Item {
     // cava prints one line per frame: "12;40;7;..." (0..1000)
     readonly property string conf: "[general]\nbars = " + n + "\nframerate = 45\n[input]\nmethod = pipewire\nsource = " + (props.source || "auto")
         + "\n[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 1000\nbar_delimiter = 59\nframe_delimiter = 10\n[smoothing]\nnoise_reduction = 70\n"
-    Process {
+    Feed {                                                  // one cava for every visualizer with the same settings
         id: cava
-        running: true
+        key: "cava:" + w.conf
         command: ["sh", "-c", "f=$(mktemp /tmp/widgetdeck-cava.XXXXXX); printf '%s' \"$1\" > \"$f\"; trap 'rm -f \"$f\"' EXIT; cava -p \"$f\"", "sh", w.conf]
-        stdout: SplitParser {
-            onRead: line => {
-                var a = line.split(";"), out = [], changed = false;
-                for (var i = 0; i < a.length; i++) { if (a[i] === "") continue; out.push(parseInt(a[i]) / 1000); }
-                var old = w.levels;
-                if (out.length === old.length) { for (var j = 0; j < out.length; j++) if (out[j] !== old[j]) { changed = true; break; } }
-                else changed = true;
-                if (changed) w.levels = out;       // silence = identical frames: nothing to redraw
-            }
+        interval: 0
+        active: true
+        onGot: line => {
+            var a = line.split(";"), out = [], changed = false;
+            for (var i = 0; i < a.length; i++) { if (a[i] === "") continue; out.push(parseInt(a[i]) / 1000); }
+            var old = w.levels;
+            if (out.length === old.length) { for (var j = 0; j < out.length; j++) if (out[j] !== old[j]) { changed = true; break; } }
+            else changed = true;
+            if (changed) w.levels = out;       // silence = identical frames: nothing to redraw
         }
-        onExited: if (w.visible) restart.start()
     }
-    Timer { id: restart; interval: 4000; onTriggered: cava.running = true }
-    onConfChanged: { if (cava.running) { cava.running = false; restart.interval = 150; restart.start(); } }
-    Component.onDestruction: cava.running = false
 
     readonly property real slot: width / n
     readonly property real barW: slot * (1 - props.gap)

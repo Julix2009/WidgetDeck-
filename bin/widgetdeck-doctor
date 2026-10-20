@@ -95,6 +95,26 @@ if [ -f "$QML/core/wallpaper.sh" ]; then
 fi
 for t in awww swww hyprpaper swaybg wpaperd; do has "$t" && echo "wallpaper tool installed: $t"; done
 
+head_ "Monitors"
+if has hyprctl && jq -e . >/dev/null 2>&1 <<<"$(hyprctl -j monitors 2>/dev/null)"; then
+    mon_json="$(hyprctl -j monitors)"
+    nmon="$(jq '[.[] | select((.mirrorOf // "none") == "none")] | length' <<<"$mon_json")"
+    [ "$nmon" -gt 1 ] && ok "$nmon monitors found (mirrored ones count once, disabled ones are ignored)" || ok "1 monitor found - nothing extra to set up"
+    # the stable key: make + model + serial (else the description), never the connector alone. Only a short hash is printed: no serial numbers.
+    wp_all="$(bash "$QML/core/wallpaper.sh" --all 2>/dev/null | awk -F'\t' '{print $1 "\t" $2}' || true)"   # output, tool (no file names)
+    wfile="$CONF/widgets.json"; primary="$(jq -r '.monitors.primary // ""' "$CONF/config.json" 2>/dev/null || true)"
+    while IFS=$'\x1f' read -r name base sz scale hz transform px py w_name; do
+        [ -n "$name" ] || continue
+        id="$(printf '%s' "$base" | sha1sum | cut -c1-6)"
+        wp="$(awk -F'\t' -v n="$name" '$1==n {print $2; exit}' <<<"$wp_all")"; [ -n "$wp" ] || wp="$(awk -F'\t' '$1=="*" {print $2; exit}' <<<"$wp_all")"
+        isprim=0; { [ -n "$primary" ] && [ "$primary" = "$base" ]; } && isprim=1; { [ -z "$primary" ] && [ "$px" = 0 ] && [ "$py" = 0 ]; } && isprim=1
+        nw="-"; if [ -f "$wfile" ]; then nw="$(jq -r --arg k "$base" --argjson p "$isprim" '[.widgets[] | (.monitor // "primary") as $m | select($m == "all" or ($m == "primary" and $p == 1) or ($m != "primary" and ($m | ascii_downcase) == $k))] | length' "$wfile" 2>/dev/null || echo -)"; fi
+        rot="normal"; case "$transform" in 1|3|5|7) rot="rotated (portrait)";; esac
+        echo "  $name$([ "$isprim" = 1 ] && [ "$nmon" -gt 1 ] && echo ' (main)')  id $id  $w_name  $sz @${scale}  ${hz} Hz  $rot  wallpaper: $([ -n "$wp" ] && echo "found ($wp)" || echo "not found")  widgets: $nw"
+    done < <(jq -r '.[] | select((.mirrorOf // "none") == "none") | .name as $n | [.name, ((if (.model // "") != "" and ((.serial // "") != "" and .serial != "0") then ((.make // "") + " " + .model + " " + .serial) else ((.description // "") | sub("\\s*\\([^()]*\\)\\s*$"; "")) end) | ascii_downcase | gsub("[^a-z0-9]+"; "-") | sub("^-+|-+$"; "") | if . == "" then (($n | ascii_downcase | gsub("[^a-z0-9]+"; "-"))) else . end), "\(.width)x\(.height)", (.scale|tostring), (.refreshRate|floor|tostring), (.transform|tostring), (.x|tostring), (.y|tostring), (((.make // "") + " " + (.model // "")) | gsub("^ +| +$"; "") | if . == "" then "-" else . end)] | join("\u001f")' <<<"$mon_json")
+    [ "$nmon" -gt 1 ] && echo "primary monitor: ${primary:-automatic (the one at the origin)}  ·  unplugged widgets: $(jq -r '.monitors.unplugged // "wait"' "$CONF/config.json" 2>/dev/null || echo wait)  ·  bar on: $(jq -c '.monitors.bar // "all"' "$CONF/config.json" 2>/dev/null || echo all)"
+else echo "[info] hyprctl monitors is not available (not inside a Hyprland session): monitors are not listed"; fi
+
 head_ "Conflicts (nothing is ever stopped by WidgetDeck)"
 c=""; for p in waybar ags eww hyprpanel yambar ironbar dunst mako swaync; do pgrep -x "$p" >/dev/null 2>&1 && c="$c $p"; done
 if [ -n "$c" ]; then warn "running:$c" "fine for the widgets; the bar / notification modules would collide with them (the settings tell you what to switch off)"; else ok "no other bar or notification daemon is running"; fi

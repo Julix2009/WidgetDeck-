@@ -17,6 +17,17 @@ Item {
     readonly property var st: { store.rev; return sel !== "" ? store.styleOf(sel) : null; }
     readonly property var wp: { store.rev; return sel !== "" ? store.propsOf(sel) : null; }
     readonly property var tinfo: c ? store.typeInfo(c.type) : null
+    function monOptions() {
+        var o = [["primary", I18n.tr("Primary monitor")], ["all", I18n.tr("All monitors")]], l = store.mons;
+        for (var i = 0; i < l.length; i++) o.push([l[i].key, (i + 1) + "  " + l[i].name + "  (" + l[i].w + "×" + l[i].h + ")"]);
+        if (c && c.monitor && c.monitor !== "primary" && c.monitor !== "all" && !store.monRec(c.monitor)) o.push([c.monitor, store.monitorLabel(c.monitor)]);
+        return o;
+    }
+    function otherMons() {
+        var o = [], l = store.mons, home = c ? store.homeKey(c) : "";
+        for (var i = 0; i < l.length; i++) if (l[i].key !== home) o.push([l[i].key, (i + 1) + "  " + l[i].name + "  (" + l[i].w + "×" + l[i].h + ")"]);
+        return o;
+    }
 
     // style controls without the mode switch, filtered by the active glass mode
     readonly property var styleModel: {
@@ -77,6 +88,23 @@ Item {
                     }
                 }
             }
+
+            // several monitors only: which monitor the widget lives on (one monitor: none of this exists)
+            Text { visible: pp.store.multi; text: I18n.tr("MONITOR"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4; height: visible ? implicitHeight : 0 }
+            GChoice {
+                visible: pp.store.multi; height: visible ? implicitHeight : 0
+                width: parent.width; th: pp.th; label: I18n.tr("Show on"); options: pp.monOptions(); value: pp.c && pp.c.monitor ? pp.c.monitor : "primary"
+                onPicked: v => pp.store.setMonitor(pp.sel, v)
+            }
+            Item {
+                visible: pp.store.multi; width: parent.width; height: visible ? 32 : 0
+                Row {
+                    spacing: 6; width: parent.width
+                    GButton { th: pp.th; label: I18n.tr("Move to…"); width: (col.width - 6) / 2; onClicked: pp.th.pickList(this, pp.otherMons(), "", function (k) { pp.store.setMonitor(pp.sel, k); pp.store.selMon = k; }) }
+                    GButton { th: pp.th; label: I18n.tr("Copy to…"); width: (col.width - 6) / 2; onClicked: pp.th.pickList(this, pp.otherMons(), "", function (k) { pp.store.copyToMonitor(pp.sel, k); }) }
+                }
+            }
+            GSwitch { visible: pp.store.multi; height: visible ? implicitHeight : 0; width: parent.width; th: pp.th; label: I18n.tr("Show on the desktop"); checked: !(pp.c && pp.c.hidden); onToggled: v => pp.store.setHidden(pp.sel, !v) }
 
             Item {
                 visible: !!pp.tinfo && !!pp.tinfo.sizes

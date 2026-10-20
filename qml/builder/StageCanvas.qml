@@ -41,7 +41,7 @@ Item {
         return null;
     }
     function idAt(x, y) {
-        var ids = store.widgetIds;
+        var ids = store.stageIds;
         for (var i = ids.length - 1; i >= 0; i--) {
             var c = store.cfg(ids[i]);
             if (c && x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.h) return ids[i];
@@ -134,7 +134,7 @@ Item {
         if (d.mode === "band") {
             var bx = Math.min(d.x0, x), by = Math.min(d.y0, y), bw = Math.abs(x - d.x0), bh = Math.abs(y - d.y0);
             band.x = bx; band.y = by; band.width = bw; band.height = bh; band.visible = bw > 3 || bh > 3;
-            var ids = d.keep.slice(), all = store.widgetIds;
+            var ids = d.keep.slice(), all = store.stageIds;
             for (i = 0; i < all.length; i++) {
                 var c = store.cfg(all[i]);
                 if (c && c.x < bx + bw && c.x + c.w > bx && c.y < by + bh && c.y + c.h > by && ids.indexOf(all[i]) < 0) ids.push(all[i]);
@@ -145,6 +145,9 @@ Item {
         var oth = store.rects(d.ids);
         if (d.mode === "move") {
             var raw = { x: d.bb.x + dx, y: d.bb.y + dy, w: d.bb.w, h: d.bb.h };
+            // dragged over the edge of this monitor (setting "monitors.cross_edge"): on release the group moves to the neighbour that is there
+            var sc = scr(), cxr = raw.x + raw.w / 2, cyr = raw.y + raw.h / 2;
+            d.cross = (store.multi && store.cget("monitors.cross_edge", false) && (cxr < -16 || cxr > sc.width + 16 || cyr < -16 || cyr > sc.height + 16)) ? { x: cxr, y: cyr } : null;
             var res = SE.move(raw, oth, a, g, scr(), free);
             var nx = Math.max(a.x, Math.min(a.x + a.w - d.bb.w, res.x)), ny = Math.max(a.y, Math.min(a.y + a.h - d.bb.h, res.y));
             var sx = nx - d.bb.x, sy = ny - d.bb.y, map = {}, moved = [];
@@ -187,6 +190,10 @@ Item {
             }
         }
         if (d && d.ids) for (var j = 0; j < d.ids.length; j++) { var h = hostFor(d.ids[j]); if (h) { h.stretchX = 0; h.stretchY = 0; } }
+        if (d && d.mode === "move" && d.cross) {
+            var cm = store.monRec(store.curKey()), tm = cm ? store.monitorAtGlobal(cm.x + d.cross.x, cm.y + d.cross.y) : null;
+            if (tm && tm.key !== cm.key) store.moveIdsToMonitor(d.ids, d.starts, d.bb, tm.key, cm.x + d.cross.x - tm.x, cm.y + d.cross.y - tm.y);
+        }
         guides = []; gaps = []; invalid = false; band.visible = false;
     }
 
@@ -276,7 +283,7 @@ Item {
 
             Repeater {
                 id: rep
-                model: cv.store.loaded ? cv.store.widgetIds : []
+                model: cv.store.loaded ? cv.store.stageIds : []
                 delegate: WidgetHost {
                     required property string modelData
                     required property int index

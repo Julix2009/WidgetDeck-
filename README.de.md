@@ -50,6 +50,22 @@ Widgets (an), Builder und Raster (an), Leiste (**aus**), Benachrichtigungen und 
 
 **Setup prüfen:** `widgetdeck-doctor` gibt OK / WARN / FAIL mit Lösungsvorschlag aus. Die Ausgabe verbirgt dein Home-Verzeichnis und enthält weder Standort noch Wallpaper-Pfad – du kannst sie in ein GitHub-Issue kopieren.
 
+## Mehrere Monitore
+
+![Builder mit Monitor-Auswahl](docs/multi-monitor.png)
+
+WidgetDeck erkennt deine Monitore selbst (Quickshell + `hyprctl monitors`): Name, Hersteller / Modell, Position, Auflösung, Skalierung, Drehung, Bildwiederholrate, reservierte Flächen (eine Leiste) und eine **stabile Kennung** (Hersteller + Modell + Seriennummer, sonst die Beschreibung - der Anschluss allein ist nie die Identität, DP-1 kann nach einem Neustart ein anderer Monitor sein; zwei gleiche Monitore ohne Seriennummer unterscheidet der Anschluss). Gespiegelte Monitore zählen einmal, deaktivierte werden ignoriert. Ein- und Abstecken wird live erkannt, ohne Neustart.
+
+* **Ein Monitor:** nichts ändert sich, nichts Zusätzliches erscheint.
+* **Mehrere Monitore:** der Builder zeigt eine Auswahl (Karten plus kleine Anordnungs-Übersicht) und den Knopf *Monitore anzeigen* (große Nummer und Name auf jedem Bildschirm für einige Sekunden). Raster, Einrasten und Hilfslinien gelten für den gewählten Monitor; seine Widgets stehen auf der Bühne mit dem eigenen Hintergrundbild dieses Monitors.
+* **Widgets und Monitore:** jedes Widget hat *Anzeigen auf*: ein bestimmter Monitor, *Hauptmonitor* (Standard) oder *Alle Monitore* (je eine Instanz, gleicher Versatz), dazu *Verschieben nach …* und *Kopieren nach …*. Derselbe Widget-Typ darf mehrfach vorkommen, jeder mit eigener Position und Größe. Positionen werden in Rasterzellen relativ zur nutzbaren Fläche des Monitors des Widgets gespeichert (eine Leiste verkleinert nur ihren eigenen Monitor). *Layout dieses Monitors kopieren nach …* rechnet ein ganzes Layout auf eine andere Auflösung um. Zellengröße, Randabstand, Größe neuer Widgets und ein manuelles Hintergrundbild lassen sich pro Monitor einstellen (Einstellungen); Glasstil und Glas-Parameter bleiben global.
+* **Abziehen:** Widgets eines fehlenden Monitors werden nicht gelöscht, sie warten (Standard) oder wandern auf den Hauptmonitor (Einstellung) und kehren an ihren Platz zurück. Ein neuer, unbekannter Monitor startet leer, und der Builder bietet an, das Layout eines anderen zu übernehmen. Optional: ein Widget über den Monitorrand ziehen verschiebt es auf den Nachbarn (Einstellung).
+* **Glas:** die Widgets jedes Monitors brechen das Hintergrundbild genau dieses Monitors (pro Ausgabe bei awww, swww, hyprpaper, swaybg, wpaperd; ein manueller Pfad pro Monitor geht immer).
+* **Daten werden nur einmal abgefragt**, nicht pro Monitor: Wetter, Luftqualität, Stundenplan, Netzwerk (ein Ping), CPU / RAM, Temperaturen, Visualizer und die Player-Beobachtung laufen als gemeinsame Feeds, die alle Widget-Instanzen nur lesen.
+* **Leiste, Benachrichtigungen, Power-Menü:** die Leiste lässt sich pro Monitor schalten und zeigt die Workspaces ihres eigenen Monitors; Benachrichtigungen und Power-Menü erscheinen auf dem fokussierten, dem Haupt- oder einem gewählten Monitor (Einstellungen). Die Layerrules gelten pro Namespace und damit für jeden Monitor.
+* **Einstellungen:** `~/.config/widgetdeck/config.json`, Schlüssel `monitors` (`primary`, `unplugged`, `cross_edge`, `notify`, `bar`). Die Layout-Datei ist v3 (eine ältere wird beim ersten Start als `widgets.json.v2-backup-<Datum>` gesichert und ohne Verschieben umgewandelt).
+* `widgetdeck-doctor` listet jeden Monitor (kurze Kennung statt Seriennummer, Auflösung, Skalierung, Drehung, Hintergrund-Werkzeug, Anzahl Widgets).
+
 ## Wetter-Karte (3D-Icons)
 
 ![Wetter-Karte: Milchglas und Liquid Glass, groß und klein](docs/weather-card.png)

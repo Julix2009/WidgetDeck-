@@ -11,6 +11,8 @@ import "../core"
 Scope {
     id: nt
     required property var theme
+    required property var store
+    required property var mons
     property bool dnd: false
     readonly property int count: server.trackedNotifications.values.length
     function dismissAll() { var l = server.trackedNotifications.values.slice(); for (var i = 0; i < l.length; i++) l[i].dismiss(); }
@@ -27,10 +29,14 @@ Scope {
     PanelWindow {
         id: win
         visible: !nt.dnd && col.children.length > 1
-        // cards appear on the monitor you are working on
+        // cards appear on the monitor you are working on (setting "monitors.notify": the focused one, the main one or a chosen one)
         screen: {
-            var f = Hyprland.focusedMonitor, all = Quickshell.screens;
-            for (var i = 0; i < all.length; i++) if (f && all[i].name === f.name) return all[i];
+            var all = Quickshell.screens, mode = nt.store.cget("monitors.notify", "focused"), want = "", i;
+            nt.mons.list;
+            if (mode === "primary") { var p = nt.mons.byKey(nt.mons.primaryKey); want = p ? p.name : ""; }
+            else if (mode !== "focused") { var k = nt.mons.byKey(mode); want = k ? k.name : ""; }
+            if (want === "") { var f = Hyprland.focusedMonitor; want = f ? f.name : ""; }
+            for (i = 0; i < all.length; i++) if (all[i].name === want) return all[i];
             return all.length > 0 ? all[0] : null;
         }
         anchors { top: true; right: true }
