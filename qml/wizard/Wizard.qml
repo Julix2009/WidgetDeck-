@@ -37,13 +37,13 @@ FloatingWindow {
     property string lang: store.cget("language", "auto")
     property string style: "frosted"
     property string size: "M"
-    property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false, weathercard: false, timetable: false })
+    property var picked: ({ clock: true, sysmon: true, music: true, weather: true, netmon: false, thermals: false, sysstatus: false, airquality: false, visualizer: false, weathercard: false, f1: false, timetable: false })
     property var monMap: ({})                // several monitors: type -> monitor key | "all" (default: the main monitor)
     function monChoices() { var o = [store.primaryKey]; for (var i = 0; i < store.mons.length; i++) if (store.mons[i].key !== store.primaryKey) o.push(store.mons[i].key); o.push("all"); return o; }
     function monOf(t) { return monMap[t] || store.primaryKey; }
     function monText(t) { var k = monOf(t); if (k === "all") return I18n.tr("All monitors"); var m = store.monRec(k); return m ? m.name + (k === store.primaryKey ? " ★" : "") : k; }
     function cycleMon(t) { var c = monChoices(), i = c.indexOf(monOf(t)), m = Object.assign({}, monMap); m[t] = c[(i + 1) % c.length]; monMap = m; }
-    readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "weathercard", "airquality", "netmon", "thermals", "sysstatus", "timetable"]
+    readonly property var typeKeys: ["clock", "sysmon", "music", "visualizer", "weather", "weathercard", "f1", "airquality", "netmon", "thermals", "sysstatus", "timetable"]
     function openTimetableSetup() { Quickshell.execDetached(["sh", "-c", "exec \"$1\" --terminal 2>/dev/null || exec widgetdeck-untis-setup --terminal", "sh", Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup"]); }
 
     function apply(o) {                  // automation: set choices by name (locMode, units, timeFmt, lang, style, size, lat, lon)

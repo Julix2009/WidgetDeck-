@@ -44,8 +44,15 @@ Singleton {
     }
 
     function deliver(e, text) {
+        if (!e) return;
         e.last = text; e.hasLast = true; e.stamp = Date.now();
-        for (var i = 0; i < e.clients.length; i++) { try { e.clients[i].got(text); } catch (x) { console.log("[widgetdeck] feed reader failed:", x); } }
+        var dead = [];
+        for (var i = 0; i < e.clients.length; i++) { try { e.clients[i].got(text); } catch (x) { dead.push(e.clients[i]); } }
+        // a reader that is already destroyed (its window went away) throws: forget it; a feed nobody reads any more stops
+        if (dead.length > 0) {
+            e.clients = e.clients.filter(function (c) { return dead.indexOf(c) < 0; });
+            if (e.clients.length === 0 && e.node) e.node.stop();
+        }
     }
     function acquire(client) {
         var k = client.key, e = entries[k];

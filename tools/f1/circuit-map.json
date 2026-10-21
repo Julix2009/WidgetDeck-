@@ -1,0 +1,10 @@
+{
+  "_comment": "Jolpica-F1 circuitId -> id in bacinger/f1-circuits (MIT). Only circuits that have geometry there. Add a line here, run tools/f1/build_circuits.py to add a circuit.",
+  "albert_park": "au-1953", "shanghai": "cn-2004", "suzuka": "jp-1962", "miami": "us-2022", "villeneuve": "ca-1978", "monaco": "mc-1929",
+  "catalunya": "es-1991", "red_bull_ring": "at-1969", "silverstone": "gb-1948", "spa": "be-1925", "hungaroring": "hu-1986", "zandvoort": "nl-1948",
+  "monza": "it-1922", "madring": "es-2026", "baku": "az-2016", "sepang": "my-1999", "marina_bay": "sg-2008", "americas": "us-2012",
+  "rodriguez": "mx-1962", "interlagos": "br-1940", "vegas": "us-2023", "losail": "qa-2004", "yas_marina": "ae-2009",
+  "bahrain": "bh-2002", "jeddah": "sa-2021", "imola": "it-1953", "mugello": "it-1914", "nurburgring": "de-1927", "hockenheimring": "de-1932",
+  "ricard": "fr-1969", "magny_cours": "fr-1960", "istanbul": "tr-2005", "portimao": "pt-2008", "estoril": "pt-1972", "sochi": "ru-2014",
+  "indianapolis": "us-1909", "galvez": "ar-1952", "kyalami": "za-1961", "watkins_glen": "us-1956", "jacarepagua": "br-1977"
+}

@@ -153,6 +153,20 @@ if [ -d "$QML/widgets/weathercard" ]; then
     elif [ -f "$CACHE/weather.json" ]; then echo "[info] weather card: the cached weather data is older than this version - it refreshes within 10 minutes"; fi
 fi
 
+head_ "Formula 1 widget (unofficial)"
+if [ -f "$QML/widgets/f1/f1.py" ] && has python3; then
+    f1="$(python3 -I "$QML/widgets/f1/f1.py" doctor 2>/dev/null)"
+    for src in Jolpica-F1 OpenF1; do
+        case "$f1" in
+            *"$src: reachable"*) ok "$src reachable (calendar, results, standings / live view)" ;;
+            *"$src: not reachable"*) warn "$src not reachable - the widget shows its cached data with an \"As of\" note" "check your connection / firewall" ;;
+        esac
+    done
+    age="$(sed -n 's/^cache calendar: age //p' <<<"$f1")"
+    if [ -n "$age" ]; then ok "F1 cache: calendar loaded $age ago"; else echo "[info] F1 widget: no cache yet (it is created when the widget is first shown)"; fi
+    req="$(sed -n 's/^requests in the last 24 h: //p' <<<"$f1")"; [ -n "$req" ] && echo "F1 requests in the last 24 h: $req"
+fi
+
 head_ "Hardware (widgets hide what is missing)"
 cpu=0; [ -d /sys/class/hwmon ] && grep -lqE 'coretemp|k10temp' /sys/class/hwmon/hwmon*/name 2>/dev/null && cpu=1
 [ "$cpu" = 1 ] && ok "CPU temperature sensor" || echo "[info] no CPU temperature sensor (the thermals widget leaves it out)"

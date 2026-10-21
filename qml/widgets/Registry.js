@@ -99,6 +99,25 @@ var TYPES = {
             { key: "debug_time", label: "Test: day / night", kind: "choice", def: "auto", options: [["auto", "Real"], ["day", "Day"], ["night", "Night"]] }
         ]
     },
+    f1: {
+        label: "Formula 1", desc: "Next race weekend: track outline, countdown, all sessions in local time, last result and standings (unofficial fan widget)", icon: "clock", size: [580, 540], file: "F1Widget.qml",
+        sizes: { small: [420, 240], large: [580, 540] },
+        props: [
+            { key: "show_results", label: "Show last result", kind: "bool", def: true },
+            { key: "show_standings", label: "Show driver standings", kind: "bool", def: true },
+            { key: "standings", label: "Standings places (large size)", kind: "range", def: 3, min: 3, max: 10, step: 1 },
+            { key: "show_track", label: "Track outline", kind: "bool", def: true },
+            { key: "draw_in", label: "Draw the outline in once", kind: "bool", def: true },
+            { key: "time_format", label: "Time format", kind: "choice", def: "auto", options: [["auto", "From system"], ["24h", "24 h"], ["12h", "12 h"]] },
+            { key: "live_data", label: "Live data during a session (OpenF1)", kind: "bool", def: false },
+            { key: "reminder", label: "Remind me before sessions", kind: "bool", def: false },
+            { key: "rem_practice", label: "Remind: practice", kind: "bool", def: false, when: { key: "reminder", is: "true" } },
+            { key: "rem_quali", label: "Remind: qualifying", kind: "bool", def: true, when: { key: "reminder", is: "true" } },
+            { key: "rem_race", label: "Remind: race and sprint", kind: "bool", def: true, when: { key: "reminder", is: "true" } },
+            { key: "debug_scenario", label: "Test: weekend", kind: "choice", def: "auto", options: [["auto", "Real data"], ["weekend", "Normal weekend"], ["sprint", "Sprint weekend"], ["running", "Session running"], ["finished", "Race just finished"], ["seasonend", "Season finished"], ["cancelled", "Race cancelled"], ["noresult", "No result yet"]] },
+            { key: "debug_circuit", label: "Test: circuit", kind: "choice", def: "auto", options: [["auto", "Real circuit"], ["albert_park", "Albert Park Circuit"],["shanghai", "Shanghai International Circuit"],["suzuka", "Suzuka International Racing Course"],["miami", "Miami International Autodrome"],["villeneuve", "Circuit Gilles-Villeneuve"],["monaco", "Circuit de Monaco"],["catalunya", "Circuit de Barcelona-Catalunya"],["red_bull_ring", "Red Bull Ring"],["silverstone", "Silverstone Circuit"],["spa", "Circuit de Spa-Francorchamps"],["hungaroring", "Hungaroring"],["zandvoort", "Circuit Zandvoort"],["monza", "Autodromo Nazionale Monza"],["madring", "Circuito de Madring"],["baku", "Baku City Circuit"],["sepang", "Sepang International Circuit"],["marina_bay", "Marina Bay Street Circuit"],["americas", "Circuit of the Americas"],["rodriguez", "Autódromo Hermanos Rodríguez"],["interlagos", "Autódromo José Carlos Pace - Interlagos"],["vegas", "Las Vegas Street Circuit"],["losail", "Losail International Circuit"],["yas_marina", "Yas Marina Circuit"],["bahrain", "Bahrain International Circuit"],["jeddah", "Jeddah Corniche Circuit"],["imola", "Autodromo Enzo e Dino Ferrari"],["mugello", "Autodromo Internazionale del Mugello"],["nurburgring", "Nürburgring"],["hockenheimring", "Hockenheimring"],["ricard", "Circuit Paul Ricard"],["magny_cours", "Circuit de Nevers Magny-Cours"],["istanbul", "Intercity Istanbul Park"],["portimao", "Autódromo Internacional do Algarve"],["estoril", "Autódromo do Estoril"],["sochi", "Sochi Autodrom"],["indianapolis", "Indianapolis Motor Speedway"],["galvez", "Autódromo Oscar y Juan Gálvez"],["kyalami", "Kyalami Grand Prix Circuit"],["watkins_glen", "Watkins Glen International"],["jacarepagua", "Autódromo Internacional Nelson Piquet"]] }
+        ]
+    },
     timetable: {
         label: "Timetable", desc: "Your WebUntis timetable (Untis Mobile access): now / next lesson, day and week", icon: "calendar", size: [380, 220], file: "TimetableWidget.qml",
         sizes: { small: [380, 220], large: [640, 460] },

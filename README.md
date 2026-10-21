@@ -1,6 +1,6 @@
 # WidgetDeck
 
-Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, CPU/RAM, music, visualizer, network, temperatures, system status, air quality and weather (with rain and snow particles), in **Frosted Glass** or **Liquid Glass** style. A built-in **builder** lets you place everything with the mouse: snap grid, guides, multi-select, align and distribute.
+Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, CPU/RAM, music, visualizer, network, temperatures, system status, air quality, weather (with rain and snow particles) and a Formula 1 race-weekend card, in **Frosted Glass** or **Liquid Glass** style. A built-in **builder** lets you place everything with the mouse: snap grid, guides, multi-select, align and distribute.
 
 It runs on its own: it needs none of the author's dotfiles, no other Quickshell setup, no icon theme and no particular font. Optional parts (a bar, a notification service with power menu) are **off by default**.
 
@@ -34,7 +34,7 @@ All packages are in the **official repositories** (no AUR).
 |---|---|
 | required | `quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils` |
 | recommended (font) | `adwaita-fonts` (without it the next installed font is used: Inter, Cantarell, Noto Sans, DejaVu Sans, else the system default) |
-| optional | `networkmanager` (Wi-Fi name), `playerctl`, `cava` (visualizer), `matugen` (colours from the wallpaper; without it a fixed default palette is used) |
+| optional | `python` (Formula 1 and timetable widgets: their data helpers use only the standard library), `networkmanager` (Wi-Fi name), `playerctl`, `cava` (visualizer), `matugen` (colours from the wallpaper; without it a fixed default palette is used) |
 
 Icons are drawn by WidgetDeck itself, so no icon font or icon theme is needed.
 
@@ -68,13 +68,13 @@ Changes (all removable with `./uninstall.sh`):
 
 It does **not**: stop, disable or replace any other program (bars, notification daemons, wallpaper tools); edit anything else in your Hyprland config; install anything from the AUR; run as root (only `pacman` is called through `sudo`, after you confirm).
 
-**Network use** (all optional): weather and air quality come from open-meteo.com (only coordinates are sent). The location can be found once by IP address via ipwho.is (cached for a week) - the assistant explains this and you can enter coordinates instead or switch weather off. A daily update check does `git ls-remote` on this repository; it can be switched off in the settings. Nothing is looked up before you accept the assistant's location question.
+**Network use** (all optional): weather and air quality come from open-meteo.com (only coordinates are sent). The location can be found once by IP address via ipwho.is (cached for a week) - the assistant explains this and you can enter coordinates instead or switch weather off. The **Formula 1 widget** (only when you add it) loads the calendar, results and standings from Jolpica-F1 (api.jolpi.ca, no key, at most a handful of requests per day for all widgets and monitors together) and, only if you switch on *live data*, a running session from OpenF1 (api.openf1.org); no personal data is sent. A daily update check does `git ls-remote` on this repository; it can be switched off in the settings. Nothing is looked up before you accept the assistant's location question.
 
 ## Modules
 
 | Module | Default | Notes |
 |---|---|---|
-| Widgets | on | weather, network, temperatures, system, air quality, music |
+| Widgets | on | weather, network, temperatures, system, air quality, music, Formula 1, timetable |
 | Builder and grid | on | the editor (`widgetdeck builder`) |
 | Bar | **off** | slim top bar: workspaces, clock, tray, power button |
 | Notifications and power menu | **off** | replaces your notification daemon |
@@ -120,6 +120,24 @@ _Invented place name, neutral demo session._
 A second weather widget next to the plain *Weather* one: a big 3D icon for the current weather, place, description and chance of rain, the temperature in a light weight with high / low, a strip of the next 4-8 hours (small icon above the time, 12 h or 24 h from your settings) and a list of the next 3-7 days with optional thin temperature bars. The *Small* size keeps icon, place, temperature, high / low and four hours; *Small / Large* in the builder animates between the two. It uses the **same data as the weather widget** - the same script, the same location and units, one Open-Meteo request per 10 minutes for all weather widgets together (a lock makes simultaneous widgets wait for the first one) - and shows "As of HH:MM" with the last values when you are offline. Fields that are missing are hidden.
 
 The icons are soft, clay-like 3D objects (clouds from overlapping soft spheres, a glowing sun, glossy drops, a crescent moon with craters, flakes, a bolt, hail, fog) lit from the top left, for 12 weather types by day and night. They are **real 3D renders** made with Blender (Cycles) by `tools/blender/render.sh` from a procedural scene description (`tools/blender/icon_scenes.py`, soft metaball models, no meshes or textures from anywhere); the finished images are in the repository (`qml/widgets/weathercard/icons3d/`), so **Blender is only needed to regenerate them**. Every icon is rendered as separate layers (sun, cloud, drops, shadow, ...) from 5 x 3 view angles; the card blends the neighbouring angles while the mouse moves over the icon, so the object really turns towards you. At run time the card only shows images, so it costs nothing while nothing moves. Options: *Animations* Off / Subtle (default) / Full - the big icon floats a little, clouds drift, the sun breathes, drops fall in small loops, and on hover the icon turns and a light reflection follows the mouse; with *Off* nothing runs at all. *Sky gradient* (milk glass only, never on Liquid Glass) tints the card softly by weather and time of day. *Test: force weather* / *Test: day / night* show every icon without waiting for the weather. The glass behind the card is the shared glass panel only; Liquid / milk glass follows the global switch.
+
+## Formula 1 widget (unofficial)
+
+![Formula 1 card: milk glass and Liquid Glass, large and small (invented demo data)](docs/f1-card.png)
+
+> **Unofficial fan widget.** It has no connection to Formula 1, the FIA, teams or drivers; "Formula 1", "F1" and "FIA" and related marks belong to their owners. No logos, team or driver images are included or loaded, and nothing is scraped from websites. The screenshot above shows **invented demo data** (the widget's *Test* options).
+
+It shows the next race weekend: the **outline of the circuit**, a **countdown**, and **all sessions of the weekend in your local time** (three practices, qualifying, race - or practice 1, sprint qualifying, sprint, qualifying, race on sprint weekends), the **last result** (podium) and the **driver standings** (top 3 to 10). *Small / Large* in the builder switches between the compact card (circuit, name, countdown, race time, qualifying and race) and the large one (all sessions, result, standings; the number of standings places is limited by the room the card has). Times and dates follow the system time zone including summer time, 12 h / 24 h comes from the settings (or the widget's own *Time format*), and the language (German / English) from the language setting. The country flag next to the place is an emoji and only appears when an emoji font is installed (for example `noto-fonts-emoji`); the country name is always spelled out.
+
+* **States:** *upcoming* (countdown to the race, the next session is marked); *session running* ("Practice 1 is running", optional live view); *race finished* (result and the next race as soon as the result is published, polled every 10 minutes until it arrives); *season finished* (champion, then the calendar of the next season once it is published); *cancelled / postponed* (marked, with the old date); *offline* (the last data with "As of HH:MM"); *no data yet* (a *Reload* button). Changes blend over softly, the layout never jumps.
+* **Countdown:** one tick per minute, one per second in the last hour; only the number text changes, the glass is not re-rendered.
+* **Data and request budget:** [Jolpica-F1](https://github.com/jolpica/jolpica-f1) (successor of Ergast, no key) for the calendar (loaded at most once a day), results and standings (every 6 hours) and [OpenF1](https://openf1.org) for cancelled sessions. Everything is fetched **once** by a shared feed (not per widget, not per monitor) with `qml/widgets/f1/f1.py` (Python standard library only, HTTPS with certificate check only), cached in `~/.cache/widgetdeck/f1.json` and used when you are offline. After an error the source is left alone for 5 minutes, doubling up to 2 hours; HTTP 429 and `Retry-After` are obeyed. A normal day is about 10 requests; Jolpica allows 500 per hour. `widgetdeck-doctor` checks both sources and the cache age.
+* **Live view (off by default):** *Live data during a session* shows the flag status and the first three from OpenF1 while a session runs and the widget is visible. OpenF1 may ask for a login for real-time data; then the card simply stays in its normal view. This part could not be verified against a real live session when it was written.
+* **Reminder (off by default):** *Remind me before sessions* sends a `notify-send` message 15 minutes before the chosen sessions (practice / qualifying / race and sprint) - the only thing the widget ever "does" besides showing.
+* **Track outlines:** 40 circuits (all of the current calendar and former ones) from the MIT-licensed [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) GeoJSON, simplified to a clean closed line by `tools/f1/build_circuits.py` (no names, no logos). The finished file ships with WidgetDeck, nothing is loaded for it. A circuit without an outline is shown calmly without one and the shell log names it. *Draw the outline in once* animates the line the first time a weekend is shown.
+* **Test options** in the widget's settings: *Test: weekend* (normal / sprint / session running / race just finished / season finished / cancelled / no result) and *Test: circuit* use invented data and need no network.
+* **Glass:** the card only uses the shared glass panel, so Frosted / Liquid Glass, grid, snapping, sizes and monitors work as for every other widget; the layer rules of the Hyprland file are per namespace, so **no new rule is needed**.
+* **Licences of the data:** Jolpica-F1 data is CC BY-NC-SA 4.0 (non-commercial use, [terms](https://github.com/jolpica/jolpica-f1/blob/main/TERMS.md)); OpenF1 is an unofficial project. Details in `NOTICE.md`.
 
 ## Music widget: two styles
 
@@ -173,6 +191,6 @@ Details (channels, migrations, local changes): see [README.de.md](README.de.md#u
 
 ## Licence and credits
 
-Own code: MIT, see [LICENSE](LICENSE). The Liquid Glass shader is derived from `liquidglass.frag` of [MacShell](https://github.com/0-ss/MacShell) (MIT, © 2026 Rickky), see `NOTICE.md` and `LICENSES/`. Weather data: [Open-Meteo](https://open-meteo.com) (CC BY 4.0). Fonts and icon sets are not bundled; the icons are drawn for this project.
+Own code: MIT, see [LICENSE](LICENSE). The Liquid Glass shader is derived from `liquidglass.frag` of [MacShell](https://github.com/0-ss/MacShell) (MIT, © 2026 Rickky), see `NOTICE.md` and `LICENSES/`. Weather data: [Open-Meteo](https://open-meteo.com) (CC BY 4.0). Formula 1 data: [Jolpica-F1](https://github.com/jolpica/jolpica-f1) (CC BY-NC-SA 4.0) and [OpenF1](https://openf1.org); track outlines derived from [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT). Unofficial fan widget, F1 marks belong to their owners. Fonts and icon sets are not bundled; the icons are drawn for this project.
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) · Help: [SUPPORT.md](SUPPORT.md)

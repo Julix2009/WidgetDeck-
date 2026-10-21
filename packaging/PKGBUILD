@@ -17,7 +17,7 @@ optdepends=('hyprland: the compositor this is made for'
             'playerctl: music widget controls'
             'cava: visualizer widget'
             'matugen: colours from the wallpaper'
-            'python: timetable widget (Untis client)'
+            'python: timetable and Formula 1 widgets (data helpers)'
             'zbar: timetable widget (reads the QR code)'
             'libsecret: timetable widget (keyring, secret-tool)')
 source=()                           # built from the surrounding clone, nothing is downloaded

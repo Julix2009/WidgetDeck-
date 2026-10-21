@@ -13,7 +13,7 @@
 #   playerctl             skip direction in the music widget (optional)
 #   cava                  the audio visualizer widget (optional)
 #   matugen               colours that follow the wallpaper (optional; without it the fixed default palette is used)
-#   python zbar libsecret timetable widget only: python runs the Untis client (standard library), zbar reads the QR code, libsecret = secret-tool (keyring)
+#   python zbar libsecret timetable widget (zbar, libsecret) and Formula 1 widget (python only): python runs the data helpers (standard library), zbar reads the QR code, libsecret = secret-tool (keyring)
 # Icons are drawn by WidgetDeck itself (qml/core/Icons.js): no icon font and no icon theme is needed.
 PKGS_REQUIRED=(quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils)
 PKGS_RECOMMENDED=(adwaita-fonts)
@@ -23,7 +23,7 @@ declare -A PKG_WHY=(
     [jq]="JSON in the data widgets and config" [curl]="weather / air quality" [iproute2]="network widget (ip)" [iputils]="network widget (ping)"
     [adwaita-fonts]="preferred UI font"
     [networkmanager]="Wi-Fi name and signal (nmcli)" [playerctl]="music widget: skip direction" [cava]="visualizer widget" [matugen]="colours from the wallpaper"
-    [python]="timetable widget: Untis client" [zbar]="timetable widget: reads the QR code" [libsecret]="timetable widget: keyring (secret-tool)"
+    [python]="timetable and Formula 1 widgets: data helpers" [zbar]="timetable widget: reads the QR code" [libsecret]="timetable widget: keyring (secret-tool)"
 )
 
 # missing <pkg...>: prints the packages that are NOT installed (provides are honoured: quickshell-git satisfies quickshell)

@@ -17,7 +17,7 @@ jobs:
       - name: Mark the checkout as safe
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: shellcheck
-        run: shellcheck -x -S warning install.sh update.sh uninstall.sh release.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/modules/*.sh tools/*.sh migrations/*.sh
+        run: shellcheck -x -S warning install.sh update.sh uninstall.sh release.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/modules/*.sh tools/*.sh tools/f1/*.sh tools/nested/*.sh migrations/*.sh
       - name: qmllint (errors only)
         run: |
           cd qml
@@ -30,6 +30,10 @@ jobs:
         run: node tools/timetable-test.js
       - name: weather card tests
         run: node tools/weathercard-test.js
+      - name: Formula 1 model tests (re-run under several time zones)
+        run: node tools/f1-test.js
+      - name: Formula 1 data helper tests (local mock server)
+        run: python3 tools/f1-helper-test.py
       - name: monitor tests
         run: node tools/monitors-test.js
       - name: Untis client tests (local mock server)
