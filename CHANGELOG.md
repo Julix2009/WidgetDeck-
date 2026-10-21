@@ -9,6 +9,13 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 
+## [0.4.0] - 2026-10-21
+
+### Geändert
+- Formel-1-Widget (inoffiziell): nächstes Rennwochenende mit Streckenumriss, Countdown, allen Sessions in Ortszeit, Ergebnis und Wertung
+- Größen-Animation: eine zweite Animation stoppt die erste nicht mehr auf halbem Weg
+- Linke Widget-Liste scrollt (Scrollbalken), damit auch 'Auf dem Desktop' erreichbar bleibt
+
 ## [0.3.0] - 2026-10-21
 
 ### Geändert

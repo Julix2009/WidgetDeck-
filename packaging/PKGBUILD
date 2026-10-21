@@ -3,7 +3,7 @@
 # ./install.sh remains the default way to install. This file is NOT uploaded to the AUR.
 # Maintainer: (set before publishing)
 pkgname=widgetdeck
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc='Desktop widgets with Frosted / Liquid Glass look and a visual builder for Quickshell on Hyprland'
 arch=('any')
