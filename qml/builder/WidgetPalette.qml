@@ -14,8 +14,15 @@ Item {
 
     readonly property var typeKeys: { store.rev; return Object.keys(store.allTypes); }
 
-    Column {
+    // the whole panel scrolls (wheel, drag on the bar): many widget types plus the list "on the desktop" are taller than the window
+    Flickable {
+        id: fl
         anchors.fill: parent
+        contentWidth: width; contentHeight: col.height + 8
+        clip: true; boundsBehavior: Flickable.StopAtBounds; flickableDirection: Flickable.VerticalFlick
+    Column {
+        id: col
+        width: fl.width - 12
         spacing: 8
         Text { text: "WIDGETS"; color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
         Text { text: I18n.tr("Click, or drag onto the stage"); color: th.dim; opacity: 0.8; font.family: th.font; font.pixelSize: 12 }
@@ -25,7 +32,7 @@ Item {
                 id: card
                 required property string modelData
                 readonly property var ti: pal.store.typeInfo(modelData)
-                width: pal.width; height: 56
+                width: col.width; height: 56
                 radius: th.liquid ? 22 : 12
                 color: ma.containsMouse ? Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, 0.22) : th.field
                 border.width: 1; border.color: ma.containsMouse ? th.accent : th.line
@@ -40,7 +47,7 @@ Item {
                 }
                 MouseArea {
                     id: ma
-                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; preventStealing: true
                     property bool moved: false
                     onPressed: moved = false
                     onPositionChanged: mouse => {
@@ -55,16 +62,16 @@ Item {
         }
         Item { width: 1; height: 6 }
         Text { text: I18n.tr("ON THE DESKTOP"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
-        ListView {
-            width: pal.width; height: pal.height - y
-            clip: true; spacing: 6; boundsBehavior: Flickable.StopAtBounds
+        Column {
+            width: col.width; spacing: 6
+          Repeater {
             model: { pal.store.rev; return pal.store.widgetIds.slice().reverse(); }
             delegate: Rectangle {
                 id: row
                 required property string modelData
                 readonly property var c: { pal.store.geomRev; return pal.store.cfg(modelData); }
                 readonly property var ti: c ? pal.store.typeInfo(c.type) : null
-                width: ListView.view.width; height: 38
+                width: col.width; height: 38
                 radius: th.liquid ? 19 : 10
                 readonly property bool on: pal.sel === modelData
                 color: on ? Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, 0.28) : (lma.containsMouse ? th.fieldHover : th.field)
@@ -78,6 +85,24 @@ Item {
                     text: { if (!row.c) return ""; pal.store.mons; if (row.c.monitor === "all") return I18n.tr("All monitors"); var k = pal.store.homeKey(row.c); var r = pal.store.monRec(k); return r ? r.name : pal.store.monitorLabel(k); } }
                 MouseArea { id: lma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: pal.layerPicked(modelData) }
             }
+          }
         }
+    }
+    }
+    // scroll bar (only when something does not fit): thumb, drag it or click the track
+    Rectangle {
+        id: thumb
+        visible: fl.contentHeight > fl.height + 1
+        x: pal.width - 6; width: 4; radius: 2; color: th.dim; opacity: bar.containsMouse || bar.pressed ? 0.9 : 0.55
+        y: 2 + fl.visibleArea.yPosition * (pal.height - 4)
+        height: Math.max(28, fl.visibleArea.heightRatio * (pal.height - 4))
+    }
+    MouseArea {
+        id: bar
+        visible: thumb.visible
+        x: pal.width - 14; width: 14; height: pal.height; hoverEnabled: true
+        function go(my) { var r = (my - thumb.height / 2) / Math.max(1, pal.height - thumb.height); fl.contentY = Math.max(0, Math.min(1, r)) * Math.max(0, fl.contentHeight - fl.height); }
+        onPressed: mouse => go(mouse.y)
+        onPositionChanged: mouse => { if (pressed) go(mouse.y); }
     }
 }
