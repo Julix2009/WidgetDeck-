@@ -9,6 +9,13 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 
+## [0.3.0] - 2026-10-21
+
+### Geändert
+- Mehrere Monitore: Erkennung mit stabiler Kennung, Monitor-Wahl im Builder, Zuordnung und Layout pro Monitor, Hotplug, Glas pro Monitor, gemeinsame Daten-Feeds
+- Wetter-Karte: Icons als echte 3D-Renderings (Blender/Cycles), Ebenen aus 5x3 Blickwinkeln, Hover-Drehung, Schlagschatten, Abschneiden behoben
+- Wetter-Karte: neues Widget mit 3D-Icons (Sprite-Ebenen aus eigenem SDF-Renderer), Stunden- und Tagesliste, gemeinsame Daten mit dem Wetter-Widget
+
 ## [0.2.1] - 2026-10-19
 
 ### Geändert
