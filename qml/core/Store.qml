@@ -221,6 +221,7 @@ Scope {
     property var sizeAnim: null
     function animateGeom(id, target, ms) {
         var c = raw(id); if (!c || !target) return;
+        var p = sizeAnim; if (p && p.id !== id) setGeom(p.id, { w: p.w1, h: p.h1 });                // another widget's animation is cut short: it lands on its target, not half-way
         sizeAnim = { id: id, w0: c.w, h0: c.h, w1: target[0], h1: target[1], t0: Date.now(), ms: ms || 320 };
         sizeTimer.restart();
     }
