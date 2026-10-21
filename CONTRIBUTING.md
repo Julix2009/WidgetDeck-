@@ -5,7 +5,7 @@ Thanks for helping! Bug reports and small fixes are the most useful things right
 * **Bugs:** open an issue with the template and paste the output of `widgetdeck-doctor` (it hides your home directory and prints no location or wallpaper path).
 * **Pull requests:** keep them small and focused. Run the checks before you push:
   ```bash
-  shellcheck -x -S warning install.sh update.sh uninstall.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/modules/*.sh tools/*.sh tools/f1/*.sh tools/nested/*.sh
+  shellcheck -x -S warning install.sh update.sh uninstall.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/modules/*.sh tools/*.sh tools/f1/*.sh tools/nested/*.sh tools/perf/*.sh
   python3 tools/check-i18n.py        # every UI text needs an English source and a German entry
   node tools/snapengine-test.js      # grid / snapping tests
   node tools/timetable-test.js       # timetable logic
