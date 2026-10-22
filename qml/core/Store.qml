@@ -376,10 +376,16 @@ Scope {
         c.style = Object.assign({}, c.style || {}, obj);
         touch(false);
     }
+    // a prop flagged `shared` in the registry has ONE value for all instances of the type (the focus timer: several monitors, one timer)
+    function sharedKeys(type) {
+        var t = typeInfo(type), out = [];
+        if (t && t.props) for (var i = 0; i < t.props.length; i++) if (t.props[i].shared === true) out.push(t.props[i].key);
+        return out;
+    }
     function setProp(id, key, value) {
         var c = raw(id); if (!c) return;
-        c.props = Object.assign({}, c.props || {});
-        c.props[key] = value;
+        var all = sharedKeys(c.type).indexOf(key) >= 0 ? data.widgets.filter(function (x) { return x.type === c.type; }) : [c];
+        for (var i = 0; i < all.length; i++) { all[i].props = Object.assign({}, all[i].props || {}); all[i].props[key] = value; }
         touch(false);
     }
     function add(type, x, y) {
@@ -387,6 +393,8 @@ Scope {
         var id = uid(type), k = curKey(), sz = t.size, pref = monSettings(k).size;
         if (pref && t.sizes && t.sizes[pref]) sz = t.sizes[pref];                // optional default size per monitor (large for a 4K screen, small for a side screen)
         var o = { id: id, type: type, x: Math.round(x), y: Math.round(y), w: sz[0], h: sz[1], style: {}, props: {} };
+        var sk = sharedKeys(type);                                               // a new instance takes over the shared settings of the others
+        if (sk.length > 0) for (var j = 0; j < data.widgets.length; j++) if (data.widgets[j].type === type) { for (var q = 0; q < sk.length; q++) if (data.widgets[j].props && data.widgets[j].props[sk[q]] !== undefined) o.props[sk[q]] = data.widgets[j].props[sk[q]]; break; }
         if (multi) o.monitor = k;
         data.widgets.push(o);
         touch(true);

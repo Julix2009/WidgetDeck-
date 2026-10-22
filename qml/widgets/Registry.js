@@ -4,6 +4,8 @@
 // merged in by Store.qml with the same shape.
 //
 // prop kinds: text | bool | int | range | choice | color
+// prop flag shared: true = the value is the same for every instance of the type (setting it on one sets it on all; a new instance takes it over):
+//   for widgets that show ONE shared thing (the focus timer)
 
 var TYPES = {
     clock: {
@@ -116,6 +118,22 @@ var TYPES = {
             { key: "rem_race", label: "Remind: race and sprint", kind: "bool", def: true, when: { key: "reminder", is: "true" } },
             { key: "debug_scenario", label: "Test: weekend", kind: "choice", def: "auto", options: [["auto", "Real data"], ["weekend", "Normal weekend"], ["sprint", "Sprint weekend"], ["running", "Session running"], ["finished", "Race just finished"], ["seasonend", "Season finished"], ["cancelled", "Race cancelled"], ["noresult", "No result yet"]] },
             { key: "debug_circuit", label: "Test: circuit", kind: "choice", def: "auto", options: [["auto", "Real circuit"], ["albert_park", "Albert Park Circuit"],["shanghai", "Shanghai International Circuit"],["suzuka", "Suzuka International Racing Course"],["miami", "Miami International Autodrome"],["villeneuve", "Circuit Gilles-Villeneuve"],["monaco", "Circuit de Monaco"],["catalunya", "Circuit de Barcelona-Catalunya"],["red_bull_ring", "Red Bull Ring"],["silverstone", "Silverstone Circuit"],["spa", "Circuit de Spa-Francorchamps"],["hungaroring", "Hungaroring"],["zandvoort", "Circuit Zandvoort"],["monza", "Autodromo Nazionale Monza"],["madring", "Circuito de Madring"],["baku", "Baku City Circuit"],["sepang", "Sepang International Circuit"],["marina_bay", "Marina Bay Street Circuit"],["americas", "Circuit of the Americas"],["rodriguez", "Autódromo Hermanos Rodríguez"],["interlagos", "Autódromo José Carlos Pace - Interlagos"],["vegas", "Las Vegas Street Circuit"],["losail", "Losail International Circuit"],["yas_marina", "Yas Marina Circuit"],["bahrain", "Bahrain International Circuit"],["jeddah", "Jeddah Corniche Circuit"],["imola", "Autodromo Enzo e Dino Ferrari"],["mugello", "Autodromo Internazionale del Mugello"],["nurburgring", "Nürburgring"],["hockenheimring", "Hockenheimring"],["ricard", "Circuit Paul Ricard"],["magny_cours", "Circuit de Nevers Magny-Cours"],["istanbul", "Intercity Istanbul Park"],["portimao", "Autódromo Internacional do Algarve"],["estoril", "Autódromo do Estoril"],["sochi", "Sochi Autodrom"],["indianapolis", "Indianapolis Motor Speedway"],["galvez", "Autódromo Oscar y Juan Gálvez"],["kyalami", "Kyalami Grand Prix Circuit"],["watkins_glen", "Watkins Glen International"],["jacarepagua", "Autódromo Internacional Nelson Piquet"]] }
+        ]
+    },
+    focustimer: {
+        label: "Focus timer", desc: "Pomodoro: focus and break phases with a ring, sessions today (one timer for all instances and monitors)", icon: "hourglass", size: [300, 380], file: "FocusTimerWidget.qml",
+        sizes: { small: [200, 200], large: [300, 380] },
+        props: [
+            { key: "focus_min", label: "Focus (minutes)", kind: "int", def: 25, min: 1, max: 180, step: 1, shared: true },
+            { key: "short_min", label: "Short break (minutes)", kind: "int", def: 5, min: 1, max: 60, step: 1, shared: true },
+            { key: "long_min", label: "Long break (minutes)", kind: "int", def: 15, min: 1, max: 120, step: 1, shared: true },
+            { key: "cycles", label: "Focus sessions before the long break", kind: "int", def: 4, min: 1, max: 12, step: 1, shared: true },
+            { key: "auto_next", label: "Start the next phase automatically", kind: "bool", def: false, shared: true },
+            { key: "focus_mode", label: "Pause notifications during focus", kind: "bool", def: false, shared: true },
+            { key: "sound", label: "Sound at the end of a phase", kind: "bool", def: true, shared: true },
+            { key: "volume", label: "Volume", kind: "range", def: 70, min: 0, max: 100, step: 5, shared: true },
+            { key: "notify", label: "Notification at the end of a phase", kind: "bool", def: true, shared: true },
+            { key: "debug_fast", label: "Test: phases of seconds", kind: "bool", def: false, shared: true }
         ]
     },
     timetable: {
