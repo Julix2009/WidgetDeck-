@@ -1,0 +1,52 @@
+#!/bin/sh
+# focus-timer - controls the WidgetDeck focus timer (Pomodoro) from the terminal or a Hyprland keybind.
+#   focus-timer toggle | start | pause | reset | skip
+#   focus-timer status [--json]       phase, time left and state as text (or JSON)
+# It talks to the running WidgetDeck (Quickshell IPC, target "focustimer"); it does not start WidgetDeck: that is done by widgetdeck / autostart.
+# Exit status: 0 = done, 1 = WidgetDeck is not running / not found, 2 = unknown command.
+
+find_qml() {
+    if [ -n "${WIDGETDECK_QML:-}" ] && [ -f "$WIDGETDECK_QML/shell.qml" ]; then printf '%s' "$WIDGETDECK_QML"; return 0; fi
+    cfg="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/widgetdeck"
+    here="$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)"
+    for d in "$cfg" "/usr/share/widgetdeck/qml" "$here/../qml" "$here/../share/widgetdeck/qml"; do
+        if [ -f "$d/shell.qml" ]; then (cd "$d" && pwd -P); return 0; fi
+    done
+    return 1
+}
+
+case "${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}" in de*) DE=1 ;; *) DE=0 ;; esac
+t() { if [ "$DE" = 1 ]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+
+usage() {
+    t 'usage: focus-timer toggle | start | pause | reset | skip | status [--json]
+' 'Verwendung: focus-timer toggle | start | pause | reset | skip | status [--json]
+'
+}
+
+cmd="${1:-}"
+case "$cmd" in
+    toggle|start|pause|reset|skip|status) ;;
+    -h|--help|help|"") usage; [ -z "$cmd" ] && exit 2; exit 0 ;;
+    *) usage >&2; exit 2 ;;
+esac
+QML="$(find_qml)" || { t 'focus-timer: cannot find the WidgetDeck files (run ./install.sh first).
+' 'focus-timer: WidgetDeck-Dateien nicht gefunden (erst ./install.sh ausführen).
+' >&2; exit 1; }
+out="$(quickshell -p "$QML" ipc call focustimer "$cmd" 2>/dev/null)" || { t 'focus-timer: WidgetDeck is not running (start it with: widgetdeck daemon).
+' 'focus-timer: WidgetDeck läuft nicht (starten mit: widgetdeck daemon).
+' >&2; exit 1; }
+
+# the answer is always the JSON status; commands print nothing (a keybind should be quiet), status prints it as text
+if [ "$cmd" = status ]; then
+    if [ "${2:-}" = "--json" ] || ! command -v jq >/dev/null 2>&1; then printf '%s\n' "$out"; exit 0; fi
+    printf '%s' "$out" | jq -r --argjson de "$DE" '
+        if .state == "starting" then (if $de == 1 then "startet noch" else "starting" end)
+        else
+          ((if .phase == "focus" then (if $de == 1 then "Fokus" else "Focus" end) elif .phase == "short" then (if $de == 1 then "Kurze Pause" else "Short break" end) else (if $de == 1 then "Lange Pause" else "Long break" end) end)
+           + " " + .remaining + " (" + (if .running then (if $de == 1 then "läuft" else "running" end) else (if $de == 1 then "pausiert" else "paused" end) end) + ")"
+           + " · " + (if $de == 1 then "Session " else "session " end) + ((.cycle + (if .phase == "focus" then 1 else 0 end)) | tostring) + "/" + (.cycles | tostring)
+           + " · " + (if $de == 1 then "heute " else "today " end) + (.today.sessions | tostring) + (if .today.sessions == 1 then (if $de == 1 then " Session, " else " session, " end) else (if $de == 1 then " Sessions, " else " sessions, " end) end) + (.today.focus_minutes | tostring) + " min")
+        end'
+fi
+exit 0

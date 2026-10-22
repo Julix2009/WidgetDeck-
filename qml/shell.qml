@@ -7,6 +7,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import "core"
 import "widgets"
+import "widgets/focustimer"
 import "builder"
 import "modules"
 import "wizard"
@@ -59,6 +60,20 @@ ShellRoot {
     }
 
     Binding { target: I18n; property: "setting"; value: theStore.cget("language", "auto") }
+
+    // ───────────── focus timer: one shared timer that lives with the shell (widgets/focustimer/FocusTimerService.qml) ─────────────
+    Binding { target: FocusTimerService; property: "store"; value: theStore }
+    Binding { target: FocusTimerService; property: "notifyItem"; value: shell.moduleItem(notifyLoader) }
+    IpcHandler {
+        target: "focustimer"
+        // qs -p <qml> ipc call focustimer toggle | start | pause | reset | skip | status   (the command `focus-timer` does this for you)
+        function toggle(): string { FocusTimerService.toggle(); return FocusTimerService.statusJson(); }
+        function start(): string { FocusTimerService.start(); return FocusTimerService.statusJson(); }
+        function pause(): string { FocusTimerService.pause(); return FocusTimerService.statusJson(); }
+        function reset(): string { FocusTimerService.reset(); return FocusTimerService.statusJson(); }
+        function skip(): string { FocusTimerService.skip(); return FocusTimerService.statusJson(); }
+        function status(): string { return FocusTimerService.statusJson(); }
+    }
 
     Wizard { id: setupWizard; store: theStore; theme: theTheme; wall: theWall; liquidOk: shell.liquidOk; shaderOk: theBackend.ready }
     // "Show monitors": a big number and the name on every monitor for a few seconds

@@ -43,6 +43,11 @@ STUB
 case "$*" in *"IN-USE,SIGNAL,SSID"*) printf '*:72:TestNet-5G\n' ;; *) exit 0 ;; esac
 STUB
     chmod +x "$N/.local/bin/nmcli"
+    # sound players: the nested session shares your audio server, so the test stubs only LOG what would be played (the focus timer chime)
+    local p
+    for p in pw-play paplay ffplay canberra-gtk-play aplay; do
+        printf '#!/bin/sh\necho "$(date +%%s.%%N) %s $*" >> "${NB:-/tmp/widgetdeck-perf}/audio.log"\n' "$p" > "$N/.local/bin/$p"; chmod +x "$N/.local/bin/$p"
+    done
 }
 
 # the layout: every widget type once, packed in rows into the usable area (small|large sizes from the registry)
