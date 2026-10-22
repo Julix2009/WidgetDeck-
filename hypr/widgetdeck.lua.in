@@ -39,3 +39,5 @@ hl.window_rule({
 -- hl.bind("SUPER + W", hl.dsp.exec_cmd("@BIN@ toggle"))                  -- open / close the builder (edit mode)
 -- hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd("@BIN@ ipc powerPanel"))  -- power menu (bar or notifications module)
 -- hl.bind("SUPER + N", hl.dsp.exec_cmd("@BIN@ ipc toggleDnd"))           -- do not disturb (notifications module)
+-- hl.bind("SUPER + F", hl.dsp.exec_cmd("focus-timer toggle"))             -- focus timer: start / pause
+-- hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd("focus-timer skip"))      -- focus timer: skip the phase (also: start, pause, reset, status)

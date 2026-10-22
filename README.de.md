@@ -1,6 +1,6 @@
 # WidgetDeck
 
-Desktop-Widgets für **Hyprland** unter **Arch Linux** mit Quickshell: Uhr, CPU/RAM, Musik, Visualizer, Netzwerk, Temperaturen, Systemstatus, Luftqualität, Wetter (mit Regen- und Schneepartikeln) und eine Formel-1-Wochenendkarte im Look **Frosted Glass** oder **Liquid Glass**. Ein eingebauter **Builder** ordnet alles per Maus an: Raster, Hilfslinien, Mehrfachauswahl, Ausrichten und Verteilen.
+Desktop-Widgets für **Hyprland** unter **Arch Linux** mit Quickshell: Uhr, CPU/RAM, Musik, Visualizer, Netzwerk, Temperaturen, Systemstatus, Luftqualität, Wetter (mit Regen- und Schneepartikeln) eine Formel-1-Wochenendkarte und ein Fokus-Timer im Look **Frosted Glass** oder **Liquid Glass**. Ein eingebauter **Builder** ordnet alles per Maus an: Raster, Hilfslinien, Mehrfachauswahl, Ausrichten und Verteilen.
 
 Es läuft eigenständig: keine Dotfiles des Autors, keine andere Quickshell-Konfiguration, kein Icon-Theme und keine bestimmte Schrift nötig. Optionale Teile (Leiste, Benachrichtigungsdienst mit Power-Menü) sind **standardmäßig aus**.
 
@@ -92,6 +92,25 @@ Es zeigt das nächste Rennwochenende: den **Umriss der Strecke**, einen **Countd
 * **Testoptionen** in den Einstellungen des Widgets: *Test: Wochenende* (normal / Sprint / Session läuft / Rennen gerade beendet / Saison beendet / abgesagt / noch kein Ergebnis) und *Test: Strecke* nutzen erfundene Daten und brauchen kein Netz.
 * **Glas:** Die Karte nutzt nur das gemeinsame Glas-Panel; Frosted / Liquid Glass, Raster, Einrasten, Größen und Monitore funktionieren wie bei jedem anderen Widget. Die Layer-Regeln der Hyprland-Datei gelten pro Namespace, es ist **keine neue Regel nötig**.
 * **Lizenzen der Daten:** Jolpica-F1-Daten stehen unter CC BY-NC-SA 4.0 (nur nicht-kommerzielle Nutzung, [Bedingungen](https://github.com/jolpica/jolpica-f1/blob/main/TERMS.md)); OpenF1 ist ein inoffizielles Projekt. Einzelheiten in `NOTICE.md`.
+
+## Fokus-Timer (Pomodoro)
+
+Ein Ring mit der Restzeit, der Phase und den heutigen Sessions. **Ein Timer** für alle Instanzen und Monitore: er lebt mit der Shell (`widgets/focustimer/FocusTimerService.qml`), nicht mit einem Widget-Fenster – Ausblenden, Verschieben, Größenwechsel oder ein abgezogener Monitor stoppen oder löschen ihn nie.
+
+* **Phasen:** Fokus (25 min), kurze Pause (5 min), lange Pause (15 min nach 4 Fokus-Sessions). Alle Längen, die Anzahl der Sessions und *Nächste Phase automatisch starten* (standardmäßig aus) sind Widget-Einstellungen (*Fokus-Timer* im Builder) und für alle Instanzen gleich (eine ändern ändert alle). Die Phasen unterscheiden sich durch Text, Icon und Theme-Farbe (primary / tertiary / secondary der Matugen-Palette), nie durch eine Füllung auf dem Glas.
+* **Größen:** *Groß* (300 x 380): Ring mit Restzeit in der Mitte, Phase, Session-Punkte (einer je Fokus-Session bis zur langen Pause), Fokuszeit heute, **Start / Pause**, **Überspringen**, **Zurücksetzen**. *Klein* (200 x 200): Ring, Zeit und Phase; die Tasten erscheinen beim Hover, ein Klick auf den Ring startet / pausiert. Die Größen stehen in der zentralen Größen-Tabelle in logischen Pixeln, das Widget wirkt also auf 1080p und 4K (und bei Skalierung 1.25 / 1.5 / 2.0) gleich groß.
+* **Steuerung von außen** (Tastenkürzel): `focus-timer toggle | start | pause | reset | skip | status [--json]` (wird nach `~/.local/bin` installiert, `uninstall.sh` entfernt es). `status` gibt z. B. `Fokus 24:59 (läuft) · Session 1/4 · heute 3 Sessions, 75 min` aus. Der Befehl spricht über Quickshell-IPC (Target `focustimer`) mit dem laufenden WidgetDeck.
+  Hyprland (`hyprland.conf`; bei neuen Installationen stehen die Zeilen auch im auskommentierten Kürzel-Block der Regeldatei `~/.config/hypr/widgetdeck.conf`):
+  ```
+  bind = SUPER, F, exec, focus-timer toggle
+  bind = SUPER SHIFT, F, exec, focus-timer skip
+  ```
+  Lua-Config (Hyprland >= 0.55): `hl.bind("SUPER + F", hl.dsp.exec_cmd("focus-timer toggle"))`.
+* **Fokus-Modus** (Einstellung *Benachrichtigungen im Fokus pausieren*, standardmäßig aus): Während einer **laufenden** Fokus-Phase ist „Nicht stören“ an; der vorherige Zustand kommt zurück, wenn die Phase endet, pausiert, übersprungen oder zurückgesetzt wird, die Shell endet oder (nach einem Absturz) beim nächsten Start. Ein selbst gesetztes „Nicht stören“ wird nie aufgehoben, ein im Fokus selbst aufgehobenes nicht wieder eingeschaltet. Funktioniert mit dem Benachrichtigungsmodul von WidgetDeck, **dunst** (`dunstctl set-paused`), **mako** (`makoctl mode`, Modus `do-not-disturb`), **swaync** (`swaync-client -dn / -df`) und Benachrichtigungs-Shells, die einer Flag-Datei folgen (`~/.cache/quickshell/dnd/state`, 1 = still). Die Meldung am Phasenende kommt, nachdem die Stille aufgehoben wurde – sie wird also gesehen.
+* **Phasenende:** ein kurzer Ton (eigene Arbeit: `tools/focustimer/make_chime.py` erzeugt `qml/widgets/focustimer/chime.wav` aus Sinuswellen, keine fremden Audiodaten) über `pw-play`, `paplay`, `ffplay`, `canberra-gtk-play` oder `aplay` (der erste vorhandene; Lautstärke einstellbar) und eine Benachrichtigung (`notify-send`); beides einzeln abschaltbar. Eine Phase, die endete, während die Shell nicht lief oder der Rechner schlief, wird **einmal** und leise gezählt, der Timer wartet pausiert in der nächsten Phase.
+* **Statistik:** `~/.config/widgetdeck/focus-stats.json` (Schema `v: 1`): je lokalem Tag die abgeschlossenen Fokus-Sessions und Fokus-Sekunden; nur vollständig beendete Fokus-Phasen zählen (übersprungene und zurückgesetzte nicht); atomar und nur bei Änderungen geschrieben; die letzten 365 Tage bleiben. Eine beschädigte Datei wird nach `focus-stats.json.damaged-<Datum>` kopiert und eine neue begonnen. Der laufende Zustand steht in `focus-state.json` daneben: ein Neustart der Shell oder des Rechners macht dort weiter.
+* **Kosten:** nichts, solange pausiert; während eine Phase läuft ein Timer, der bis zum Ende schläft (höchstens 20 s am Stück, damit Standby bemerkt wird), und nur bei sichtbarem Widget ein Neuzeichnen des Rings pro Sekunde.
+* **Testschalter:** *Test: Phasen von Sekunden* (Fokus 10 s, kurze Pause 4 s, lange Pause 6 s) lässt einen ganzen Satz in einer Minute durchlaufen. `widgetdeck-doctor` prüft den Befehl, die IPC, den Benachrichtigungsdienst, den Audio-Player und die beiden Dateien.
 
 ## Musik-Widget: zwei Stile
 

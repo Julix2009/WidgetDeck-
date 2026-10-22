@@ -28,7 +28,7 @@ wd_paths() {
     if [ -n "$2" ]; then CONFIG_HOME="$H/.config"; CACHE_HOME="$H/.cache"
     else CONFIG_HOME="${XDG_CONFIG_HOME:-$H/.config}"; CACHE_HOME="${XDG_CACHE_HOME:-$H/.cache}"; fi
     QML_DEST="$CONFIG_HOME/quickshell/widgetdeck"
-    BIN_DIR="$H/.local/bin"; BIN_DEST="$BIN_DIR/widgetdeck"; UPD_DEST="$BIN_DIR/widgetdeck-update"; DOC_DEST="$BIN_DIR/widgetdeck-doctor"; UNT_DEST="$BIN_DIR/widgetdeck-untis-setup"
+    BIN_DIR="$H/.local/bin"; BIN_DEST="$BIN_DIR/widgetdeck"; UPD_DEST="$BIN_DIR/widgetdeck-update"; DOC_DEST="$BIN_DIR/widgetdeck-doctor"; UNT_DEST="$BIN_DIR/widgetdeck-untis-setup"; FT_DEST="$BIN_DIR/focus-timer"
     CONF_DIR="$CONFIG_HOME/widgetdeck"; CACHE_DIR="$CACHE_HOME/widgetdeck"; MATUGEN_DIR="$CONFIG_HOME/matugen"
     STATE_FILE="$CACHE_DIR/install-state"
 }

@@ -167,6 +167,28 @@ if [ -f "$QML/widgets/f1/f1.py" ] && has python3; then
     req="$(sed -n 's/^requests in the last 24 h: //p' <<<"$f1")"; [ -n "$req" ] && echo "F1 requests in the last 24 h: $req"
 fi
 
+head_ "Focus timer"
+if has focus-timer; then ok "focus-timer command found"; else warn "focus-timer command not in PATH (keybinds need it)" "re-run ./install.sh, and add ~/.local/bin to your PATH"; fi
+if has quickshell && [ -f "$QML/shell.qml" ]; then
+    if ftj="$(quickshell -p "$QML" ipc call focustimer status 2>/dev/null)" && jq -e '.state' <<<"$ftj" >/dev/null 2>&1; then ok "focus timer IPC answers: $(jq -r 'if .state == "starting" then "starting" else (.phase + " " + .remaining + " (" + .state + ")") end' <<<"$ftj" 2>/dev/null)"; else warn "focus timer IPC does not answer (WidgetDeck is not running?)" "widgetdeck daemon"; fi
+fi
+# which "do not disturb" the focus mode can use: the own notification module, dunst / mako / swaync, or a flag file of a notification shell
+ftn="$(sh "$QML/widgets/focustimer/dnd.sh" detect 2>/dev/null)"
+if [ "$(jq -r '.modules.notifications // false' "$CONF/config.json" 2>/dev/null)" = true ]; then ok "notifications: WidgetDeck's own module (focus mode can pause it)"
+else case "$ftn" in
+    dunst|mako|swaync) ok "notification daemon: $ftn (focus mode uses its own do-not-disturb)" ;;
+    flagfile) ok "notification shell with a do-not-disturb flag file (focus mode uses it)" ;;
+    *) warn "no notification daemon found that focus mode can pause (dunst, mako, swaync, a flag-file shell, or WidgetDeck's module): focus mode does nothing, the timer works" "optional: enable the notifications module in the builder settings" ;;
+esac; fi
+ftp=""; for p in pw-play paplay ffplay canberra-gtk-play aplay; do has "$p" && { ftp="$p"; break; }; done
+if [ -n "$ftp" ]; then ok "sound player for the chime: $ftp"; else warn "no sound player found (pw-play, paplay, ffplay, canberra-gtk-play, aplay): the timer is silent" "pacman -S pipewire-audio (pw-play) or libpulse (paplay)"; fi
+for f in focus-state.json focus-stats.json; do
+    if [ -f "$CONF/$f" ]; then
+        if ! jq -e . "$CONF/$f" >/dev/null 2>&1; then warn "$f is not valid JSON (the timer keeps a copy and starts a new one)" "it is repaired automatically at the next start"
+        elif [ -w "$CONF/$f" ]; then ok "$f readable and writable"; else fail "$f is not writable" "chmod u+w $CONF/$f"; fi
+    elif [ -w "$CONF" ] || [ ! -e "$CONF" ]; then echo "[info] $f does not exist yet (created by the first use of the timer)"; else fail "$CONF is not writable: the focus timer cannot save" "check the permissions of $CONF"; fi
+done
+
 head_ "Hardware (widgets hide what is missing)"
 cpu=0; [ -d /sys/class/hwmon ] && grep -lqE 'coretemp|k10temp' /sys/class/hwmon/hwmon*/name 2>/dev/null && cpu=1
 [ "$cpu" = 1 ] && ok "CPU temperature sensor" || echo "[info] no CPU temperature sensor (the thermals widget leaves it out)"

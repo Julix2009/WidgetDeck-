@@ -15,3 +15,5 @@ windowrulev2 = center, title:^(WidgetDeck Setup)$
 # bind = SUPER, W, exec, @BIN@ toggle
 # bind = SUPER SHIFT, P, exec, @BIN@ ipc powerPanel
 # bind = SUPER, N, exec, @BIN@ ipc toggleDnd
+# bind = SUPER, F, exec, focus-timer toggle
+# bind = SUPER SHIFT, F, exec, focus-timer skip

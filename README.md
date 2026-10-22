@@ -1,6 +1,6 @@
 # WidgetDeck
 
-Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, CPU/RAM, music, visualizer, network, temperatures, system status, air quality, weather (with rain and snow particles) and a Formula 1 race-weekend card, in **Frosted Glass** or **Liquid Glass** style. A built-in **builder** lets you place everything with the mouse: snap grid, guides, multi-select, align and distribute.
+Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, CPU/RAM, music, visualizer, network, temperatures, system status, air quality, weather (with rain and snow particles) and a Formula 1 race-weekend card and a focus timer, in **Frosted Glass** or **Liquid Glass** style. A built-in **builder** lets you place everything with the mouse: snap grid, guides, multi-select, align and distribute.
 
 It runs on its own: it needs none of the author's dotfiles, no other Quickshell setup, no icon theme and no particular font. Optional parts (a bar, a notification service with power menu) are **off by default**.
 
@@ -74,7 +74,7 @@ It does **not**: stop, disable or replace any other program (bars, notification 
 
 | Module | Default | Notes |
 |---|---|---|
-| Widgets | on | weather, network, temperatures, system, air quality, music, Formula 1, timetable |
+| Widgets | on | weather, network, temperatures, system, air quality, music, Formula 1, focus timer, timetable |
 | Builder and grid | on | the editor (`widgetdeck builder`) |
 | Bar | **off** | slim top bar: workspaces, clock, tray, power button |
 | Notifications and power menu | **off** | replaces your notification daemon |
@@ -138,6 +138,25 @@ It shows the next race weekend: the **outline of the circuit**, a **countdown**,
 * **Test options** in the widget's settings: *Test: weekend* (normal / sprint / session running / race just finished / season finished / cancelled / no result) and *Test: circuit* use invented data and need no network.
 * **Glass:** the card only uses the shared glass panel, so Frosted / Liquid Glass, grid, snapping, sizes and monitors work as for every other widget; the layer rules of the Hyprland file are per namespace, so **no new rule is needed**.
 * **Licences of the data:** Jolpica-F1 data is CC BY-NC-SA 4.0 (non-commercial use, [terms](https://github.com/jolpica/jolpica-f1/blob/main/TERMS.md)); OpenF1 is an unofficial project. Details in `NOTICE.md`.
+
+## Focus timer (Pomodoro)
+
+A ring with the time that is left, the phase and today's sessions. **One timer** for all instances and monitors: it lives with the shell (`widgets/focustimer/FocusTimerService.qml`), not with a widget window, so hiding, moving or resizing the widget or unplugging a monitor never stops or resets it.
+
+* **Phases:** focus (25 min), short break (5 min), long break (15 min after 4 focus sessions). All lengths, the number of sessions and *Start the next phase automatically* (off by default) are widget settings (*Focus timer* in the builder); they are the same for every instance (changing one changes all). Phases differ by text, icon and theme colour (primary / tertiary / secondary of the Matugen palette), never by a fill on the glass.
+* **Sizes:** *Large* (300 x 380): ring with the time in the middle, phase, session dots (one per focus session until the long break), today's focus time, **Start / Pause**, **Skip**, **Reset**. *Small* (200 x 200): ring, time and phase; the controls appear on hover; a click on the ring starts / pauses. Sizes are logical pixels from the central size table, so the widget looks the same on 1080p and 4K (and with scale 1.25 / 1.5 / 2.0).
+* **Control from outside** (keybinds): `focus-timer toggle | start | pause | reset | skip | status [--json]` (installed to `~/.local/bin`, removed by `uninstall.sh`). `status` prints e.g. `Focus 24:59 (running) · session 1/4 · today 3 sessions, 75 min`. It talks to the running WidgetDeck through Quickshell IPC (target `focustimer`: `qs -p <qml> ipc call focustimer toggle`).
+  Hyprland (`hyprland.conf`; new installs also have these lines in the commented key bind block of the rules file `~/.config/hypr/widgetdeck.conf`):
+  ```
+  bind = SUPER, F, exec, focus-timer toggle
+  bind = SUPER SHIFT, F, exec, focus-timer skip
+  ```
+  Lua config (Hyprland >= 0.55): `hl.bind("SUPER + F", hl.dsp.exec_cmd("focus-timer toggle"))`.
+* **Focus mode** (setting *Pause notifications during focus*, off by default): during a **running** focus phase "do not disturb" is on, and the old state comes back when the phase ends, is paused, skipped or reset, when the shell quits, or (after a crash) at the next start. A "do not disturb" you set yourself is never lifted, and one you lift during focus is not switched on again. It works with WidgetDeck's own notification module, **dunst** (`dunstctl set-paused`), **mako** (`makoctl mode`, the mode `do-not-disturb`), **swaync** (`swaync-client -dn / -df`) and notification shells that follow a flag file (`~/.cache/quickshell/dnd/state`, 1 = silent). The notice at the end of a phase is sent after the silence was lifted, so it is seen.
+* **End of a phase:** a short chime (own work: `tools/focustimer/make_chime.py` generates `qml/widgets/focustimer/chime.wav` from sine waves, no foreign audio) through `pw-play`, `paplay`, `ffplay`, `canberra-gtk-play` or `aplay` (the first that exists; volume setting), and a notification (`notify-send`); both can be switched off separately. A phase that ended while the shell was not running or the computer was asleep is counted **once**, silently, and the timer waits paused in the next phase.
+* **Statistics:** `~/.config/widgetdeck/focus-stats.json` (schema `v: 1`): per local day the completed focus sessions and focus seconds; only completely finished focus phases count (skipped and reset ones do not); written atomically and only when something changed; the last 365 days are kept. A damaged file is copied to `focus-stats.json.damaged-<date>` and a new one is started. The running state is in `focus-state.json` next to it, so a restart of the shell or the computer goes on where it was.
+* **Cost:** nothing while paused; while a phase runs one timer that sleeps until the end (at most 20 s per sleep, so standby is noticed) and, only while a widget is on screen, one redraw of the ring per second.
+* **Test switch:** *Test: phases of seconds* (focus 10 s, short break 4 s, long break 6 s) runs through a whole set in a minute. `widgetdeck-doctor` checks the command, the IPC, the notification daemon, the sound player and the two files.
 
 ## Music widget: two styles
 

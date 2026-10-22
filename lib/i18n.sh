@@ -59,6 +59,7 @@ DE['updating the existing installation: %s']='vorhandene Installation wird aktua
 DE['Program: %s']='Programm: %s'
 DE['Launcher: %s']='Starter: %s'
 DE['Update and check commands: %s, %s']='Update- und Prüfbefehl: %s, %s'
+DE['Focus timer command (for keybinds): %s']='Fokus-Timer-Befehl (für Tastenkürzel): %s'
 DE['%s is not in your PATH. Add it to your shell config (e.g. export PATH="$HOME/.local/bin:$PATH").']='%s ist nicht in deinem PATH. Füge es in deine Shell-Config ein (z. B. export PATH="$HOME/.local/bin:$PATH").'
 DE['would create %s']='würde %s anlegen'
 DE['Starter settings: %s (the first-run assistant asks the rest)']='Start-Einstellungen: %s (den Rest fragt der Einrichtungsassistent)'

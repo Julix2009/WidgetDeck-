@@ -36,7 +36,7 @@ WidgetDeck $VERSION - $(t 'installer')
   --help             $(t 'this help')
 
 $(t 'Installs to'):   ~/.config/quickshell/widgetdeck   ($(t 'program, replaced on updates; start: qs -c widgetdeck'))
-                    ~/.local/bin/widgetdeck, widgetdeck-update, widgetdeck-doctor
+                    ~/.local/bin/widgetdeck, widgetdeck-update, widgetdeck-doctor, focus-timer
 $(t 'Your settings'): ~/.config/widgetdeck/             ($(t 'never overwritten'))
 Log:                ~/.cache/widgetdeck/install.log
 USAGE
@@ -175,7 +175,7 @@ install_files() {
     run rm -rf "$tmp"
     run cp -a "$SCRIPT_DIR/qml" "$tmp"
     if [ "$DRY_RUN" = 0 ]; then
-        printf '%s\n' "$VERSION" > "$tmp/VERSION"; chmod +x "$tmp"/widgets/sysmon/*.sh "$tmp"/core/*.sh "$tmp"/modules/*.sh
+        printf '%s\n' "$VERSION" > "$tmp/VERSION"; chmod +x "$tmp"/widgets/sysmon/*.sh "$tmp"/widgets/focustimer/*.sh "$tmp"/core/*.sh "$tmp"/modules/*.sh
         # where updates come from (read by widgetdeck-update and the update hint in the settings)
         local url="" rev=""
         if command -v git >/dev/null 2>&1 && git -C "$SCRIPT_DIR" rev-parse --git-dir >/dev/null 2>&1; then
@@ -194,9 +194,11 @@ install_files() {
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-update" "$UPD_DEST"
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-doctor" "$DOC_DEST"
     run install -Dm755 "$SCRIPT_DIR/bin/widgetdeck-untis-setup" "$UNT_DEST"
+    run install -Dm755 "$SCRIPT_DIR/bin/focus-timer" "$FT_DEST"
     ok "$(t 'Update and check commands: %s, %s' "$UPD_DEST" "$DOC_DEST")"
+    ok "$(t 'Focus timer command (for keybinds): %s' "$FT_DEST")"
     case ":$PATH:" in *":$BIN_DIR:"*) ;; *) [ "$UPDATE_MODE" = 1 ] || warn "$(t '%s is not in your PATH. Add it to your shell config (e.g. export PATH="$HOME/.local/bin:$PATH").' "$BIN_DIR")" ;; esac
-    state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set UPD_DEST "$UPD_DEST"; state_set DOC_DEST "$DOC_DEST"; state_set UNT_DEST "$UNT_DEST"; state_set VERSION "$VERSION"
+    state_set QML_DEST "$QML_DEST"; state_set BIN_DEST "$BIN_DEST"; state_set UPD_DEST "$UPD_DEST"; state_set DOC_DEST "$DOC_DEST"; state_set UNT_DEST "$UNT_DEST"; state_set FT_DEST "$FT_DEST"; state_set VERSION "$VERSION"
 
     # your settings: created only where nothing exists yet
     run mkdir -p "$CONF_DIR"
@@ -279,6 +281,8 @@ do_uninstall() {
     if [ -f "$doc" ]; then run rm -f "$doc"; ok "$(t 'removed: %s' "$doc")"; fi
     local unt; unt="$(state_get UNT_DEST)"; unt="${unt:-$UNT_DEST}"
     if [ -f "$unt" ]; then run rm -f "$unt"; ok "$(t 'removed: %s' "$unt")"; fi
+    local ftc; ftc="$(state_get FT_DEST)"; ftc="${ftc:-$FT_DEST}"
+    if [ -f "$ftc" ]; then run rm -f "$ftc"; ok "$(t 'removed: %s' "$ftc")"; fi
     tpl="$(state_get MATUGEN_TEMPLATE)"
     if [ -n "$tpl" ] && [ -f "$tpl" ]; then run rm -f "$tpl"; ok "$(t 'removed: %s' "$tpl")"; fi
     local toml bak

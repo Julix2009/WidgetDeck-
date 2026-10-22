@@ -39,3 +39,5 @@ windowrule {
 # bind = SUPER SHIFT, P, exec, @BIN@ ipc powerPanel    # power menu (needs the bar or the notifications module)
 # bind = SUPER, N, exec, @BIN@ ipc toggleDnd           # do not disturb (notifications module)
 # bind = SUPER SHIFT, N, exec, @BIN@ ipc dismissNotifications
+# bind = SUPER, F, exec, focus-timer toggle            # focus timer: start / pause
+# bind = SUPER SHIFT, F, exec, focus-timer skip        # focus timer: skip the phase (also: start, pause, reset, status)

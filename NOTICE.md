@@ -37,3 +37,7 @@ Alle übrigen Dateien sind eigener Code des Projekts. Die Lizenz dafür steht in
 * Es werden **keine Logos, Schriftzüge, Fotos oder Bilder** der Formel 1, der FIA oder von Teams mitgeliefert oder geladen; es wird **nichts von Webseiten gelesen („gescrapt“)**, nur die oben genannten offenen Schnittstellen werden abgefragt.
 * **Streckenumrisse:** Quelle ist das Repository *bacinger/f1-circuits* (MIT-Lizenz, siehe oben). Das Repository nennt die Herkunft der Geometrie nicht ausdrücklich; es handelt sich um öffentliche geografische Streckenverläufe. WidgetDeck liefert davon nur **eigene, stark vereinfachte Umrisslinien** (einige hundert Punkte pro Strecke, ohne Namen, Logos oder Zusatzdaten). Falls ein Rechteinhaber Einwände hat, wird die Datei entfernt bzw. neu aus einer anderen Quelle erzeugt (`tools/f1/build_circuits.py`).
 * Beim Installieren und im Betrieb wird **nichts nachgeladen**, was Umrisse betrifft: die fertige Datei liegt im Repository.
+
+## Fokus-Timer: Ton
+
+Der Ton des Fokus-Timers (`qml/widgets/focustimer/chime.wav`) ist **eigene Arbeit**: `tools/focustimer/make_chime.py` erzeugt ihn deterministisch aus reinen Sinuswellen (zwei „Glocken“-Töne mit Obertönen und abklingender Hüllkurve). Es wurde keine Aufnahme, kein Sample und keine fremde Audiodatei verwendet.
