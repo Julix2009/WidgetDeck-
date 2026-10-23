@@ -9,6 +9,19 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 
+## [0.5.0] - 2026-10-23
+
+### Geändert
+- Focus-timer: findet die QML-Dateien auch über einen Symlink (Entwickler-Installationen)
+- Fokus-Timer: Installer, Deinstallation, Doctor, Tastenkürzel-Vorschläge, README (de/en), NOTICE, CI und Bilder-Skript
+- Fokus-Timer: Widget (Ring, Klein/Groß aus der Größen-Tabelle), geteilte Einstellungen (shared) und Texte
+- Fokus-Timer: gemeinsamer Dienst (Singleton) mit gespeichertem Zustand, Statistik, Ton, Benachrichtigung und Nicht-stören (WidgetDeck, dunst, mako, swaync, Flag-Datei); IPC-Target focustimer und Befehl focus-timer
+- Fokus-Timer: Logik ohne UI (Phasen, Zielzeitpunkt, Wiederherstellung nach Neustart/Standby, Statistik) mit Tests und selbst erzeugtem Ton
+- Tools/nested: nie auf die neueste Hyprland-Sitzung ausweichen (konnte die eigene sein); jede Hilfsfunktion sucht die verschachtelte Sitzung neu
+- Qsgtiming.sh (Bilder pro Sekunde und Bildzeit über QSG_RENDER_TIMING)
+- Bildvergleich (visual-regression.sh) mit gemessener Maske der beweglichen Teile; Animationen über Größen-Zeitverläufe
+- Messwerkzeug (Speicher, CPU, Aufwachvorgänge, GPU, Prozess-Starts) für den Test-Aufbau; env.sh findet mehrere verschachtelte Sitzungen
+
 ## [0.4.0] - 2026-10-21
 
 ### Geändert
