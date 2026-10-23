@@ -8,7 +8,7 @@
 find_qml() {
     if [ -n "${WIDGETDECK_QML:-}" ] && [ -f "$WIDGETDECK_QML/shell.qml" ]; then printf '%s' "$WIDGETDECK_QML"; return 0; fi
     cfg="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/widgetdeck"
-    here="$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)"
+    here="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || printf %s "$0")")" 2>/dev/null && pwd -P)"
     for d in "$cfg" "/usr/share/widgetdeck/qml" "$here/../qml" "$here/../share/widgetdeck/qml"; do
         if [ -f "$d/shell.qml" ]; then (cd "$d" && pwd -P); return 0; fi
     done
