@@ -147,6 +147,14 @@ var TYPES = {
             { key: "source", label: "Data source", kind: "choice", def: "auto", options: [["auto", "Untis Mobile"], ["demo", "Demo (invented lessons)"], ["demo-holiday", "Demo (holidays)"]] }
         ]
     },
+    schoolprogress: {
+        label: "School progress", desc: "How much of the school day or the school week is over, in percent (counts the lessons of the timetable)", icon: "calendar", size: [200, 200], file: "SchoolProgressWidget.qml",
+        props: [
+            { key: "mode", label: "Show", kind: "choice", def: "week", options: [["week", "School week"], ["day", "School day"]] },
+            { key: "group", label: "My group (empty = all)", kind: "text", def: "" },
+            { key: "show_count", label: "Show the lessons (e.g. 5 of 30)", kind: "bool", def: true }
+        ]
+    },
     visualizer: {
         label: "Music visualizer", desc: "Audio-reactive bars (cava)", icon: "bars", size: [460, 150], file: "VisualizerWidget.qml",
         style: { bg_alpha: 0.45 },

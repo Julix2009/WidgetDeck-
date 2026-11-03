@@ -116,3 +116,28 @@ function cell(lessons, date, start, group) {
 }
 // a break / free period: gap between two entries of the day (>= 30 min counts as a longer break)
 function gapAfter(es, i) { return i + 1 < es.length ? mins(es[i + 1].start) - mins(es[i].end) : 0; }
+
+// how much of the school week (Monday - Friday) or of today is over. A cancelled lesson does not count. A lesson is done when its end time has passed.
+// Saturday / Sunday: the week that just ended (100 %). -> {total, done, percent}
+function weekProgress(lessons, now, group) {
+    var mon = addDays(now, -((now.getDay() + 6) % 7)), today = ymd(now), nm = minutesOf(now), total = 0, done = 0;
+    for (var i = 0; i < 5; i++) {
+        var ds = ymd(addDays(mon, i)), es = entries(lessons, ds, group);
+        for (var j = 0; j < es.length; j++) {
+            if (es[j].main.state === "cancelled") continue;
+            total++;
+            if (ds < today || (ds === today && mins(es[j].end) <= nm)) done++;
+        }
+    }
+    return { total: total, done: done, percent: total > 0 ? Math.round(done * 100 / total) : 0 };
+}
+function dayProgress(lessons, now, group) {
+    var nm = minutesOf(now), es = entries(lessons, ymd(now), group), total = 0, done = 0;
+    for (var j = 0; j < es.length; j++) {
+        if (es[j].main.state === "cancelled") continue;
+        total++;
+        if (mins(es[j].end) <= nm) done++;
+    }
+    return { total: total, done: done, percent: total > 0 ? Math.round(done * 100 / total) : 0 };
+}
+function schoolProgress(lessons, now, group, mode) { return mode === "day" ? dayProgress(lessons, now, group) : weekProgress(lessons, now, group); }
