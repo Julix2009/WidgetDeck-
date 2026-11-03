@@ -9,6 +9,14 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 
+## [0.6.0] - 2026-11-03
+
+### Hinzugefügt
+- Neues Widget Schulfortschritt: Prozent vom Schultag oder von der Schulwoche, gezählt in Stunden des Stundenplans
+
+### Geändert
+- README überarbeitet (de/en), docs/ ergänzt, neue Screenshots
+
 ## [0.5.0] - 2026-10-23
 
 ### Geändert
