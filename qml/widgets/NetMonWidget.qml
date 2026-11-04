@@ -19,8 +19,12 @@ Item {
     function s(v) { return v * fs / 16; }
     readonly property color cFg: style.fg || "#f2f4f8"
     readonly property color cAcc: style.accent || "#8ab4ff"
-    readonly property color cUp: palette.tertiary || Qt.lighter(cAcc, 1.4)
-    readonly property color cErr: palette.error || "#ff8a80"
+    // every colour can be set in the widget's settings (Theme role or own colour); an empty value falls back to the theme
+    readonly property color cDown: props.color_down || cAcc                                      // download number and curve
+    readonly property color cUp: props.color_up || palette.tertiary || Qt.lighter(cAcc, 1.4)     // upload number and curve
+    readonly property color cSig: props.color_signal || cAcc                                     // Wi-Fi icon and signal bars
+    readonly property color cPing: props.color_ping || style.fg                                  // ping text (while it is fine)
+    readonly property color cErr: props.color_error || palette.error || "#ff8a80"                // no connection, ping too high / missing
     readonly property color cDim: Qt.alpha(cFg, 0.62)
     readonly property bool live: Window.window !== null && Window.window.visible
     readonly property string dir: decodeURIComponent(Qt.resolvedUrl("sysmon/").toString().replace("file://", ""))
@@ -85,7 +89,7 @@ Item {
             Icon {
                 anchors.verticalCenter: parent.verticalCenter
                 name: w.d.kind === "wifi" ? "wifi" : "ethernet"
-                width: w.fs * 1.4; height: width; color: w.cAcc
+                width: w.fs * 1.4; height: width; color: w.cSig
             }
             GText {
                 anchors.verticalCenter: parent.verticalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.9
@@ -104,7 +108,7 @@ Item {
                         delegate: Rectangle {
                             width: w.s(4); height: w.s(5 + index * 4); radius: w.s(1)
                             anchors.bottom: parent.bottom
-                            color: w.d.signal >= (index + 1) * 25 - 12 ? w.cAcc : Qt.alpha(w.cFg, 0.2)
+                            color: w.d.signal >= (index + 1) * 25 - 12 ? w.cSig : Qt.alpha(w.cFg, 0.2)
                         }
                     }
                 }
@@ -115,7 +119,7 @@ Item {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
             wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 0.85
             text: w.d.ping === null || w.d.ping === undefined ? "Ping – ms" : "Ping " + Math.round(w.d.ping) + " ms"
-            color: w.d.ping === null || w.d.ping === undefined || w.d.ping > 250 ? w.cErr : w.style.fg
+            color: w.d.ping === null || w.d.ping === undefined || w.d.ping > 250 ? w.cErr : w.cPing
         }
     }
 
@@ -126,7 +130,7 @@ Item {
         height: w.s(58)
         opacity: w.online ? 1 : 0
         Repeater {
-            model: [ { label: I18n.tr("DOWNLOAD"), icon: "arrow-down", col: w.cAcc, v: w.dl }, { label: I18n.tr("UPLOAD"), icon: "arrow-up", col: w.cUp, v: w.ul } ]
+            model: [ { label: I18n.tr("DOWNLOAD"), icon: "arrow-down", col: w.cDown, v: w.dl }, { label: I18n.tr("UPLOAD"), icon: "arrow-up", col: w.cUp, v: w.ul } ]
             delegate: Column {
                 width: numbers.width / 2
                 spacing: w.s(1)
@@ -163,7 +167,7 @@ Item {
                 PathPolyline { path: w.txPts }
             }
             ShapePath {
-                strokeColor: w.cAcc; strokeWidth: w.s(2); fillColor: "transparent"; joinStyle: ShapePath.RoundJoin; capStyle: ShapePath.RoundCap
+                strokeColor: w.cDown; strokeWidth: w.s(2); fillColor: "transparent"; joinStyle: ShapePath.RoundJoin; capStyle: ShapePath.RoundCap
                 PathPolyline { path: w.rxPts }
             }
         }

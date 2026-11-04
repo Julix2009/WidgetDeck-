@@ -52,7 +52,12 @@ var TYPES = {
         label: "Network", desc: "Live download / upload, 60 s curve, Wi-Fi, signal, ping", icon: "wifi", size: [440, 250], file: "NetMonWidget.qml",
         props: [
             { key: "ping_target", label: "Ping target", kind: "text", def: "1.1.1.1" },
-            { key: "show_curve", label: "Curve of the last 60 s", kind: "bool", def: true }
+            { key: "show_curve", label: "Curve of the last 60 s", kind: "bool", def: true },
+            { key: "color_down", label: "Colour: download (number and curve)", kind: "color", def: "theme:primary" },
+            { key: "color_up", label: "Colour: upload (number and curve)", kind: "color", def: "theme:tertiary" },
+            { key: "color_signal", label: "Colour: Wi-Fi icon and bars", kind: "color", def: "theme:primary" },
+            { key: "color_ping", label: "Colour: ping", kind: "color", def: "theme:on_surface" },
+            { key: "color_error", label: "Colour: no connection / ping too high", kind: "color", def: "theme:error" }
         ]
     },
     thermals: {
