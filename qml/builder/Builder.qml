@@ -40,6 +40,13 @@ FloatingWindow {
             if (ok.length !== win.sels.length) { win.sels = ok; if (ok.indexOf(win.sel) < 0) win.sel = ok.length ? ok[ok.length - 1] : ""; }
         }
     }
+    // Copy / paste the look by keyboard: Ctrl+Shift+C / V and Ctrl+C / V. They are Shortcuts (not keys of one item), so they work whichever item has the focus
+    // (after typing in a text field the focus stays there). Ctrl+C / V belong to the text field while a text field has the focus.
+    readonly property var focusItem: root.Window.window ? root.Window.window.activeFocusItem : null
+    readonly property bool textFocus: focusItem !== null && focusItem !== undefined && focusItem.cursorPosition !== undefined
+    readonly property bool styleKeysOk: visible && sels.length > 0 && !colorPop.visible && !listPop.visible
+    function copyStyleKey() { if (styleKeysOk) store.copyStyle(sel); }
+    function pasteStyleKey() { if (styleKeysOk) pasteStyleToSelection(); }
     // "Paste style": onto every selected widget (or the one in the panel)
     function pasteStyleToSelection() { store.pasteStyle(sels.length > 0 ? sels : [sel]); }
     function removeSelected() {
@@ -133,10 +140,6 @@ FloatingWindow {
             if (event.key === Qt.Key_Escape) { if (colorPop.visible || listPop.visible || settings.visible) { colorPop.visible = false; listPop.visible = false; settings.visible = false; } else win.visible = false; event.accepted = true; return; }
             if (win.sels.length === 0 || colorPop.visible || listPop.visible) return;
             // arrow keys: one grid cell (Shift: five cells), for the whole selection; Delete removes the selection
-            if ((event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier) && (event.key === Qt.Key_C || event.key === Qt.Key_V)) {     // Ctrl+Shift+C / V: copy / paste the look
-                if (event.key === Qt.Key_C) win.store.copyStyle(win.sel); else win.pasteStyleToSelection();
-                event.accepted = true; return;
-            }
             var st = (event.modifiers & Qt.ShiftModifier) ? 5 : 1;
             if (event.key === Qt.Key_Delete) { win.removeSelected(); event.accepted = true; }
             else if (event.key === Qt.Key_Left)  { canvas.nudge(-st, 0); event.accepted = true; }
@@ -144,6 +147,11 @@ FloatingWindow {
             else if (event.key === Qt.Key_Up)    { canvas.nudge(0, -st); event.accepted = true; }
             else if (event.key === Qt.Key_Down)  { canvas.nudge(0, st); event.accepted = true; }
         }
+
+        Shortcut { sequence: "Ctrl+Shift+C"; enabled: win.styleKeysOk; onActivated: win.copyStyleKey() }
+        Shortcut { sequence: "Ctrl+Shift+V"; enabled: win.styleKeysOk; onActivated: win.pasteStyleKey() }
+        Shortcut { sequence: "Ctrl+C"; enabled: win.styleKeysOk && !win.textFocus; onActivated: win.copyStyleKey() }
+        Shortcut { sequence: "Ctrl+V"; enabled: win.styleKeysOk && !win.textFocus; onActivated: win.pasteStyleKey() }
 
         // window background
         GlassPanel {
