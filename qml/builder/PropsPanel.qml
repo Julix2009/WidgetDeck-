@@ -12,6 +12,8 @@ Item {
     onScrollRequestChanged: if (scrollRequest >= 0) fl.contentY = Math.max(0, Math.min(scrollRequest, fl.contentHeight - fl.height))
     signal removeRequested()
     signal duplicateRequested()
+    signal copyStyleRequested()
+    signal pasteStyleRequested()
 
     readonly property var c: { store.geomRev; return sel !== "" ? store.cfg(sel) : null; }
     readonly property var st: { store.rev; return sel !== "" ? store.styleOf(sel) : null; }
@@ -117,6 +119,11 @@ Item {
             }
 
             Text { text: I18n.tr("GLASS"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
+            Row {
+                spacing: 6; width: parent.width
+                GButton { th: pp.th; label: I18n.tr("Copy style"); width: (col.width - 6) / 2; onClicked: pp.copyStyleRequested() }
+                GButton { th: pp.th; label: I18n.tr("Paste style"); width: (col.width - 6) / 2; enabled: pp.store.styleClip !== null; opacity: enabled ? 1 : 0.4; onClicked: pp.pasteStyleRequested() }
+            }
             GChoice {
                 width: parent.width; th: pp.th; label: I18n.tr("Glass style"); options: D.MODES; value: pp.st ? pp.st.mode : "frosted"
                 onPicked: v => pp.store.setStyle(pp.sel, "mode", v)

@@ -376,6 +376,30 @@ Scope {
         c.style = Object.assign({}, c.style || {}, obj);
         touch(false);
     }
+    // ---- copy / paste the look of a widget (builder: "Copy style" / "Paste style")
+    // The copy is the EFFECTIVE style (type defaults included), so the pasted widget looks the same whatever its type is. The font SIZE is left out: it
+    // depends on the size of the widget's content; the target keeps its own. Position, size and the widget's own settings are never touched.
+    property var styleClip: null
+    function copyStyle(id) {
+        var c = raw(id); if (!c) return false;
+        var o = JSON.parse(JSON.stringify(styleOf(id)));
+        delete o.font_size;
+        styleClip = o;
+        return true;
+    }
+    function pasteStyle(ids) {                         // one id or a list; returns how many widgets got the look
+        if (!styleClip) return 0;
+        var list = Array.isArray(ids) ? ids : [ids], n = 0;
+        for (var i = 0; i < list.length; i++) {
+            var c = raw(list[i]); if (!c) continue;
+            var keep = (c.style || {}).font_size;
+            c.style = JSON.parse(JSON.stringify(styleClip));
+            if (keep !== undefined) c.style.font_size = keep;
+            n++;
+        }
+        if (n > 0) touch(false);                       // one change for all of them: the glass redraws once
+        return n;
+    }
     // a prop flagged `shared` in the registry has ONE value for all instances of the type (the focus timer: several monitors, one timer)
     function sharedKeys(type) {
         var t = typeInfo(type), out = [];

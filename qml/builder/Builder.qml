@@ -40,6 +40,8 @@ FloatingWindow {
             if (ok.length !== win.sels.length) { win.sels = ok; if (ok.indexOf(win.sel) < 0) win.sel = ok.length ? ok[ok.length - 1] : ""; }
         }
     }
+    // "Paste style": onto every selected widget (or the one in the panel)
+    function pasteStyleToSelection() { store.pasteStyle(sels.length > 0 ? sels : [sel]); }
     function removeSelected() {
         var ids = sels.length > 0 ? sels.slice() : (sel !== "" ? [sel] : []);
         for (var i = 0; i < ids.length; i++) store.remove(ids[i]);
@@ -131,6 +133,10 @@ FloatingWindow {
             if (event.key === Qt.Key_Escape) { if (colorPop.visible || listPop.visible || settings.visible) { colorPop.visible = false; listPop.visible = false; settings.visible = false; } else win.visible = false; event.accepted = true; return; }
             if (win.sels.length === 0 || colorPop.visible || listPop.visible) return;
             // arrow keys: one grid cell (Shift: five cells), for the whole selection; Delete removes the selection
+            if ((event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier) && (event.key === Qt.Key_C || event.key === Qt.Key_V)) {     // Ctrl+Shift+C / V: copy / paste the look
+                if (event.key === Qt.Key_C) win.store.copyStyle(win.sel); else win.pasteStyleToSelection();
+                event.accepted = true; return;
+            }
             var st = (event.modifiers & Qt.ShiftModifier) ? 5 : 1;
             if (event.key === Qt.Key_Delete) { win.removeSelected(); event.accepted = true; }
             else if (event.key === Qt.Key_Left)  { canvas.nudge(-st, 0); event.accepted = true; }
@@ -251,6 +257,8 @@ FloatingWindow {
                     store: win.store; th: th; sel: win.sel; scrollRequest: win.propsScroll
                     onRemoveRequested: win.removeSelected()
                     onDuplicateRequested: win.sel = win.store.duplicate(win.sel)
+                    onCopyStyleRequested: win.store.copyStyle(win.sel)
+                    onPasteStyleRequested: win.pasteStyleToSelection()
                 }
             }
         }
