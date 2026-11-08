@@ -60,6 +60,7 @@ The detailed documents in `docs/` are currently written in German only.
 | School progress | how many percent of the school day or week are over | Standard | data of the timetable widget |
 | Timetable | WebUntis through the Untis Mobile access | Small / Large | `python`, `zbar`, `libsecret`, Secret Service |
 | Music visualizer | audio-reactive bars | default | `cava` |
+| System info | fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk, small logo | default | `fastfetch` |
 
 Pixel sizes and all settings are listed in [docs/widgets.md](docs/widgets.md) (German).
 
@@ -83,6 +84,7 @@ All packages come from the **official repositories**; no AUR package is needed, 
 | Wi-Fi name in the network widget | `networkmanager` | extra |
 | Skip direction in the music widget | `playerctl` | extra |
 | Music visualizer | `cava` | extra |
+| System info widget | `fastfetch` | extra |
 | Colours from the wallpaper | `matugen` | extra |
 | Formula 1 and timetable widgets | `python` | core |
 | Read the QR code (timetable) | `zbar` | extra |
@@ -91,7 +93,7 @@ All packages come from the **official repositories**; no AUR package is needed, 
 | Focus timer sound | one of `pipewire-audio`, `libpulse`, `alsa-utils` | extra |
 | Country flag in the Formula 1 widget | `noto-fonts-emoji` | extra |
 
-The installer offers `python`, `zbar`, `libsecret`, `networkmanager`, `playerctl`, `cava` and `matugen`; install the other packages of the table yourself.
+The installer offers `python`, `zbar`, `libsecret`, `networkmanager`, `playerctl`, `cava`, `fastfetch` and `matugen`; install the other packages of the table yourself.
 
 ## Installation
 
@@ -308,6 +310,14 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 
 - **Purpose:** shows as a ring how much of the school day or week is over, counted in lessons of the timetable.
 - **Data:** uses the data of the timetable widget; without a timetable there is nothing to count.
+
+</details>
+
+<details>
+<summary>System info (fastfetch)</summary>
+
+- **Purpose:** a fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk, plus a small logo and colour blocks.
+- **Data source:** `fastfetch --json`, local, about once a minute while the widget is visible; without `fastfetch` the widget shows a hint.
 
 </details>
 

@@ -58,6 +58,7 @@ cd WidgetDeck-
 | Schulfortschritt | wie viel Prozent vom Schultag oder von der Schulwoche vorbei sind | Standard | Daten des Stundenplan-Widgets |
 | Stundenplan | WebUntis über den Untis-Mobile-Zugang | Klein / Groß | `python`, `zbar`, `libsecret`, Secret Service |
 | Musik-Visualizer | audio-reaktive Balken | Standard | `cava` |
+| System-Info | Überblick im Stil von fastfetch: System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, kleines Logo | Standard | `fastfetch` |
 
 Die Pixelgrößen und alle Einstellungen stehen in [docs/widgets.md](docs/widgets.md).
 
@@ -81,6 +82,7 @@ Alle Pakete stammen aus den **offiziellen Repositories**; es ist kein AUR-Paket 
 | WLAN-Name im Netzwerk-Widget | `networkmanager` | extra |
 | Sprungrichtung im Musik-Widget | `playerctl` | extra |
 | Musik-Visualizer | `cava` | extra |
+| System-Info-Widget | `fastfetch` | extra |
 | Farben aus dem Wallpaper | `matugen` | extra |
 | Formel-1- und Stundenplan-Widget | `python` | core |
 | QR-Code lesen (Stundenplan) | `zbar` | extra |
@@ -89,7 +91,7 @@ Alle Pakete stammen aus den **offiziellen Repositories**; es ist kein AUR-Paket 
 | Ton des Fokus-Timers | eines von `pipewire-audio`, `libpulse`, `alsa-utils` | extra |
 | Landesflagge im Formel-1-Widget | `noto-fonts-emoji` | extra |
 
-Der Installer bietet `python`, `zbar`, `libsecret`, `networkmanager`, `playerctl`, `cava` und `matugen` an; die übrigen Pakete der Tabelle installierst du selbst.
+Der Installer bietet `python`, `zbar`, `libsecret`, `networkmanager`, `playerctl`, `cava`, `fastfetch` und `matugen` an; die übrigen Pakete der Tabelle installierst du selbst.
 
 ## Installation
 
@@ -306,6 +308,14 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 
 - **Zweck:** zeigt als Ring, wie viel vom Schultag oder von der Schulwoche vorbei ist, gezählt in Stunden des Stundenplans.
 - **Daten:** nutzt die Daten des Stundenplan-Widgets; ohne Stundenplan gibt es nichts zu zählen.
+
+</details>
+
+<details>
+<summary>System-Info (fastfetch)</summary>
+
+- **Zweck:** Überblick im Stil von `fastfetch`: System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, dazu kleines Logo und Farbblöcke.
+- **Datenquelle:** `fastfetch --json`, lokal, etwa einmal pro Minute bei sichtbarem Widget; ohne `fastfetch` zeigt das Widget einen Hinweis.
 
 </details>
 

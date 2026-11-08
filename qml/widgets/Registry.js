@@ -75,6 +75,17 @@ var TYPES = {
             { key: "poll_s", label: "Poll interval (seconds)", kind: "int", def: 30, min: 5, max: 600, step: 5 }
         ]
     },
+    fastfetch: {
+        label: "System info", desc: "fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk (needs fastfetch)", icon: "cpu", size: [560, 330], file: "FastfetchWidget.qml",
+        props: [
+            { key: "show_logo", label: "Show logo", kind: "bool", def: true },
+            { key: "show_title", label: "Show user@host", kind: "bool", def: true },
+            { key: "show_hardware", label: "Show hardware (device, CPU, GPU)", kind: "bool", def: true },
+            { key: "show_software", label: "Show software (packages, shell, WM)", kind: "bool", def: true },
+            { key: "show_colors", label: "Show colour blocks", kind: "bool", def: true },
+            { key: "poll_s", label: "Poll interval (seconds)", kind: "int", def: 60, min: 10, max: 600, step: 10 }
+        ]
+    },
     airquality: {
         label: "Air quality", desc: "European AQI, PM2.5, PM10, ozone (Open-Meteo)", icon: "leaf", size: [400, 230], file: "AirQualityWidget.qml",
         props: [

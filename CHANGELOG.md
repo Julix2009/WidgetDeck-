@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ## [Unveröffentlicht]
 
 ### Hinzugefügt
+- Neues Widget „System-Info“ im Stil von fastfetch (System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, kleines Logo, Farbblöcke) mit Liquid Glass; braucht `fastfetch`, das der Installer optional anbietet.
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 - Liquid Glass: optionale „Kantenlinse“ (Stärke, Kantenbiegung, Regenbogensaum, Tönung) – der Rand biegt den Hintergrund wie ein Wassertropfen; neue Presets „Crystal“ und „Water drop“. Ältere Widgets bleiben unverändert (Stärke 0).

@@ -6,7 +6,7 @@ Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas) und Liqu
 
 Widgets mit zwei Größen haben im Builder die Knöpfe *Klein* und *Groß*. Das Aussehen eines Widgets (Glas-Stil, Regler, Farben) lässt sich mit *Stil kopieren* und *Stil einfügen* auf andere übertragen. Bei Liquid Glass gibt es außerdem die optionale *Kantenlinse* (*Linsenstärke*, *Kantenbiegung*, *Regenbogensaum*, *Linsen-Tönung*) und die Presets *Kristall* und *Wassertropfen*; bei Linsenstärke 0 bleibt alles wie zuvor. Alle anderen haben eine Standardgröße, die du über Breite und Höhe frei ändern kannst.
 
-Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [Visualizer](#musik-visualizer)
+Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [System-Info](#system-info-fastfetch) · [Visualizer](#musik-visualizer)
 
 ## Uhr & Datum
 
@@ -329,6 +329,21 @@ Ohne Secret Service bietet das Setup eine private Datei (`chmod 600`, `~/.local/
 | Anzeige | *Schulwoche* (Standard) oder *Schultag* |
 | Meine Gruppe | leer = alle Stunden zählen, sonst nur die der eigenen Gruppe |
 | Stunden anzeigen | zeigt zusätzlich die Zählung, zum Beispiel „5 von 30“ |
+
+## System-Info (fastfetch)
+
+*Überblick über deinen Rechner im Stil von `fastfetch`: Benutzer@Rechner, System, Gerät, Kernel, Laufzeit, Pakete, Shell, Fenstermanager, CPU, GPU, RAM und Speicher, dazu ein kleines Logo und Farbblöcke.* Größe 560×330. RAM und Speicher haben einen feinen Füllbalken (über 90 % in der Fehlerfarbe).
+
+**Voraussetzung:** `fastfetch` (`sudo pacman -S fastfetch`, Repository extra). Ohne ihn zeigt das Widget einen Hinweis. Die Daten kommen lokal von `fastfetch --json`; es gibt keinen Netzwerkzugriff. Das Widget fragt etwa einmal pro Minute ab, solange es sichtbar ist; die Laufzeit zählt dazwischen von selbst weiter.
+
+| Einstellung | Standard | Wirkung |
+|---|---|---|
+| Logo anzeigen | an | kleines ASCII-Logo deiner Distribution (die kleine Fassung, sonst höchstens 12 Zeilen), in der Akzentfarbe |
+| Benutzer@Rechner anzeigen | an | Titelzeile |
+| Hardware anzeigen | an | Gerät, CPU, GPU |
+| Software anzeigen | an | Pakete, Shell, Fenstermanager |
+| Farbblöcke anzeigen | an | die Farbrollen des Themes als kleine Blöcke |
+| Abfrageintervall (Sekunden) | 60 | 10 bis 600 |
 
 ## Musik-Visualizer
 
