@@ -4,9 +4,9 @@
 
 Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas) und Liquid Glass gelten also für jedes Widget gleich, Raster, Einrasten und mehrere Monitore ebenso. Die Einstellungen eines Widgets stehen im Builder rechts im Eigenschaften-Panel. Die Spalte „Schlüssel“ ist der Name, den `widgetdeck ipc setProp <id> <schlüssel> <json>` erwartet.
 
-Widgets mit zwei Größen haben im Builder die Knöpfe *Klein* und *Groß*. Alle anderen haben eine Standardgröße, die du über Breite und Höhe frei ändern kannst.
+Widgets mit zwei Größen haben im Builder die Knöpfe *Klein* und *Groß*. Das Aussehen eines Widgets (Glas-Stil, Regler, Farben) lässt sich mit *Stil kopieren* und *Stil einfügen* auf andere übertragen. Bei Liquid Glass gibt es außerdem die optionale *Kantenlinse* (*Linsenstärke*, *Kantenbiegung*, *Regenbogensaum*, *Linsen-Tönung*) und die Presets *Kristall* und *Wassertropfen*; bei Linsenstärke 0 bleibt alles wie zuvor. Alle anderen haben eine Standardgröße, die du über Breite und Höhe frei ändern kannst.
 
-Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Visualizer](#musik-visualizer)
+Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [Visualizer](#musik-visualizer)
 
 ## Uhr & Datum
 
@@ -319,6 +319,16 @@ Ohne Secret Service bietet das Setup eine private Datei (`chmod 600`, `~/.local/
 | Datenquelle | `source` | Untis Mobile | Untis Mobile / Demo (erfundene Stunden) / Demo (Ferien) |
 
 </details>
+
+## Schulfortschritt
+
+*Wie viel Prozent vom Schultag oder von der Schulwoche vorbei sind, als Ring.* Größe 200×200. Gezählt werden die Stunden des Stundenplans; das Widget nutzt also die Daten des [Stundenplan](#stundenplan-webuntis--untis-mobile)-Widgets und braucht keinen eigenen Zugang.
+
+| Einstellung | Wirkung |
+|---|---|
+| Anzeige | *Schulwoche* (Standard) oder *Schultag* |
+| Meine Gruppe | leer = alle Stunden zählen, sonst nur die der eigenen Gruppe |
+| Stunden anzeigen | zeigt zusätzlich die Zählung, zum Beispiel „5 von 30“ |
 
 ## Musik-Visualizer
 

@@ -8,7 +8,7 @@ Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock
 
 > Unofficial hobby project, not affiliated with Formula 1, Untis, Apple or any other trademark owner named here. The screenshots show invented demo data.
 
-**Version** 0.5.0 · **Licence** MIT · **Supported:** Arch Linux with Hyprland and Quickshell only
+**Version** 0.8.0 · **Licence** MIT · **Supported:** Arch Linux with Hyprland and Quickshell only
 
 ```bash
 git clone https://github.com/Julix2009/WidgetDeck-.git
@@ -35,11 +35,13 @@ The detailed documents in `docs/` are currently written in German only.
 ## Features at a glance
 
 - **Builder** with snap grid, guides, multi-select, align and distribute
-- **Two glass styles:** Frosted Glass and Liquid Glass (own shader that refracts the wallpaper), set per widget
+- **Two glass styles:** Frosted Glass and Liquid Glass (own shader that refracts the wallpaper), set per widget; Liquid Glass has presets and an optional **edge lens** (the rim bends the background like a drop of water)
+- **Copy and paste style:** carry the look of one widget over to others, also to several at once
 - **Theming** with Matugen: colours follow the wallpaper (optional, otherwise a fixed default palette)
 - **Several monitors** with a stable monitor key, own layout and wallpaper per monitor
 - **Sizes:** widgets with two sizes switch between *Small* and *Large* with an animation
 - **Modules:** bar and notifications with power menu are included but **off** by default
+- **Lean:** all widgets run in one single process; the builder is only loaded while it is open
 - **Self-contained:** no foreign dotfiles, no icon theme and no particular font needed; the interface is available in English and German
 
 | Widget | Shows | Sizes | Notes, needs |
@@ -55,6 +57,7 @@ The detailed documents in `docs/` are currently written in German only.
 | Weather card | 3D icons, next hours and days | Small / Large | internet (Open-Meteo), same data as *Weather* |
 | Formula 1 (unofficial) | next race weekend, result, standings | Small / Large | `python`, internet (Jolpica-F1, OpenF1) |
 | Focus timer | Pomodoro ring with sessions | Small / Large | `focus-timer` command; sound and notification optional |
+| School progress | how many percent of the school day or week are over | Standard | data of the timetable widget |
 | Timetable | WebUntis through the Untis Mobile access | Small / Large | `python`, `zbar`, `libsecret`, Secret Service |
 | Music visualizer | audio-reactive bars | default | `cava` |
 
@@ -65,7 +68,7 @@ Pixel sizes and all settings are listed in [docs/widgets.md](docs/widgets.md) (G
 | Component | Status |
 |---|---|
 | System | Arch Linux (or a derivative with `ID_LIKE=arch`); the installer stops otherwise and refuses to run as root |
-| Hyprland | tested with **0.55.4**, configured as `hyprland.conf` (hyprlang) and as Lua `hyprland.lua` (from 0.55). From 0.53 the block rule syntax applies (untested), below that the old syntax (untested). Below 0.40 the installer stops. |
+| Hyprland | tested with **0.55.4** (also in use on 0.57), configured as `hyprland.conf` (hyprlang) and as Lua `hyprland.lua` (from 0.55). From 0.53 the block rule syntax applies (untested), below that the old syntax (untested). Below 0.40 the installer stops. |
 | Quickshell | tested with **0.3.0** (git build `quickshell-git`); the installer warns below 0.2.0 |
 | Qt | 6.7 or newer, tested with 6.11.1 |
 | GPU | tested with Intel Arc; AMD and NVIDIA are **untested**. Liquid Glass needs the shader (`qsb`); without it every widget uses Frosted Glass. |
@@ -175,10 +178,11 @@ On the first start a setup assistant opens once. You can skip it and run it agai
 | Add a widget | click it on the left or drag it onto the stage |
 | Move | drag; grid and guides snap, `Alt` for free placement, `Shift` for multi-select |
 | Arrow keys | one grid cell, five with `Shift`; `Delete` removes the selection, `Esc` closes |
-| Align, distribute | bar on top: Left, Centre, Right, Top, Middle ↕, Bottom, Distribute ↔ and ↕ |
+| Align, distribute | bar on top: Left, Centre, Right, Top, Middle ↕, Bottom, Distribute ↔ and ↕ (wraps to a second line in a narrow window) |
 | Grid | switches *Grid*, *Snap*, *Overlap* at the top right; grid size and edge distance under *Settings* |
 | Size | width and height in the panel on the right; *Small* / *Large* switches with an animation (widgets with two sizes only) |
 | Duplicate, delete | buttons at the top of the panel on the right |
+| Carry a style over | *Copy style* / *Paste style* in the *Glass* section, or `Ctrl+Shift+C` / `V` (also `Ctrl+C` / `V` while no text field has the focus); pasting onto several selected widgets applies the style to all of them |
 | Modules | *Settings → Modules* or `widgetdeck module bar on` (`widgets`, `builder`, `bar`, `notifications`) |
 
 ![A widget in small and large: weather card](docs/images/widget-klein.webp) ![Weather card, large](docs/images/widget-gross.webp)
@@ -190,13 +194,15 @@ On the first start a setup assistant opens once. You can skip it and run it agai
 | Effect | background blur from Hyprland | own shader that refracts the wallpaper |
 | Needs | blur in Hyprland (default) and the rules file | `qsb` (`qt6-shadertools`) and a detected wallpaper |
 | If missing | – | every widget falls back to Frosted Glass |
-| Settings | tint, border, opacity, shine | presets *Pearl*, *Clear*, *Subtle* and sliders for opacity, refraction, edge thickness, colour fringe, blur, saturation, highlight, light angle, grain |
+| Settings | tint, border, opacity, shine | presets *Pearl*, *Clear*, *Subtle*, *Crystal*, *Water drop* and sliders for opacity, refraction, edge thickness, colour fringe, blur, saturation, highlight, light angle, grain; plus the *Edge lens* |
 
 ![Overview with Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
-You set the style and sliders per widget in the right panel under *Glass style* (to edit Liquid Glass: pick a preset, then adjust the sliders):
+You set the style and sliders per widget in the right panel under *Glass style* (to edit Liquid Glass: pick a preset, then adjust the sliders). The preset buttons wrap onto several lines when needed:
 
 ![Glass settings of a widget with presets and sliders](docs/images/glas-einstellungen.webp)
+
+**Edge lens (Liquid Glass):** the *Edge lens* section with the *Lens strength* slider is off at first (0): every widget then looks as before. With a strength above 0 the rim bends the background inwards and splits it into a faint rainbow fringe, with a bright edge along the top and a soft shadow along the bottom. *Edge bending*, *Rainbow fringe* and *Lens tint* only appear once the lens is on. *Crystal* is clear glass with a bright rim, *Water drop* a drop of water with a soft glow instead of a white outline. The lower the *Lens tint*, the more see-through the glass.
 
 ### Several monitors
 
@@ -263,7 +269,7 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 <details>
 <summary>Network</summary>
 
-- **Purpose:** down and upload, 60 s curve, Wi-Fi name and signal, ping.
+- **Purpose:** down and upload, 60 s curve, Wi-Fi name and signal, ping; all colours (download, upload, Wi-Fi, ping, error) are adjustable, as a theme role or a custom colour.
 - **Source:** `ip`, `ping` every 3 s, `nmcli` every 5 s (optional).
 - **Setting:** the ping target (default `1.1.1.1`).
 
@@ -294,6 +300,14 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 - **Control:** `focus-timer …`, see [Commands](#commands).
 - **Optional:** "do not disturb" during focus (WidgetDeck, dunst, mako, swaync), sound and notification at the end of a phase.
 - **Data:** statistics in `~/.config/widgetdeck/focus-stats.json`, running state in `focus-state.json`; both stay local.
+
+</details>
+
+<details>
+<summary>School progress</summary>
+
+- **Purpose:** shows as a ring how much of the school day or week is over, counted in lessons of the timetable.
+- **Data:** uses the data of the timetable widget; without a timetable there is nothing to count.
 
 </details>
 
@@ -378,6 +392,7 @@ Run `widgetdeck-doctor` first: it names a fix for every WARN and FAIL line.
 | Wallpaper not detected | *Settings → Glass background*: choose a picture |
 | Wrong weather location | *Settings → Location*: enter coordinates |
 | Widgets on the wrong monitor | use *Show on* or *Move to …* in the panel |
+| The builder does not open at login | intended: it is only loaded while it is open; `widgetdeck builder` or `widgetdeck toggle` opens it |
 
 All known problems (notification daemon conflict, expired timetable access, key binds without effect …) are in [docs/troubleshooting.md](docs/troubleshooting.md) (German). For an issue, paste the full output of `widgetdeck-doctor --plain` into the [bug report form](https://github.com/Julix2009/WidgetDeck-/issues); the program replaces your home directory with `~` and prints neither location nor wallpaper path.
 

@@ -8,7 +8,7 @@ Desktop-Widgets für **Hyprland** auf **Arch Linux**, gebaut mit Quickshell: Uhr
 
 > Inoffizielles Hobbyprojekt ohne Verbindung zu Formula 1, Untis, Apple oder anderen genannten Marken-Inhabern. Die Screenshots zeigen erfundene Demo-Daten.
 
-**Version** 0.5.0 · **Lizenz** MIT · **Unterstützt** nur Arch Linux mit Hyprland und Quickshell
+**Version** 0.8.0 · **Lizenz** MIT · **Unterstützt** nur Arch Linux mit Hyprland und Quickshell
 
 ```bash
 git clone https://github.com/Julix2009/WidgetDeck-.git
@@ -33,11 +33,13 @@ cd WidgetDeck-
 ## Funktionen auf einen Blick
 
 - **Builder** mit Raster, Hilfslinien, Mehrfachauswahl, Ausrichten und Verteilen
-- **Zwei Glas-Stile:** Frosted Glass und Liquid Glass (eigener Shader, der das Wallpaper bricht), pro Widget einstellbar
+- **Zwei Glas-Stile:** Frosted Glass und Liquid Glass (eigener Shader, der das Wallpaper bricht), pro Widget einstellbar; Liquid Glass hat Presets und eine optionale **Kantenlinse** (der Rand biegt den Hintergrund wie ein Wassertropfen)
+- **Stil kopieren und einfügen:** das Aussehen eines Widgets auf andere übertragen, auch auf mehrere gleichzeitig
 - **Theming** mit Matugen: Farben folgen dem Wallpaper (optional, sonst feste Standardpalette)
 - **Mehrere Monitore** mit stabiler Monitor-Kennung, eigenem Layout und Wallpaper pro Monitor
 - **Größen:** Widgets mit zwei Größen wechseln per *Klein* / *Groß* animiert
 - **Module:** Leiste und Benachrichtigungen mit Power-Menü sind eingebaut, aber standardmäßig **aus**
+- **Sparsam:** alle Widgets laufen in einem einzigen Prozess; der Builder wird nur geladen, solange er offen ist
 - **Eigenständig:** keine fremden Dotfiles, kein Icon-Theme und keine bestimmte Schrift nötig; Oberfläche auf Deutsch und Englisch
 
 | Widget | Was es zeigt | Größen | Besonderheit, benötigt |
@@ -53,6 +55,7 @@ cd WidgetDeck-
 | Wetter-Karte | 3D-Icons, nächste Stunden und Tage | Klein / Groß | Internet (Open-Meteo), gleiche Daten wie *Wetter* |
 | Formel 1 (inoffiziell) | nächstes Rennwochenende, Ergebnis, Wertung | Klein / Groß | `python`, Internet (Jolpica-F1, OpenF1) |
 | Fokus-Timer | Pomodoro-Ring mit Sessions | Klein / Groß | Befehl `focus-timer`; Ton und Meldung optional |
+| Schulfortschritt | wie viel Prozent vom Schultag oder von der Schulwoche vorbei sind | Standard | Daten des Stundenplan-Widgets |
 | Stundenplan | WebUntis über den Untis-Mobile-Zugang | Klein / Groß | `python`, `zbar`, `libsecret`, Secret Service |
 | Musik-Visualizer | audio-reaktive Balken | Standard | `cava` |
 
@@ -63,7 +66,7 @@ Die Pixelgrößen und alle Einstellungen stehen in [docs/widgets.md](docs/widget
 | Komponente | Stand |
 |---|---|
 | System | Arch Linux (oder Ableger mit `ID_LIKE=arch`); der Installer bricht sonst ab und läuft nicht als root |
-| Hyprland | getestet mit **0.55.4**, Konfiguration als `hyprland.conf` (hyprlang) und als Lua-Datei `hyprland.lua` (ab 0.55). Ab 0.53 gilt die Blocksyntax der Regeln (ungetestet), darunter die alte Syntax (ungetestet). Unter 0.40 bricht der Installer ab. |
+| Hyprland | getestet mit **0.55.4** (läuft nach bisherigen Erfahrungen auch unter 0.57), Konfiguration als `hyprland.conf` (hyprlang) und als Lua-Datei `hyprland.lua` (ab 0.55). Ab 0.53 gilt die Blocksyntax der Regeln (ungetestet), darunter die alte Syntax (ungetestet). Unter 0.40 bricht der Installer ab. |
 | Quickshell | getestet mit **0.3.0** (Git-Build `quickshell-git`); der Installer warnt unter 0.2.0 |
 | Qt | 6.7 oder neuer, getestet mit 6.11.1 |
 | GPU | getestet mit Intel Arc; AMD und NVIDIA sind **ungetestet**. Liquid Glass braucht den Shader (`qsb`), ohne ihn verwenden alle Widgets Frosted Glass. |
@@ -173,10 +176,11 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 | Widget hinzufügen | links anklicken oder auf die Fläche ziehen |
 | Verschieben | ziehen; Raster und Hilfslinien rasten ein, mit `Alt` frei, mit `Shift` Mehrfachauswahl |
 | Pfeiltasten | eine Rasterzelle, mit `Shift` fünf; `Entf` löscht die Auswahl, `Esc` schließt |
-| Ausrichten, Verteilen | Leiste oben: Links, Mitte, Rechts, Oben, Mitte ↕, Unten, Verteilen ↔ und ↕ |
+| Ausrichten, Verteilen | Leiste oben: Links, Mitte, Rechts, Oben, Mitte ↕, Unten, Verteilen ↔ und ↕ (bricht bei schmalem Fenster in eine zweite Zeile um) |
 | Raster | Schalter *Raster*, *Einrasten*, *Überlappen* oben rechts; Rastergröße und Randabstand unter *Einstellungen* |
 | Größe | Breite und Höhe im Panel rechts; *Klein* / *Groß* wechselt animiert (nur Widgets mit zwei Größen) |
 | Kopie, Löschen | Knöpfe oben im Panel rechts |
+| Stil übertragen | *Stil kopieren* / *Stil einfügen* im Bereich *Glas* oder `Strg+Umschalt+C` / `V` (auch `Strg+C` / `V`, solange kein Textfeld den Fokus hat); beim Einfügen auf mehrere markierte Widgets gilt der Stil für alle |
 | Module | *Einstellungen → Module* oder `widgetdeck module bar on` (`widgets`, `builder`, `bar`, `notifications`) |
 
 ![Widget in Klein und Groß: Wetter-Karte](docs/images/widget-klein.webp) ![Wetter-Karte groß](docs/images/widget-gross.webp)
@@ -188,13 +192,15 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 | Wirkung | Hintergrund-Blur von Hyprland | eigener Shader, der das Wallpaper bricht |
 | Braucht | Blur in Hyprland (Standard) und die Regeldatei | `qsb` (`qt6-shadertools`) und ein erkanntes Wallpaper |
 | Fehlt es | – | alle Widgets fallen auf Frosted Glass zurück |
-| Einstellungen | Tönung, Rand, Deckkraft, Glanz | Presets *Perle*, *Klar*, *Dezent* und Regler für Deckkraft, Brechungsstärke, Rand-Dicke, Farbsaum, Blur, Sättigung, Highlight, Lichtwinkel, Körnung |
+| Einstellungen | Tönung, Rand, Deckkraft, Glanz | Presets *Perle*, *Klar*, *Dezent*, *Kristall*, *Wassertropfen* und Regler für Deckkraft, Brechungsstärke, Rand-Dicke, Farbsaum, Blur, Sättigung, Highlight, Lichtwinkel, Körnung; dazu die *Kantenlinse* |
 
 ![Gesamtansicht mit Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
-Den Stil und die Regler stellst du pro Widget im Panel rechts unter *Glas-Stil* ein (Liquid Glass bearbeiten: Preset wählen, dann Regler anpassen):
+Den Stil und die Regler stellst du pro Widget im Panel rechts unter *Glas-Stil* ein (Liquid Glass bearbeiten: Preset wählen, dann Regler anpassen). Die Preset-Knöpfe brechen bei Bedarf in mehrere Zeilen um:
 
 ![Glas-Einstellungen eines Widgets mit Presets und Reglern](docs/images/glas-einstellungen.webp)
+
+**Kantenlinse (Liquid Glass):** Der Bereich *Kantenlinse* mit dem Regler *Linsenstärke* ist zunächst aus (0): dann sieht jedes Widget aus wie vorher. Mit Stärke über 0 biegt der Rand den Hintergrund nach innen und spaltet ihn in einen feinen Regenbogensaum, dazu kommen ein heller Rand oben und ein weicher Schatten unten. *Kantenbiegung*, *Regenbogensaum* und *Linsen-Tönung* erscheinen erst, wenn die Linse an ist. *Kristall* ist klares Glas mit hellem Rand, *Wassertropfen* ein Tropfen mit weichem Leuchten statt weißer Umrandung. Je kleiner die *Linsen-Tönung*, desto durchsichtiger das Glas.
 
 ### Mehrere Monitore
 
@@ -261,7 +267,7 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 <details>
 <summary>Netzwerk</summary>
 
-- **Zweck:** Down- und Upload, 60-s-Kurve, WLAN-Name und -Signal, Ping.
+- **Zweck:** Down- und Upload, 60-s-Kurve, WLAN-Name und -Signal, Ping; alle Farben (Download, Upload, WLAN, Ping, Fehler) sind einstellbar, als Theme-Rolle oder eigene Farbe.
 - **Datenquelle:** `ip`, `ping` alle 3 s, `nmcli` alle 5 s (optional).
 - **Einstellung:** das Ping-Ziel (Standard `1.1.1.1`).
 
@@ -292,6 +298,14 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 - **Steuerung:** `focus-timer …`, siehe [Befehle](#befehle).
 - **Optional:** „Nicht stören“ während des Fokus (WidgetDeck, dunst, mako, swaync), Ton und Meldung am Phasenende.
 - **Daten:** Statistik in `~/.config/widgetdeck/focus-stats.json`, laufender Zustand in `focus-state.json`; beides bleibt lokal.
+
+</details>
+
+<details>
+<summary>Schulfortschritt</summary>
+
+- **Zweck:** zeigt als Ring, wie viel vom Schultag oder von der Schulwoche vorbei ist, gezählt in Stunden des Stundenplans.
+- **Daten:** nutzt die Daten des Stundenplan-Widgets; ohne Stundenplan gibt es nichts zu zählen.
 
 </details>
 
@@ -376,6 +390,7 @@ Zuerst `widgetdeck-doctor` ausführen: Es nennt zu jeder WARN- und FAIL-Zeile ei
 | Wallpaper nicht erkannt | *Einstellungen → Glas-Hintergrund*: Bild wählen |
 | Falscher Wetterort | *Einstellungen → Standort*: Koordinaten eintragen |
 | Widgets auf dem falschen Monitor | im Panel *Anzeigen auf* oder *Verschieben nach …* |
+| Builder öffnet sich nicht beim Login | gewollt: er wird nur geladen, solange er offen ist; `widgetdeck builder` oder `widgetdeck toggle` öffnet ihn |
 
 Alle bekannten Probleme (Benachrichtigungsdienst-Konflikt, Stundenplan-Zugang abgelaufen, Tastenkürzel ohne Wirkung …) stehen in [docs/troubleshooting.md](docs/troubleshooting.md). Für ein Issue die Ausgabe von `widgetdeck-doctor --plain` komplett ins [Bug-Report-Formular](https://github.com/Julix2009/WidgetDeck-/issues) einfügen; das Programm ersetzt dein Home-Verzeichnis durch `~` und gibt weder Standort noch Wallpaper-Pfad aus.
 

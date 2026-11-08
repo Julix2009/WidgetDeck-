@@ -11,6 +11,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Liquid Glass: optionale „Kantenlinse“ (Stärke, Kantenbiegung, Regenbogensaum, Tönung) – der Rand biegt den Hintergrund wie ein Wassertropfen; neue Presets „Crystal“ und „Water drop“. Ältere Widgets bleiben unverändert (Stärke 0).
 
 ### Geändert
+- README und Widget-Dokumentation auf den aktuellen Stand gebracht (Version, Schulfortschritt, Kantenlinse und Presets, Stil kopieren und einfügen, Builder wird nur bei Bedarf geladen); Bilder unverändert.
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
