@@ -15,6 +15,15 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [0.9.0] - 2026-11-08
+
+### Geändert
+- Untis-Mock hält 'nächste Woche' wochentagsunabhängig für unveröffentlicht (schlug sonntags fehl)
+- README (de/en) und widgets.md auf den aktuellen Stand, bestehende Bilder bleiben
+- Builder wird nur noch geladen, solange er offen ist (LazyLoader)
+- Liquid Glass: Kantenlinse (Wassertropfen-Look) + Builder-Layout ohne abgeschnittene Elemente
+- Stil kopieren/einfügen per Shortcut (Strg+Umschalt+C/V und Strg+C/V), unabhängig davon, welches Element den Fokus hat
+
 ## [0.8.0] - 2026-11-04
 
 ### Geändert
