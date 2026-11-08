@@ -42,7 +42,7 @@ Item {
                 TypeGlyph { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 30; height: 24; ti: card.ti; color: th.fg; size: 22 }
                 Column {
                     x: 54; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 66
-                    Text { text: card.ti ? card.ti.label : modelData; color: th.fg; font.family: th.font; font.pixelSize: 14; font.bold: true }
+                    Text { text: card.ti ? card.ti.label : modelData; color: th.fg; font.family: th.font; font.pixelSize: 14; font.bold: true; elide: Text.ElideRight; width: parent.width }
                     Text { text: card.ti ? card.ti.desc : ""; color: th.dim; font.family: th.font; font.pixelSize: 11; elide: Text.ElideRight; width: parent.width }
                 }
                 MouseArea {
@@ -78,7 +78,7 @@ Item {
                 border.width: 1; border.color: on ? th.accent : th.line
                 Behavior on color { ColorAnimation { duration: 160 } }
                 TypeGlyph { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 18; height: 18; ti: row.ti; color: th.fg; size: 16 }
-                Text { x: 40; anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
+                Text { x: 40; width: parent.width - 40 - (pal.store.multi ? 120 : 12); elide: Text.ElideRight; anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13
                     text: (row.ti ? I18n.tr(row.ti.label) : modelData) + (row.c && !pal.store.multi ? "   ·  " + row.c.x + "," + row.c.y : "") }
                 // several monitors: where the widget lives
                 Text { visible: pal.store.multi && !!row.c; anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter } color: th.dim; font.family: th.font; font.pixelSize: 11

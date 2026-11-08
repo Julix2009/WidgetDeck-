@@ -8,6 +8,10 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ### Hinzugefügt
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
+- Liquid Glass: optionale „Kantenlinse“ (Stärke, Kantenbiegung, Regenbogensaum, Tönung) – der Rand biegt den Hintergrund wie ein Wassertropfen; neue Presets „Crystal“ und „Water drop“. Ältere Widgets bleiben unverändert (Stärke 0).
+
+### Geändert
+- Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
 ## [0.8.0] - 2026-11-04
 

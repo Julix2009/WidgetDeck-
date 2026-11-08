@@ -172,7 +172,7 @@ FloatingWindow {
                 onPressed: mouse => { if (typeof win.startSystemMove === "function") win.startSystemMove(); }
             }
             Text { anchors.verticalCenter: parent.verticalCenter; text: "◈  WidgetDeck"; color: th.fg; font.family: th.font; font.pixelSize: 16; font.bold: true }
-            Text { visible: !win.store.multi; x: 150; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
+            Text { x: 150; width: Math.max(0, parent.width - 150 - 220); elide: Text.ElideRight; visible: !win.store.multi && width > 120; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
             // several monitors: pick the one you edit (cards + a small map of the arrangement); with one monitor none of this exists
             MonitorStrip { visible: win.store.multi; x: 150; width: parent.width - 150 - 190; height: parent.height; store: win.store; th: th; mons: win.mons; onIdentify: win.identifyRequested() }
             Row {

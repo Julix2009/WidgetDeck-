@@ -27,6 +27,11 @@ var STYLE_PROPS = [
     { key: "hover_strength", label: "Hover strength",        kind: "range",  def: 1.0,  min: 0, max: 2, step: 0.05, only: "liquid" },
     { key: "hover_duration", label: "Hover duration (ms)",    kind: "range",  def: 440,  min: 150, max: 900, step: 10, only: "liquid" },
     { key: "merge",        label: "Merge (px)",    kind: "range",  def: 0,    min: 0,   max: 40,  step: 1,    only: "liquid" },
+    // Edge lens (see glass.frag): the edge bends the backdrop like a drop of water; the controls below "Strength" only show while the lens is on
+    { key: "lens",            label: "Lens strength",      kind: "range", def: 0,    min: 0, max: 1,   step: 0.01, only: "liquid", section: "Edge lens" },
+    { key: "lens_refraction", label: "Edge bending",       kind: "range", def: 1.0,  min: 0, max: 3,   step: 0.01, only: "liquid", section: "Edge lens", needs: "lens" },
+    { key: "lens_aberration", label: "Rainbow fringe",     kind: "range", def: 0.6,  min: 0, max: 2,   step: 0.01, only: "liquid", section: "Edge lens", needs: "lens" },
+    { key: "lens_tint",       label: "Lens tint",          kind: "range", def: 0.07, min: 0, max: 0.6, step: 0.01, only: "liquid", section: "Edge lens", needs: "lens" },
     { key: "fg",           label: "Text colour",             kind: "color",  def: "theme:on_surface" },
     { key: "accent",       label: "Accent colour",           kind: "color",  def: "theme:primary" },
     { key: "font",         label: "Font",            kind: "font",   def: "" },
@@ -42,14 +47,23 @@ var STYLE_PROPS = [
 var LIQUID_DEFAULTS = {
     bg_alpha: 0.42, refraction: 1.0, bezel: 1.0, aberration: 1.0, blur: 16, saturation: 1.25, highlight: 0.45,
     light_angle: 236.46, grain: 0.03, dark: "auto", light_follow: false, merge: 0, shadow: 1.0, radius: 29.77,
-    tint_color: "theme:primary_container", theme_tint: 0.20
+    tint_color: "theme:primary_container", theme_tint: 0.20,
+    lens: 0, lens_refraction: 1.0, lens_edge: 0.10, lens_aberration: 0.6, lens_fresnel: 1.0, lens_specular: 1.0, lens_tint: 0.07, lens_dome: 0.3
 };
 
 var LIQUID_PRESETS = {
     // "Pearl" = the default look
     "Pearl":  { bg_alpha: 0.42, refraction: 1.0, bezel: 1.0, aberration: 1.0, blur: 16, saturation: 1.25, highlight: 0.45, grain: 0.03, shadow: 1.0, light_angle: 236.46 },
     "Clear":   { bg_alpha: 0.18, refraction: 1.3, bezel: 1.0, aberration: 1.3, blur: 6,  saturation: 1.20, highlight: 0.60, grain: 0.03, shadow: 0.8, light_angle: 236.46 },
-    "Subtle": { bg_alpha: 0.75, refraction: 0.6, bezel: 0.8, aberration: 0.6, blur: 24, saturation: 1.15, highlight: 0.35, grain: 0.03, shadow: 0.8, light_angle: 236.46 }
+    "Subtle": { bg_alpha: 0.75, refraction: 0.6, bezel: 0.8, aberration: 0.6, blur: 24, saturation: 1.15, highlight: 0.35, grain: 0.03, shadow: 0.8, light_angle: 236.46 },
+    // "Crystal" = clear glass with a lens edge: moderate blur, clear middle, the edge bends the backdrop inwards with a rainbow fringe and a fine bright rim,
+    // a light tint instead of a milky veil. More see-through: lower "Lens tint".
+    "Crystal": { lens: 1, lens_refraction: 1.0, lens_edge: 0.10, lens_aberration: 0.6, lens_fresnel: 1.0, lens_specular: 1.0, lens_tint: 0.07, lens_dome: 0.3,
+                 blur: 8, saturation: 0.95, highlight: 0.35, grain: 0.02, shadow: 0.6, light_angle: 236.46, tint_color: "#8899aa", theme_tint: 1.0 },
+    // "Water drop" = like a drop of water: the edge bends the backdrop and splits it into a faint rainbow, the rim is a soft glow instead of a white
+    // outline (little highlight, little edge light), a clear middle.
+    "Water drop": { lens: 1, lens_refraction: 1.0, lens_edge: 0.12, lens_aberration: 0.6, lens_fresnel: 0.35, lens_specular: 0.45, lens_tint: 0.07, lens_dome: 0.3,
+                 blur: 8, saturation: 0.95, highlight: 0.10, grain: 0.02, shadow: 0.6, light_angle: 236.46, tint_color: "#8899aa", theme_tint: 1.0 }
 };
 
 // applied when the glass mode of a widget is switched

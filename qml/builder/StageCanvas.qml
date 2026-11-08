@@ -24,7 +24,7 @@ Item {
     property var sels: []                    // all selected ids
     signal selectionRequested(var ids, string primary)
 
-    readonly property real barH: 38
+    readonly property real barH: bar.height + 10
     readonly property real zoom: Math.max(0.05, Math.min((width - 8) / screenSize.width, (height - barH - 8) / screenSize.height))
     readonly property var grid: store.grid
     readonly property rect area: store.area
@@ -200,32 +200,25 @@ Item {
     // window coordinates of the stage origin + zoom (test hooks map desktop px to pointer positions with this)
     function stageGeom() { var p = stage.mapToItem(null, 0, 0); return { x: p.x, y: p.y, zoom: zoom }; }
 
-    // ───────────── toolbar: align / distribute + the three placement switches ─────────────
-    Item {
+    // ───────────── toolbar: align / distribute + the three placement switches (wraps instead of clipping) ─────────────
+    Flow {
         id: bar
-        x: 0; y: 0; width: parent.width; height: cv.barH
+        x: 0; y: 0; width: parent.width; spacing: 4
         readonly property int n: cv.sels.length
-        Row {
-            anchors.verticalCenter: parent.verticalCenter; spacing: 4
-            Repeater {
-                model: [["left", I18n.tr("Left")], ["hcenter", I18n.tr("Centre")], ["right", I18n.tr("Right")], ["top", I18n.tr("Top")], ["vcenter", I18n.tr("Middle ↕")], ["bottom", I18n.tr("Bottom")]]
-                delegate: GButton {
-                    required property var modelData
-                    th: cv.th; label: modelData[1]; pad: 9; implicitHeight: 28
-                    opacity: bar.n >= 2 ? 1 : 0.38
-                    onClicked: cv.alignSel(modelData[0])
-                }
+        Repeater {
+            model: [["left", I18n.tr("Left")], ["hcenter", I18n.tr("Centre")], ["right", I18n.tr("Right")], ["top", I18n.tr("Top")], ["vcenter", I18n.tr("Middle ↕")], ["bottom", I18n.tr("Bottom")]]
+            delegate: GButton {
+                required property var modelData
+                th: cv.th; label: modelData[1]; pad: 9; implicitHeight: 28
+                opacity: bar.n >= 2 ? 1 : 0.38
+                onClicked: cv.alignSel(modelData[0])
             }
-            Item { width: 6; height: 1 }
-            GButton { th: cv.th; label: I18n.tr("Distribute ↔"); pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(false) }
-            GButton { th: cv.th; label: I18n.tr("Distribute ↕"); pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(true) }
         }
-        Row {
-            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 4
-            GButton { th: cv.th; label: I18n.tr("Grid"); pad: 9; implicitHeight: 28; checked: cv.grid.grid; onClicked: cv.store.setGrid("grid", !cv.grid.grid) }
-            GButton { th: cv.th; label: I18n.tr("Snap"); pad: 9; implicitHeight: 28; checked: cv.grid.snap; onClicked: cv.store.setGrid("snap", !cv.grid.snap) }
-            GButton { th: cv.th; label: I18n.tr("Overlap"); pad: 9; implicitHeight: 28; checked: cv.grid.overlap; onClicked: cv.store.setGrid("overlap", !cv.grid.overlap) }
-        }
+        GButton { th: cv.th; label: I18n.tr("Distribute ↔"); pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(false) }
+        GButton { th: cv.th; label: I18n.tr("Distribute ↕"); pad: 9; implicitHeight: 28; opacity: bar.n >= 3 ? 1 : 0.38; onClicked: cv.distributeSel(true) }
+        GButton { th: cv.th; label: I18n.tr("Grid"); pad: 9; implicitHeight: 28; checked: cv.grid.grid; onClicked: cv.store.setGrid("grid", !cv.grid.grid) }
+        GButton { th: cv.th; label: I18n.tr("Snap"); pad: 9; implicitHeight: 28; checked: cv.grid.snap; onClicked: cv.store.setGrid("snap", !cv.grid.snap) }
+        GButton { th: cv.th; label: I18n.tr("Overlap"); pad: 9; implicitHeight: 28; checked: cv.grid.overlap; onClicked: cv.store.setGrid("overlap", !cv.grid.overlap) }
     }
 
     Item {

@@ -51,6 +51,9 @@ layout(std140, binding = 0) uniform buf {
     vec4 nb3;
     vec4 nbR;           // their corner radii
     vec4 nbK;           // their smooth-union strength
+    // --- Edge lens (thick-glass lens mode; lensA.x = 0 -> everything above stays exactly as it was) ---
+    vec4 lensA;         // x = amount (0..1), y = refraction (1 = 50 px at the edge), z = edge width as a fraction of the shorter side, w = chromatic aberration
+    vec4 lensB;         // x = fresnel glow, y = top specular, z = tint amount (flat colour over the backdrop), w = dome lens
 };
 
 layout(binding = 1) uniform sampler2D src;
@@ -191,21 +194,47 @@ void main()
     vec2 ps = vec2(p.x, (p.y - itemSize.y * 0.5) * (1.0 - magnify * 1.5) + itemSize.y * 0.5);
     float rad = blurPx * mix(0.45, 1.0, smoothstep(0.0, bz, t));
 
-    vec3 col = blurredDisp(ps, disp, dispersion * 0.6, rad);
+    float lm = clamp(lensA.x, 0.0, 1.0);
+    float lprox = 0.0;                              // 1 at the edge, fading inwards (exponential): drives refraction, fresnel, specular, inner shadow
+    if (lm > 0.001) {
+        float minDim = min(glassSize.x, glassSize.y);
+        float bw = max(lensA.z * minDim, 1.0);
+        lprox = min(exp(-t / bw), 1.0);
+        vec2 toC = itemSize * 0.5 - p;
+        float tl = length(toC);
+        vec2 inward = tl > 0.1 ? toC / tl : vec2(0.0);
+        // thick-glass edge refraction: the backdrop is taken from further INSIDE (compressed), red / blue at slightly different strengths
+        vec2 dispL = inward * (lensA.y * 50.0 * lprox);
+        // dome: a faint magnification of the flat middle
+        vec2 c2 = (p - itemSize * 0.5) / (glassSize * 0.5);
+        vec2 dg = vec2(-4.0 * c2.x * (1.0 - c2.y * c2.y), -4.0 * c2.y * (1.0 - c2.x * c2.x));
+        dispL += dg * (lensB.w * minDim * 0.006) * (1.0 - lprox);
+        disp = mix(disp, dispL, lm);
+        rad = mix(rad, blurPx, lm);
+    }
+    vec3 col = blurredDisp(ps, disp, mix(dispersion * 0.6, -lensA.w * 0.35, lm), rad);
 
     // ── colour grading: vibrancy, tint, milky lift ──
     float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(vec3(l), col, saturation);
     vec3 tintC = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
     tintC = mix(tintC, themeTint.rgb, themeTint.a);          // addition: subtle theme colour in the tint
-    col = mix(col, tintC, tintMix);
-    col += mix(0.055, 0.020, dark);
+    col = mix(col, tintC, mix(tintMix, lensB.z, lm));
+    col += mix(0.055, 0.020, dark) * (1.0 - lm);
 
     // ── depth: soft top sheen, darker lower inner edge ──
     float ty = clamp((q.y + hs.y) / glassSize.y, 0.0, 1.0);
-    col += (1.0 - ty) * mix(0.040, 0.030, dark);
-    col *= 1.0 - 0.12 * exp(-t / 6.0) * clamp(g.y, 0.0, 1.0);
-    col *= 1.0 - 0.10 * exp(-t / (bz * 0.45));          // thick glass absorbs light toward the edge (heavier feel)
+    col += (1.0 - ty) * mix(0.040, 0.030, dark) * (1.0 - lm);
+    col *= 1.0 - 0.12 * exp(-t / 6.0) * clamp(g.y, 0.0, 1.0) * (1.0 - lm);
+    col *= 1.0 - 0.10 * exp(-t / (bz * 0.45)) * (1.0 - lm);          // thick glass absorbs light toward the edge (heavier feel)
+    if (lm > 0.001) {
+        // the lens mode's own edge light: fresnel glow, a highlight along the top, a soft shadow along the bottom (same shapes as the compositor glass)
+        float gy = clamp((q.y + hs.y) / glassSize.y, 0.0, 1.0);        // 0 at the top, 1 at the bottom
+        float topBias = pow(max(1.0 - gy, 0.0), 2.0);
+        col += vec3(1.0) * lprox * lprox * lensB.x * 0.15 * lm;
+        col += vec3(1.0, 0.99, 0.97) * topBias * lprox * lprox * lensB.y * 0.08 * lm;
+        col *= 1.0 - pow(gy, 2.0) * lprox * lprox * 0.06 * lm;
+    }
 
     // ── specular rim, light from the top-left ──
     vec2  L      = lightDir;

@@ -85,6 +85,8 @@ Item {
         for (var i = 0; i < nbList.length; i++) { s += Number(nbList[i].st[key]); n++; }
         return s / n;
     }
+    // a style key that older widgets.json files do not have yet: its default instead of NaN (keeps every saved widget as it was)
+    function avgOr(key, d) { var v = avg(key); return isFinite(v) ? v : d; }
     // smallest edge of the group: the bezel is derived from min(w,h)
     readonly property real gMin: {
         var m = Math.min(gw, gh);
@@ -340,6 +342,9 @@ Item {
                                                root.nbList.length > 2 ? root.nbList[2].r : 0, root.nbList.length > 3 ? root.nbList[3].r : 0)
             property vector4d nbK: Qt.vector4d(root.nbList.length > 0 ? root.nbList[0].k : 0, root.nbList.length > 1 ? root.nbList[1].k : 0,
                                                root.nbList.length > 2 ? root.nbList[2].k : 0, root.nbList.length > 3 ? root.nbList[3].k : 0)
+            // Edge lens (see glass.frag): lens = 0 -> the look is unchanged
+            property vector4d lensA: Qt.vector4d(root.avgOr("lens", 0), root.avgOr("lens_refraction", 1.0), root.avgOr("lens_edge", 0.10), root.avgOr("lens_aberration", 0.6))
+            property vector4d lensB: Qt.vector4d(root.avgOr("lens_fresnel", 1.0), root.avgOr("lens_specular", 1.0), root.avgOr("lens_tint", 0.07), root.avgOr("lens_dome", 0.3))
             onStatusChanged: if (status === ShaderEffect.Error && root.backend.ready) { console.log("[widgetdeck-glass] shader error:", log); root.backend.state = "failed"; }
         }
 

@@ -39,6 +39,7 @@ Item {
             var p = D.STYLE_PROPS[i];
             if (p.key === "mode") continue;
             if (p.only && p.only !== st.mode) continue;
+            if (p.needs && !(Number(st[p.needs]) > 0)) continue;      // e.g. the lens controls only while the lens is on
             out.push(p);
         }
         return out;
@@ -130,9 +131,10 @@ Item {
             }
             Item {
                 visible: pp.st && pp.st.mode === "liquid"
-                width: parent.width; height: visible ? 62 : 0
+                width: parent.width; height: visible ? 20 + presetFlow.height + 4 : 0
                 Text { text: I18n.tr("Preset"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
-                Row {
+                Flow {                                                       // wraps: any number of presets, nothing is cut off
+                    id: presetFlow
                     y: 20; spacing: 6; width: parent.width
                     Repeater {
                         model: Object.keys(D.LIQUID_PRESETS)
@@ -146,11 +148,23 @@ Item {
             }
             Repeater {
                 model: pp.styleModel
-                delegate: Loader {
+                delegate: Column {
                     required property var modelData
+                    required property int index
                     width: col.width
-                    sourceComponent: ctl
-                    onLoaded: { item.p = modelData; item.group = "style"; }
+                    spacing: 4
+                    // a small heading where a group of controls starts (e.g. "Edge lens")
+                    Text {
+                        visible: !!modelData.section && (index === 0 || pp.styleModel[index - 1].section !== modelData.section)
+                        height: visible ? implicitHeight + 8 : 0; verticalAlignment: Text.AlignBottom
+                        text: modelData.section ? I18n.tr(modelData.section).toUpperCase() : ""
+                        color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2
+                    }
+                    Loader {
+                        width: parent.width
+                        sourceComponent: ctl
+                        onLoaded: { item.p = modelData; item.group = "style"; }
+                    }
                 }
             }
 

@@ -22,7 +22,7 @@ for f in sorted(root.rglob("*.qml")):
         keys.setdefault(unescape(m.group(1)), f.name)
 for name in ("widgets/Registry.js", "core/Defaults.js"):
     t = (root / name).read_text(encoding="utf-8")
-    for m in re.finditer(r'\b(?:label|desc):\s*' + LIT, t):
+    for m in re.finditer(r'\b(?:label|desc|section):\s*' + LIT, t):
         keys.setdefault(unescape(m.group(1)), name)
     for m in re.finditer(r'\[\s*"[^"]*"\s*,\s*' + LIT + r'\s*\]', t):
         keys.setdefault(unescape(m.group(1)), name)
