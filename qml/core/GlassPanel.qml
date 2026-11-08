@@ -104,7 +104,11 @@ Item {
     readonly property real itemPad: shaderPad + growRoom        // shader item = panel + itemPad on every side
     readonly property real srcMargin: 72
     readonly property real blurPxStyle: avg("blur")
+    // the real pixels per logical pixel of THIS window (fractional scales: 1.25, 1.5 ...); Screen.devicePixelRatio would report the rounded-up integer
+    readonly property real dpr: (Window.window && Window.window.devicePixelRatio > 0) ? Window.window.devicePixelRatio : 1
     readonly property real ds: blurPxStyle >= 8 ? 0.5 : 1.0
+    // texture scale of the backdrop: a strong blur needs only half of the logical size; a light blur (sharp refraction at the edge) gets full physical pixels
+    readonly property real bs: ds < 1 ? ds : root.dpr
     readonly property real bn: Math.min(1.0, blurPxStyle * 1.4 * ds / 64.0)
     readonly property string sig: [screenX, screenY, width, height, blurPxStyle, wall.url, screenSize.width, screenSize.height, backdrop ? 1 : 0].join("|")
 
@@ -147,7 +151,7 @@ Item {
                     source: root.wall.url
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
-                    sourceSize.width: root.screenSize.width
+                    sourceSize.width: Math.round(root.screenSize.width * (root.ds < 1 ? 1 : root.dpr))
                     smooth: true
                     onStatusChanged: if (status === Image.Ready) Qt.callLater(gl.refresh)
                 }
@@ -159,7 +163,7 @@ Item {
                 hideSource: true
                 live: gl.updating
                 visible: false
-                textureSize: Qt.size(Math.max(1, Math.round(gl.outW * root.ds)), Math.max(1, Math.round(gl.outH * root.ds)))
+                textureSize: Qt.size(Math.max(1, Math.round(gl.outW * root.bs)), Math.max(1, Math.round(gl.outH * root.bs)))
             }
             MultiEffect {
                 id: blurFx

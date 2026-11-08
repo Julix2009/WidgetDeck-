@@ -25,7 +25,7 @@ Item {
     readonly property real amp: Math.max(0.5, width / 118)
     readonly property real gain: level >= 2 ? 1.8 : 1
     readonly property bool moving: level > 0
-    readonly property int px: Math.min(512, Math.max(96, Math.ceil(width * Screen.devicePixelRatio / 32) * 32))
+    readonly property int px: Math.min(512, Math.max(96, Math.ceil(width * ((Window.window && Window.window.devicePixelRatio > 0) ? Window.window.devicePixelRatio : 1) / 32) * 32))
     property real stx: tilt
     property real sty: tiltY
     Behavior on stx { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
