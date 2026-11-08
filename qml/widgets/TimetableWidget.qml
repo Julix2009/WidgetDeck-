@@ -59,9 +59,22 @@ Item {
         command: ["python3", "-I", w.dir + "untis.py"].concat(w.srcArgs)
         interval: 900000                                   // 15 min, only while a widget is visible
         active: w.live
-        onGot: text => { try { var o = JSON.parse(text); if (o && o.state) w.d = o; } catch (e) { if (!w.d) w.d = { state: "error", lessons: [], grid: {}, fetched: 0 }; } }
+        onGot: text => {
+            try { var o = JSON.parse(text); if (o && o.state) w.d = o; } catch (e) { if (!w.d) w.d = { state: "error", lessons: [], grid: {}, fetched: 0 }; }
+            w.scheduleRetry();
+        }
     }
     function run() { poll.refresh(); }
+    // No data and no cache (e.g. the network is not up yet right after login): do not wait the 15 minutes, try again soon (30 s, 1 min, 2 min ... at most 5 min)
+    property int retryStep: 0
+    function scheduleRetry() {
+        var bad = !w.d || ((w.d.state === "offline" || w.d.state === "error") && !(w.d.lessons && w.d.lessons.length > 0));
+        if (!bad) { retryStep = 0; retryTimer.stop(); return; }
+        retryTimer.interval = Math.min(300000, 30000 * Math.pow(2, retryStep));
+        retryStep++;
+        retryTimer.restart();
+    }
+    Timer { id: retryTimer; onTriggered: if (w.live) w.run() }
     onConfigRevChanged: if (live) run()
     Timer { interval: 30000; repeat: true; running: w.live; onTriggered: w.now = new Date() }                          // minute resolution is enough
     function openSetup() {

@@ -14,6 +14,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Liquid Glass: optionale „Kantenlinse“ (Stärke, Kantenbiegung, Regenbogensaum, Tönung) – der Rand biegt den Hintergrund wie ein Wassertropfen; neue Presets „Crystal“ und „Water drop“. Ältere Widgets bleiben unverändert (Stärke 0).
 
 ### Geändert
+- Stundenplan: Schlägt der Abruf fehl und es gibt noch keine gespeicherten Daten (zum Beispiel, weil das Netz direkt nach dem Login noch nicht steht), versucht das Widget es nach 30 Sekunden, 1, 2 und höchstens 5 Minuten erneut, statt 15 Minuten zu warten.
 - Weniger Last und Speicher: Der Visualizer startet `cava` nur, solange das Widget sichtbar ist und läuft mit 30 statt 45 Bildern pro Sekunde; das Hintergrundbild des Liquid Glass wird nicht größer decodiert als die Textur, in der es landet (rund 5 MB weniger bei fünf Widgets).
 - Builder: Namen und Beschreibungen in der Widget-Liste werden übersetzt.
 - Schärfe: Bei gebrochener Skalierung (zum Beispiel 1,25 oder 1,5) liegen Widget-Fenster jetzt auf ganzen physischen Pixeln (Position und Größe werden auf den kleinsten passenden Schritt gerundet, gespeichert wird nichts Neues), und die Glas-Texturen nutzen das echte Pixelverhältnis des Fensters statt der gerundeten Bildschirmangabe. Das Wetter-Karten-Widget lädt seine Icons nicht mehr zu groß.
