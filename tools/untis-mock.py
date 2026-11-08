@@ -64,7 +64,8 @@ class H(BaseHTTPRequestHandler):
             return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -8520, "message": "not authenticated"}})
         if m == "getTimetable":
             o = p[0]["options"]
-            if MODE == "quirks" and str(o["startDate"]) > (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y%m%d") and datetime.datetime.strptime(str(o["startDate"]), "%Y%m%d").date() > datetime.date.today():
+            next_mon = datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday()) + datetime.timedelta(days=7)   # the week after this one: "not published yet", whatever weekday it is today
+            if MODE == "quirks" and datetime.datetime.strptime(str(o["startDate"]), "%Y%m%d").date() >= next_mon:
                 return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -7004, "message": "no allowed date"}})   # next week not published yet
             return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "result": lessons_for(str(o["startDate"]))})
         return self.reply({"jsonrpc": "2.0", "id": body.get("id"), "error": {"code": -32601, "message": "method not found"}})
