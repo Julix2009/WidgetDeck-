@@ -196,13 +196,15 @@ On the first start a setup assistant opens once. You can skip it and run it agai
 | Effect | background blur from Hyprland | own shader that refracts the wallpaper |
 | Needs | blur in Hyprland (default) and the rules file | `qsb` (`qt6-shadertools`) and a detected wallpaper |
 | If missing | – | every widget falls back to Frosted Glass |
-| Settings | tint, border, opacity, shine | presets *Pearl*, *Clear*, *Subtle*, *Crystal*, *Water drop* and sliders for opacity, refraction, edge thickness, colour fringe, blur, saturation, highlight, light angle, grain; plus the *Edge lens* |
+| Settings | tint, border, opacity, shine | presets *Pearl*, *Clear*, *Subtle*, *Crystal*, *Water drop* (plus your own presets) and sliders for opacity, refraction, edge thickness, colour fringe, blur, saturation, highlight, light angle, grain; plus the *Edge lens* |
 
 ![Overview with Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
 You set the style and sliders per widget in the right panel under *Glass style* (to edit Liquid Glass: pick a preset, then adjust the sliders). The preset buttons wrap onto several lines when needed:
 
 ![Glass settings of a widget with presets and sliders](docs/images/glas-einstellungen.webp)
+
+**Your own presets:** *Save the current look as a preset* stores all Liquid Glass values of the widget under a name (corner radius and merging belong to the widget and are left out). The presets appear under *Your presets*; a click applies one, the small ✕ deletes it. They are kept in `config.json` under `user_presets`.
 
 **Edge lens (Liquid Glass):** the *Edge lens* section with the *Lens strength* slider is off at first (0): every widget then looks as before. With a strength above 0 the rim bends the background inwards and splits it into a faint rainbow fringe, with a bright edge along the top and a soft shadow along the bottom. *Edge bending*, *Rainbow fringe* and *Lens tint* only appear once the lens is on. *Crystal* is clear glass with a bright rim, *Water drop* a drop of water with a soft glow instead of a white outline. The lower the *Lens tint*, the more see-through the glass.
 

@@ -151,7 +151,7 @@ Item {
                     source: root.wall.url
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
-                    sourceSize.width: Math.round(root.screenSize.width * (root.ds < 1 ? 1 : root.dpr))
+                    sourceSize.width: Math.round(root.screenSize.width * root.bs)       // decoded no bigger than the texture it ends up in
                     smooth: true
                     onStatusChanged: if (status === Image.Ready) Qt.callLater(gl.refresh)
                 }

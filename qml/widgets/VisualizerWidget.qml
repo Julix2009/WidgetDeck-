@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import QtQuick.Shapes
 import Quickshell.Io
 import "../core"
@@ -11,6 +12,8 @@ Item {
     property real innerRadius: 8
     property var levels: []                 // 0..1 per bar
     readonly property int n: Math.max(2, Math.round(props.bars))
+    readonly property int fps: Math.max(10, Math.min(60, Number(props.fps || 30)))        // frames per second of cava = redraws per second (every frame repaints the widget)
+    readonly property bool live: Window.window !== null && Window.window.visible
 
     function mix(c1, c2, t) {
         var a = D.hexRgb(c1), b = D.hexRgb(c2);
@@ -19,14 +22,14 @@ Item {
     function colorAt(i) { return props.gradient ? mix(style.accent, props.color2, i / Math.max(1, n - 1)) : style.accent; }
 
     // cava prints one line per frame: "12;40;7;..." (0..1000)
-    readonly property string conf: "[general]\nbars = " + n + "\nframerate = 45\n[input]\nmethod = pipewire\nsource = " + (props.source || "auto")
+    readonly property string conf: "[general]\nbars = " + n + "\nframerate = " + fps + "\n[input]\nmethod = pipewire\nsource = " + (props.source || "auto")
         + "\n[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 1000\nbar_delimiter = 59\nframe_delimiter = 10\n[smoothing]\nnoise_reduction = 70\n"
     Feed {                                                  // one cava for every visualizer with the same settings
         id: cava
         key: "cava:" + w.conf
         command: ["sh", "-c", "f=$(mktemp /tmp/widgetdeck-cava.XXXXXX); printf '%s' \"$1\" > \"$f\"; trap 'rm -f \"$f\"' EXIT; cava -p \"$f\"", "sh", w.conf]
         interval: 0
-        active: true
+        active: w.live                                      // no cava process while the widget is not on screen
         onGot: line => {
             var a = line.split(";"), out = [], changed = false;
             for (var i = 0; i < a.length; i++) { if (a[i] === "") continue; out.push(parseInt(a[i]) / 1000); }

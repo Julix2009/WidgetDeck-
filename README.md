@@ -194,13 +194,15 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 | Wirkung | Hintergrund-Blur von Hyprland | eigener Shader, der das Wallpaper bricht |
 | Braucht | Blur in Hyprland (Standard) und die Regeldatei | `qsb` (`qt6-shadertools`) und ein erkanntes Wallpaper |
 | Fehlt es | – | alle Widgets fallen auf Frosted Glass zurück |
-| Einstellungen | Tönung, Rand, Deckkraft, Glanz | Presets *Perle*, *Klar*, *Dezent*, *Kristall*, *Wassertropfen* und Regler für Deckkraft, Brechungsstärke, Rand-Dicke, Farbsaum, Blur, Sättigung, Highlight, Lichtwinkel, Körnung; dazu die *Kantenlinse* |
+| Einstellungen | Tönung, Rand, Deckkraft, Glanz | Presets *Perle*, *Klar*, *Dezent*, *Kristall*, *Wassertropfen* (dazu eigene Presets) und Regler für Deckkraft, Brechungsstärke, Rand-Dicke, Farbsaum, Blur, Sättigung, Highlight, Lichtwinkel, Körnung; dazu die *Kantenlinse* |
 
 ![Gesamtansicht mit Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
 Den Stil und die Regler stellst du pro Widget im Panel rechts unter *Glas-Stil* ein (Liquid Glass bearbeiten: Preset wählen, dann Regler anpassen). Die Preset-Knöpfe brechen bei Bedarf in mehrere Zeilen um:
 
 ![Glas-Einstellungen eines Widgets mit Presets und Reglern](docs/images/glas-einstellungen.webp)
+
+**Eigene Presets:** *Aktuellen Look als Preset speichern* sichert alle Liquid-Glass-Werte des Widgets unter einem Namen (Eckenradius und Verschmelzung gehören zum Widget und bleiben draußen). Die Presets erscheinen unter *Eigene Presets*, ein Klick wendet sie an, das kleine ✕ löscht sie. Sie stehen in `config.json` unter `user_presets`.
 
 **Kantenlinse (Liquid Glass):** Der Bereich *Kantenlinse* mit dem Regler *Linsenstärke* ist zunächst aus (0): dann sieht jedes Widget aus wie vorher. Mit Stärke über 0 biegt der Rand den Hintergrund nach innen und spaltet ihn in einen feinen Regenbogensaum, dazu kommen ein heller Rand oben und ein weicher Schatten unten. *Kantenbiegung*, *Regenbogensaum* und *Linsen-Tönung* erscheinen erst, wenn die Linse an ist. *Kristall* ist klares Glas mit hellem Rand, *Wassertropfen* ein Tropfen mit weichem Leuchten statt weißer Umrandung. Je kleiner die *Linsen-Tönung*, desto durchsichtiger das Glas.
 

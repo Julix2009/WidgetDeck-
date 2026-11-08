@@ -180,6 +180,7 @@ var TYPES = {
             { key: "gradient", label: "Gradient", kind: "bool", def: true },
             { key: "color2", label: "Second colour (gradient)", kind: "color", def: "theme:secondary" },
             { key: "gap", label: "Spacing", kind: "range", def: 0.35, min: 0.05, max: 0.8, step: 0.01 },
+            { key: "fps", label: "Smoothness (frames per second)", kind: "choice", def: "30", options: [["20", "20 (lowest CPU)"], ["30", "30 (default)"], ["45", "45 (smoother)"], ["60", "60 (smoothest)"]] },
             { key: "source", label: "Audio source (auto = default)", kind: "text", def: "auto" }
         ]
     }

@@ -6,12 +6,16 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ## [Unveröffentlicht]
 
 ### Hinzugefügt
+- Builder: eigene Glas-Presets speichern, anwenden und löschen (*Aktuellen Look als Preset speichern*; in `config.json` unter `user_presets`).
+- Visualizer: Einstellung „Flüssigkeit (Bilder pro Sekunde)“ (20, 30, 45, 60; Standard jetzt 30 statt 45).
 - Neues Widget „System-Info“ im Stil von fastfetch (System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, kleines Logo, Farbblöcke) mit Liquid Glass; braucht `fastfetch`, das der Installer optional anbietet.
 - Widget „Stundenplan“ (WebUntis über den Untis-Mobile-Zugang des eigenen Kontos): aktuelle/nächste Stunde, Tag und Woche, Entfall/Vertretung/Prüfung, parallele Gruppen, Offline-Cache; Einrichtung mit `widgetdeck-untis-setup` (Schlüssel nur im Schlüsselbund), Prüfung in `widgetdeck-doctor`.
 - Knöpfe „Small/Large“ für Widgets mit mehreren Größen; die Größe wechselt weich über Breite und Höhe.
 - Liquid Glass: optionale „Kantenlinse“ (Stärke, Kantenbiegung, Regenbogensaum, Tönung) – der Rand biegt den Hintergrund wie ein Wassertropfen; neue Presets „Crystal“ und „Water drop“. Ältere Widgets bleiben unverändert (Stärke 0).
 
 ### Geändert
+- Weniger Last und Speicher: Der Visualizer startet `cava` nur, solange das Widget sichtbar ist und läuft mit 30 statt 45 Bildern pro Sekunde; das Hintergrundbild des Liquid Glass wird nicht größer decodiert als die Textur, in der es landet (rund 5 MB weniger bei fünf Widgets).
+- Builder: Namen und Beschreibungen in der Widget-Liste werden übersetzt.
 - Schärfe: Bei gebrochener Skalierung (zum Beispiel 1,25 oder 1,5) liegen Widget-Fenster jetzt auf ganzen physischen Pixeln (Position und Größe werden auf den kleinsten passenden Schritt gerundet, gespeichert wird nichts Neues), und die Glas-Texturen nutzen das echte Pixelverhältnis des Fensters statt der gerundeten Bildschirmangabe. Das Wetter-Karten-Widget lädt seine Icons nicht mehr zu groß.
 - README und Widget-Dokumentation auf den aktuellen Stand gebracht (Version, Schulfortschritt, Kantenlinse und Presets, Stil kopieren und einfügen, Builder wird nur bei Bedarf geladen); Bilder unverändert.
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.

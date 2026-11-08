@@ -42,8 +42,8 @@ Item {
                 TypeGlyph { x: 14; anchors.verticalCenter: parent.verticalCenter; width: 30; height: 24; ti: card.ti; color: th.fg; size: 22 }
                 Column {
                     x: 54; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 66
-                    Text { text: card.ti ? card.ti.label : modelData; color: th.fg; font.family: th.font; font.pixelSize: 14; font.bold: true; elide: Text.ElideRight; width: parent.width }
-                    Text { text: card.ti ? card.ti.desc : ""; color: th.dim; font.family: th.font; font.pixelSize: 11; elide: Text.ElideRight; width: parent.width }
+                    Text { text: card.ti ? I18n.tr(card.ti.label) : modelData; color: th.fg; font.family: th.font; font.pixelSize: 14; font.bold: true; elide: Text.ElideRight; width: parent.width }
+                    Text { text: card.ti ? I18n.tr(card.ti.desc) : ""; color: th.dim; font.family: th.font; font.pixelSize: 11; elide: Text.ElideRight; width: parent.width }
                 }
                 MouseArea {
                     id: ma

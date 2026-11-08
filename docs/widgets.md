@@ -361,6 +361,7 @@ Audio-reaktive Balken. `cava` läuft über PipeWire (Quelle: Standard, einstellb
 | Farbverlauf | `gradient` | an | an / aus |
 | Zweite Farbe (Verlauf) | `color2` | theme:secondary | Farbe |
 | Abstand | `gap` | 0.35 | 0.05 – 0.8 |
+| Flüssigkeit (Bilder pro Sekunde) | `fps` | 30 | 20 / 30 / 45 / 60 (jedes Bild zeichnet das Widget neu: weniger = weniger CPU) |
 | Audioquelle (auto = Standard) | `source` | auto | Text |
 
 </details>

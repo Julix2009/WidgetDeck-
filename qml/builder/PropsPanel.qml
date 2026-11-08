@@ -19,6 +19,34 @@ Item {
     readonly property var st: { store.rev; return sel !== "" ? store.styleOf(sel) : null; }
     readonly property var wp: { store.rev; return sel !== "" ? store.propsOf(sel) : null; }
     readonly property var tinfo: c ? store.typeInfo(c.type) : null
+    // ───────────── the user's own glass presets ─────────────
+    readonly property var userPresets: { var v = store.cget("user_presets", ({})); return (v && typeof v === "object") ? v : ({}); }
+    readonly property var userPresetNames: Object.keys(userPresets).sort()
+    property string presetMsg: ""
+    property string presetText: ""
+    // the look = every liquid glass key (the built-in presets set the same ones); corner radius and merging belong to the widget, not to the look
+    function lookKeys() {
+        var keys = Object.keys(D.LIQUID_DEFAULTS);
+        for (var i = 0; i < D.STYLE_PROPS.length; i++) { var p = D.STYLE_PROPS[i]; if (p.only === "liquid" && keys.indexOf(p.key) < 0) keys.push(p.key); }
+        return keys.filter(function (k) { return k !== "radius" && k !== "merge"; });
+    }
+    function saveUserPreset(name) {
+        name = String(name || "").trim();
+        if (name === "" || !st) { presetMsg = I18n.tr("Type a name first."); return; }
+        if (D.LIQUID_PRESETS[name] !== undefined) { presetMsg = I18n.tr("A built-in preset already has this name."); return; }
+        var o = {}, k = lookKeys();
+        for (var i = 0; i < k.length; i++) if (st[k[i]] !== undefined) o[k[i]] = st[k[i]];
+        var all = JSON.parse(JSON.stringify(userPresets));
+        all[name] = o;
+        store.setConfig("user_presets", all);
+        presetMsg = I18n.trf("Saved as \"%1\".", name);
+    }
+    function deleteUserPreset(name) {
+        var all = JSON.parse(JSON.stringify(userPresets));
+        delete all[name];
+        store.setConfig("user_presets", all);
+        presetMsg = "";
+    }
     function monOptions() {
         var o = [["primary", I18n.tr("Primary monitor")], ["all", I18n.tr("All monitors")]], l = store.mons;
         for (var i = 0; i < l.length; i++) o.push([l[i].key, (i + 1) + "  " + l[i].name + "  (" + l[i].w + "×" + l[i].h + ")"]);
@@ -131,19 +159,47 @@ Item {
             }
             Item {
                 visible: pp.st && pp.st.mode === "liquid"
-                width: parent.width; height: visible ? 20 + presetFlow.height + 4 : 0
-                Text { text: I18n.tr("Preset"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
-                Flow {                                                       // wraps: any number of presets, nothing is cut off
-                    id: presetFlow
-                    y: 20; spacing: 6; width: parent.width
-                    Repeater {
-                        model: Object.keys(D.LIQUID_PRESETS)
-                        delegate: GButton {
-                            required property string modelData
-                            th: pp.th; label: I18n.tr(modelData); width: (col.width - 12) / 3
-                            onClicked: pp.store.applyStyle(pp.sel, D.LIQUID_PRESETS[modelData])
+                width: parent.width; height: visible ? presetCol.height + 4 : 0
+                Column {
+                    id: presetCol
+                    width: parent.width; spacing: 6
+                    Text { text: I18n.tr("Preset"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
+                    Flow {                                                       // wraps: any number of presets, nothing is cut off
+                        width: parent.width; spacing: 6
+                        Repeater {
+                            model: Object.keys(D.LIQUID_PRESETS)
+                            delegate: GButton {
+                                required property string modelData
+                                th: pp.th; label: I18n.tr(modelData); width: (col.width - 12) / 3
+                                onClicked: pp.store.applyStyle(pp.sel, D.LIQUID_PRESETS[modelData])
+                            }
                         }
                     }
+                    // the user's own presets (config.json "user_presets"): apply with a click, the small x deletes one
+                    Text { visible: pp.userPresetNames.length > 0; text: I18n.tr("Your presets"); color: th.dim; font.family: th.font; font.pixelSize: 12; topPadding: 4 }
+                    Flow {
+                        visible: pp.userPresetNames.length > 0
+                        width: parent.width; spacing: 6
+                        Repeater {
+                            model: pp.userPresetNames
+                            delegate: Row {
+                                required property string modelData
+                                spacing: 2
+                                GButton {
+                                    th: pp.th; label: modelData; width: (col.width - 6) / 2 - 30
+                                    onClicked: pp.store.applyStyle(pp.sel, pp.userPresets[modelData])
+                                }
+                                GButton { th: pp.th; label: "✕"; danger: true; pad: 8; width: 28; onClicked: pp.deleteUserPreset(modelData) }
+                            }
+                        }
+                    }
+                    Text { text: I18n.tr("Save the current look as a preset"); color: th.dim; font.family: th.font; font.pixelSize: 12; topPadding: 4 }
+                    Row {
+                        spacing: 6; width: parent.width
+                        GField { th: pp.th; label: ""; height: 30; width: col.width - 6 - 76; value: pp.presetText; onEdited: v => { pp.presetText = v; pp.presetMsg = ""; } }
+                        GButton { th: pp.th; label: I18n.tr("Save"); width: 76; onClicked: pp.saveUserPreset(pp.presetText) }
+                    }
+                    Text { visible: pp.presetMsg !== ""; width: parent.width; wrapMode: Text.WordWrap; text: pp.presetMsg; color: th.dim; font.family: th.font; font.pixelSize: 11 }
                 }
             }
             Repeater {
