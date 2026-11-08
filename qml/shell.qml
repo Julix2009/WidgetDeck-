@@ -27,7 +27,7 @@ ShellRoot {
     function pushMonitors() { theStore.setMonitors(theMons.list, theMons.primaryKey); }
     Connections { target: theMons; function onListChanged() { shell.pushMonitors(); } function onPrimaryKeyChanged() { shell.pushMonitors(); } }
     Connections { target: theStore; function onConfigLoadedChanged() { if (theStore.configLoaded) shell.pushMonitors(); } }
-    Timer { interval: 4000; repeat: true; running: builderWin.visible; onTriggered: theMons.refresh() }          // reserved areas (a bar appearing) while editing
+    Timer { interval: 4000; repeat: true; running: !!shell.builderWin && shell.builderWin.visible; onTriggered: theMons.refresh() }          // reserved areas (a bar appearing) while editing
     // modules (config.json "modules"): widgets + builder on by default, bar + notifications off
     readonly property bool modWidgets: theStore.cget("modules.widgets", true)
     readonly property bool modBuilder: theStore.cget("modules.builder", true)
@@ -79,12 +79,20 @@ ShellRoot {
     // "Show monitors": a big number and the name on every monitor for a few seconds
     Identify { id: identify; mons: theMons; secs: theStore.cget("monitors.identify_secs", 3) }
 
-    Builder {
-        id: builderWin
-        store: theStore; theme: theTheme; backend: theBackend; wall: theWall; update: theUpdate
-        mons: theMons
-        onIdentifyRequested: identify.show()
+    // The builder only exists while it is open (LazyLoader): a closed builder costs no memory (about 20-30 MB of QML objects + window).
+    LazyLoader {
+        id: builderLoader
+        active: false
+        Builder {
+            visible: true
+            store: theStore; theme: theTheme; backend: theBackend; wall: theWall; update: theUpdate
+            mons: theMons
+            onIdentifyRequested: identify.show()
+            onVisibleChanged: if (!visible) Qt.callLater(function () { builderLoader.active = false; })
+        }
     }
+    readonly property var builderWin: builderLoader.item
+    function setBuilder(on) { if (on && !shell.modBuilder) on = false; builderLoader.active = on; }
 
     // ───────────── optional modules ─────────────
     // Variants (not LazyLoader): a module that is switched off is really destroyed - the notification service gives its D-Bus name back
@@ -124,9 +132,9 @@ ShellRoot {
 
     IpcHandler {
         target: "widgetdeck"
-        function openBuilder(): void { if (shell.modBuilder) builderWin.visible = true; }
-        function closeBuilder(): void { builderWin.visible = false; }
-        function toggleBuilder(): void { if (shell.modBuilder) builderWin.visible = !builderWin.visible; else builderWin.visible = false; }
+        function openBuilder(): void { shell.setBuilder(true); }
+        function closeBuilder(): void { shell.setBuilder(false); }
+        function toggleBuilder(): void { shell.setBuilder(!builderLoader.active); }
         // modules: ipc call widgetdeck setModule bar on   (names: widgets builder bar notifications)
         function setModule(name: string, state: string): string {
             if (["widgets", "builder", "bar", "notifications"].indexOf(name) < 0) return "unknown module " + name;
