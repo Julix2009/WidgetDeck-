@@ -42,7 +42,8 @@ PanelWindow {
     readonly property real pad: Math.max(win.snapStep, win.snap(56))
 
     screen: rec ? rec.screen : null
-    visible: rec !== null
+    property bool recreate: false                  // true for a moment: the layer surface is destroyed and created again (see the scale check below)
+    visible: rec !== null && !recreate
     color: "transparent"
     anchors { left: true; top: true }
     margins { left: win.cfg.x - win.pad; top: win.cfg.y - win.pad }
@@ -53,6 +54,24 @@ PanelWindow {
     WlrLayershell.namespace: win.ns
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     mask: Region { item: host }
+
+    // Self-healing: a layer surface that was created while the monitor still had another scale (right after boot or login, resume from suspend) can keep that
+    // scale. Its buffer is then drawn too big or too small (a factor of 1.4 for 1.75 vs 1.25). The window's real pixel ratio is compared with the scale Hyprland
+    // reports; if they differ twice in a row, the surface is created again, which gives it the current scale. At most 3 times per window.
+    property int scaleBad: 0
+    property int rebuilds: 0
+    Timer {
+        interval: 3000; repeat: true; running: win.visible && win.rec !== null && win.rec.hyprId >= 0 && win.rebuilds < 3
+        onTriggered: {
+            var dpr = win.devicePixelRatio, sc = win.rec ? win.rec.scale : 0;
+            if (dpr > 0 && sc > 0 && Math.abs(dpr - sc) > 0.03) win.scaleBad++; else win.scaleBad = 0;
+            if (win.scaleBad >= 2) {
+                console.log("[widgetdeck] " + win.wid + ": window scale " + dpr + " but monitor scale " + sc + " - creating the surface again");
+                win.scaleBad = 0; win.rebuilds++; win.recreate = true; rebuildTimer.restart();
+            }
+        }
+    }
+    Timer { id: rebuildTimer; interval: 400; onTriggered: win.recreate = false }
 
     WidgetHost {
         id: host
