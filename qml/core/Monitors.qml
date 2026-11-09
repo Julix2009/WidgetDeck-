@@ -54,9 +54,21 @@ Scope {
         var keys = MM.uniqueKeys(out);
         for (i = 0; i < out.length; i++) out[i].key = keys[i];
         out.sort(function (a, b) { return a.x !== b.x ? a.x - b.x : a.y - b.y; });
+        // A change of the monitor set / size / scale is only taken over once it has stayed the same for a moment (settle timer). Right after resume from
+        // suspend (or while a monitor is reconfigured) Quickshell and Hyprland briefly report half-updated data (e.g. another size under the same
+        // monitor); acting on it would re-express the saved layout against a wrong area and leave the widgets at a wrong size.
+        var sig = JSON.stringify(out.map(function (m) { return [m.key, m.name, m.x, m.y, m.w, m.h, m.pw, m.ph, m.scale, m.transform]; }));
+        if (list.length > 0 && out.length > 0 && sig !== mon.sigPublished) {
+            if (sig !== mon.sigPending) { mon.sigPending = sig; settle.restart(); return; }
+            if (settle.running) return;                                   // the same data again, but not stable for long enough yet
+        }
+        mon.sigPending = ""; mon.sigPublished = sig;
         list = out;
         rev++;
     }
+    property string sigPending: ""
+    property string sigPublished: ""
+    Timer { id: settle; interval: 2000; onTriggered: { mon.refresh(); } }       // after 2 s ask again: unchanged data = a real change
 
     function refresh() { debounce.restart(); }
     Timer { id: debounce; interval: 250; onTriggered: { if (!proc.running) proc.running = true; else again.restart(); } }
