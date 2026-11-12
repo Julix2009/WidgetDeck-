@@ -2,13 +2,13 @@
 
 [Deutsche Version](README.md)
 
-Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, weather, music, system values, timetable, focus timer and more, in **Frosted Glass** or **Liquid Glass** style. A built-in builder lets you arrange everything with the mouse.
+Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock, weather, music with **synchronised lyrics**, system values, a **fastfetch-style system info**, timetable, focus timer and more, in **Frosted Glass** or **Liquid Glass** style with an optional **edge lens** (the rim bends the background like a drop of water). A built-in builder lets you arrange everything with the mouse and can save your own glass presets.
 
-![Overview with Liquid Glass: clock, system values, weather card, timetable, Formula 1 card, turntable (demo data)](docs/images/gesamtansicht-liquid-glass.webp)
+![Overview with Liquid Glass (preset Water drop): clock, system values, system info, lyrics, timetable, turntable, network, weather card (demo data)](docs/images/gesamtansicht-liquid-glass.webp)
 
-> Unofficial hobby project, not affiliated with Formula 1, Untis, Apple or any other trademark owner named here. The screenshots show invented demo data.
+> Unofficial hobby project, not affiliated with Formula 1, Untis, Apple or any other trademark owner named here. The screenshots show invented demo data and a wallpaper made for this purpose.
 
-**Version** 1.0.0 · **Licence** MIT · **Supported:** Arch Linux with Hyprland and Quickshell only
+**Version** 1.0.1 · **Licence** MIT · **Supported:** Arch Linux with Hyprland and Quickshell only
 
 ```bash
 git clone https://github.com/Julix2009/WidgetDeck-.git
@@ -21,6 +21,7 @@ The detailed documents in `docs/` are currently written in German only.
 ## Contents
 
 - [Features at a glance](#features-at-a-glance)
+- [Gallery](#gallery)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [First start](#first-start)
@@ -64,6 +65,14 @@ The detailed documents in `docs/` are currently written in German only.
 | System info | fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk, small logo | default | `fastfetch` |
 
 Pixel sizes and all settings are listed in [docs/widgets.md](docs/widgets.md) (German).
+
+## Gallery
+
+| | |
+|---|---|
+| ![Lyrics: the line being sung is bright, the others are dimmed](docs/images/lyrics.webp)<br>**Lyrics:** the line being sung is bright, the text scrolls along, optionally the words light up one after the other | ![System info in the style of fastfetch with colour blocks and usage bars](docs/images/system-info.webp)<br>**System info** in the style of fastfetch |
+| ![Turntable style of the music widget](docs/images/music-turntable.webp)<br>**Music** as a turntable | ![Weather card with 3D icons](docs/images/weather-card.webp)<br>**Weather card** with 3D icons |
+| ![Timetable in the week view](docs/images/timetable-week.webp)<br>**Timetable** (WebUntis) | ![Formula 1 card with track outline and standings](docs/images/f1-card.webp)<br>**Formula 1** (unofficial) |
 
 ## Requirements
 
@@ -172,7 +181,7 @@ On the first start a setup assistant opens once. You can skip it and run it agai
 
 ## Usage
 
-![Builder with grid and properties panel](docs/images/builder-raster.webp)
+![Builder with widget list, grid and the panel for position and glass (presets, own presets, sliders)](docs/images/builder-raster.webp)
 
 `widgetdeck toggle` opens and closes the builder (edit mode). On the desktop itself the widgets take no clicks.
 
@@ -319,6 +328,8 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 <details>
 <summary>Lyrics</summary>
 
+![Lyrics](docs/images/lyrics.webp)
+
 - **Purpose:** shows only the text of the playing song, in sync with the playback: the line being sung is bright, the others are dimmed, and the text scrolls along. Instrumental breaks appear as ♪. Optionally the words of the line light up one after the other (estimated from the length of the words).
 - **Data source:** [LRCLIB](https://lrclib.net) (free, no key). One request per song (artist, title, album, length and, as with every connection, your IP address); lyrics that were found are cached for 30 days in `~/.cache/widgetdeck/lyrics/`. The position comes from the MPRIS player.
 - **Settings:** text size, alignment, current line in the accent colour, title and artist, *Text only (no glass container)* (the text then floats on the wallpaper), player. If a song has no synchronised lyrics, the widget says so.
@@ -328,6 +339,8 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 
 <details>
 <summary>System info (fastfetch)</summary>
+
+![System info](docs/images/system-info.webp)
 
 - **Purpose:** a fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk, plus a small logo and colour blocks.
 - **Data source:** `fastfetch --json`, local, about once a minute while the widget is visible; without `fastfetch` the widget shows a hint.

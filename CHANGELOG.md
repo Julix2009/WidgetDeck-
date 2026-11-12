@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ## [Unveröffentlicht]
 
 ### Hinzugefügt
+- Neue README (Deutsch und Englisch) mit Galerie und neuen Bildern: Gesamtansichten in Liquid Glass (Preset Wassertropfen) und Frosted Glass, Builder mit Glas-Panel und eigenen Presets sowie Bilder zu Songtext und System-Info (alle mit erfundenen Demo-Daten und selbst erzeugtem Wallpaper).
 - Songtext: Einstellung „Wort für Wort aufleuchten“ (Standard an): Die Wörter der gesungenen Zeile leuchten nacheinander auf; das Timing ist aus der Länge der Wörter geschätzt, weil LRCLIB nur den Zeilenanfang kennt.
 - Neues Widget „Songtext“: zeigt nur den Text des laufenden Lieds, synchron zur Wiedergabe – die gesungene Zeile leuchtet hell auf, die anderen sind gedimmt, der Text scrollt mit (Quelle: LRCLIB, ein Abruf pro Lied, lokal zwischengespeichert; Position vom MPRIS-Player). Mit der Einstellung „Nur Text (ohne Glas-Behälter)“ steht der Text frei auf dem Wallpaper; jedes Widget kann diese Einstellung über den Schlüssel `no_glass` anbieten.
 - Builder: eigene Glas-Presets speichern, anwenden und löschen (*Aktuellen Look als Preset speichern*; in `config.json` unter `user_presets`).

@@ -2,13 +2,13 @@
 
 [English version](README.en.md)
 
-Desktop-Widgets für **Hyprland** auf **Arch Linux**, gebaut mit Quickshell: Uhr, Wetter, Musik, Systemwerte, Stundenplan, Fokus-Timer und mehr, wahlweise als **Frosted Glass** (Milchglas) oder **Liquid Glass**. Ein eingebauter Builder ordnet alles per Maus an.
+Desktop-Widgets für **Hyprland** auf **Arch Linux**, gebaut mit Quickshell: Uhr, Wetter, Musik mit **synchronem Songtext**, Systemwerte, **System-Info im fastfetch-Stil**, Stundenplan, Fokus-Timer und mehr, wahlweise als **Frosted Glass** (Milchglas) oder **Liquid Glass** mit optionaler **Kantenlinse** (der Rand biegt den Hintergrund wie ein Wassertropfen). Ein eingebauter Builder ordnet alles per Maus an und speichert auf Wunsch eigene Glas-Presets.
 
-![Gesamtansicht mit Liquid Glass: Uhr, Systemwerte, Wetter-Karte, Stundenplan, Formel-1-Karte, Plattenspieler (Demo-Daten)](docs/images/gesamtansicht-liquid-glass.webp)
+![Gesamtansicht mit Liquid Glass (Preset Wassertropfen): Uhr, Systemwerte, System-Info, Songtext, Stundenplan, Plattenspieler, Netzwerk, Wetter-Karte (Demo-Daten)](docs/images/gesamtansicht-liquid-glass.webp)
 
-> Inoffizielles Hobbyprojekt ohne Verbindung zu Formula 1, Untis, Apple oder anderen genannten Marken-Inhabern. Die Screenshots zeigen erfundene Demo-Daten.
+> Inoffizielles Hobbyprojekt ohne Verbindung zu Formula 1, Untis, Apple oder anderen genannten Marken-Inhabern. Die Screenshots zeigen erfundene Demo-Daten und ein selbst erzeugtes Wallpaper.
 
-**Version** 1.0.0 · **Lizenz** MIT · **Unterstützt** nur Arch Linux mit Hyprland und Quickshell
+**Version** 1.0.1 · **Lizenz** MIT · **Unterstützt** nur Arch Linux mit Hyprland und Quickshell
 
 ```bash
 git clone https://github.com/Julix2009/WidgetDeck-.git
@@ -19,6 +19,7 @@ cd WidgetDeck-
 ## Inhalt
 
 - [Funktionen auf einen Blick](#funktionen-auf-einen-blick)
+- [Galerie](#galerie)
 - [Voraussetzungen](#voraussetzungen)
 - [Installation](#installation)
 - [Erster Start](#erster-start)
@@ -62,6 +63,14 @@ cd WidgetDeck-
 | System-Info | Überblick im Stil von fastfetch: System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, kleines Logo | Standard | `fastfetch` |
 
 Die Pixelgrößen und alle Einstellungen stehen in [docs/widgets.md](docs/widgets.md).
+
+## Galerie
+
+| | |
+|---|---|
+| ![Songtext: die gesungene Zeile leuchtet auf, die anderen sind gedimmt](docs/images/lyrics.webp)<br>**Songtext:** die gesungene Zeile ist hell, der Text scrollt mit, auf Wunsch leuchten die Wörter nacheinander auf | ![System-Info im fastfetch-Stil mit Logo-Farben und Füllbalken](docs/images/system-info.webp)<br>**System-Info** im Stil von fastfetch |
+| ![Plattenspieler-Stil des Musik-Widgets](docs/images/music-turntable.webp)<br>**Musik** als Plattenspieler | ![Wetter-Karte mit 3D-Icons](docs/images/weather-card.webp)<br>**Wetter-Karte** mit 3D-Icons |
+| ![Stundenplan in der Wochenansicht](docs/images/timetable-week.webp)<br>**Stundenplan** (WebUntis) | ![Formel-1-Karte mit Streckenumriss und Wertung](docs/images/f1-card.webp)<br>**Formel 1** (inoffiziell) |
 
 ## Voraussetzungen
 
@@ -170,7 +179,7 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 
 ## Bedienung
 
-![Builder mit Raster und Eigenschaften-Panel](docs/images/builder-raster.webp)
+![Builder mit Widget-Liste, Raster und dem Panel für Position und Glas (Presets, eigene Presets, Regler)](docs/images/builder-raster.webp)
 
 `widgetdeck toggle` öffnet und schließt den Builder (Bearbeiten-Modus). Auf dem Desktop selbst nehmen die Widgets keine Klicks an.
 
@@ -317,6 +326,8 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 <details>
 <summary>Songtext</summary>
 
+![Songtext](docs/images/lyrics.webp)
+
 - **Zweck:** zeigt nur den Text des laufenden Lieds, synchron zur Wiedergabe: Die Zeile, die gerade gesungen wird, ist hell, die anderen sind gedimmt, und der Text scrollt mit. Instrumentale Pausen erscheinen als ♪. Auf Wunsch leuchten die Wörter der Zeile nacheinander auf (geschätzt aus der Länge der Wörter).
 - **Datenquelle:** [LRCLIB](https://lrclib.net) (frei, ohne Schlüssel). Pro Lied geht eine Anfrage hin (Interpret, Titel, Album, Länge und wie bei jeder Verbindung deine IP-Adresse); gefundene Texte werden 30 Tage lokal in `~/.cache/widgetdeck/lyrics/` gespeichert. Die Position kommt vom MPRIS-Player.
 - **Einstellungen:** Textgröße, Ausrichtung, aktuelle Zeile in der Akzentfarbe, Titel und Interpret, *Nur Text (ohne Glas-Behälter)* (dann steht der Text frei auf dem Wallpaper), Player. Gibt es für ein Lied keinen synchronisierten Text, sagt das Widget es.
@@ -326,6 +337,8 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 
 <details>
 <summary>System-Info (fastfetch)</summary>
+
+![System-Info](docs/images/system-info.webp)
 
 - **Zweck:** Überblick im Stil von `fastfetch`: System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, dazu kleines Logo und Farbblöcke.
 - **Datenquelle:** `fastfetch --json`, lokal, etwa einmal pro Minute bei sichtbarem Widget; ohne `fastfetch` zeigt das Widget einen Hinweis.
