@@ -472,6 +472,7 @@ var de = {
  "Snap threshold (px)": "Einrast-Schwelle (px)",
  "Snow": "Schnee",
  "Sochi Autodrom": "Sochi Autodrom",
+ "Solid": "Deckend",
  "Sound at the end of a phase": "Ton am Ende einer Phase",
  "Spacing": "Abstand",
  "Speed (RPM)": "Drehzahl (U/min)",

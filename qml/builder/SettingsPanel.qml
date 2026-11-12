@@ -158,7 +158,7 @@ Column {
 
     // ───────────── builder look ─────────────
     Section { text: I18n.tr("BUILDER LOOK") }
-    GChoice { width: parent.width; th: sp.th; label: I18n.tr("Glass style of the builder"); options: D.MODES; value: sp.store.builder.glass; onPicked: v => sp.store.setBuilder("glass", v) }
+    GChoice { width: parent.width; th: sp.th; label: I18n.tr("Glass style of the builder"); options: D.BUILDER_MODES; value: sp.store.builder.glass; onPicked: v => sp.store.setBuilder("glass", v) }
     GSlider { width: parent.width; th: sp.th; label: I18n.tr("Window opacity"); from: 0.5; to: 0.95; step: 0.01; value: sp.store.builder.opacity; onMoved: v => sp.store.setBuilder("opacity", v) }
     GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Live capture of windows (experimental)"); checked: sp.store.builder.liveCapture === true; onToggled: v => sp.store.setBuilder("liveCapture", v) }
 

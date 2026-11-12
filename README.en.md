@@ -36,7 +36,7 @@ The detailed documents in `docs/` are currently written in German only.
 ## Features at a glance
 
 - **Builder** with snap grid, guides, multi-select, align and distribute
-- **Two glass styles:** Frosted Glass and Liquid Glass (own shader that refracts the wallpaper), set per widget; Liquid Glass has presets and an optional **edge lens** (the rim bends the background like a drop of water)
+- **Three styles:** Frosted Glass, Liquid Glass and *Solid* (not transparent at all) (own shader that refracts the wallpaper), set per widget; Liquid Glass has presets and an optional **edge lens** (the rim bends the background like a drop of water)
 - **Copy and paste style:** carry the look of one widget over to others, also to several at once
 - **Theming** with Matugen: colours follow the wallpaper (optional, otherwise a fixed default palette)
 - **Several monitors** with a stable monitor key, own layout and wallpaper per monitor
@@ -201,14 +201,18 @@ On the first start a setup assistant opens once. You can skip it and run it agai
 
 ### Glass styles
 
-| | Frosted Glass | Liquid Glass |
-|---|---|---|
-| Effect | background blur from Hyprland | own shader that refracts the wallpaper |
-| Needs | blur in Hyprland (default) and the rules file | `qsb` (`qt6-shadertools`) and a detected wallpaper |
-| If missing | – | every widget falls back to Frosted Glass |
-| Settings | tint, border, opacity, shine | presets *Pearl*, *Clear*, *Subtle*, *Crystal*, *Water drop* (plus your own presets) and sliders for opacity, refraction, edge thickness, colour fringe, blur, saturation, highlight, light angle, grain; plus the *Edge lens* |
+| | Frosted Glass | Liquid Glass | Solid |
+|---|---|---|---|
+| Effect | background blur from Hyprland | own shader that refracts the wallpaper | an opaque card, nothing shines through |
+| Needs | blur in Hyprland (default) and the rules file | `qsb` (`qt6-shadertools`) and a detected wallpaper | nothing |
+| If missing | – | every widget falls back to Frosted Glass | – |
+| Settings | tint, border, opacity, shine | presets *Pearl*, *Clear*, *Subtle*, *Crystal*, *Water drop* (plus your own presets) and sliders for opacity, refraction, edge thickness, colour fringe, blur, saturation, highlight, light angle, grain; plus the *Edge lens* | background colour, border, shadow, corner radius |
 
 ![Overview with Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
+
+The *Solid* style is a completely opaque card (background colour, border and shadow are adjustable), without blur and without a shader:
+
+![Overview with the Solid style](docs/images/gesamtansicht-deckend.webp)
 
 You set the style and sliders per widget in the right panel under *Glass style* (to edit Liquid Glass: pick a preset, then adjust the sliders). The preset buttons wrap onto several lines when needed:
 

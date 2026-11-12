@@ -2,15 +2,19 @@
 // Style model shared by the desktop widgets and the builder.
 // The same keys are stored in widgets.json (style: {...}); anything missing falls back to these defaults.
 
-var MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"]];
+// "solid" = no glass at all: an opaque card (nothing shines through, no blur, no refraction)
+var MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"], ["solid", "Solid"]];
+var BUILDER_MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"]];          // the builder window itself is never opaque
+// `only` can name several modes: "frosted,solid"
+function shownIn(p, mode) { return !p.only || String(p.only).split(",").indexOf(mode) >= 0; }
 
 // kind: color | range | int | bool | font | choice   (only: show the control only for that glass mode)
 // Liquid defaults are the look of the MacShell widget layer the shader is derived from (see LIQUID_DEFAULTS); the sliders only offset from it.
 var STYLE_PROPS = [
     { key: "mode",         label: "Glass style",             kind: "choice", def: "frosted", options: MODES },
-    { key: "bg",           label: "Background tint",      kind: "color",  def: "theme:surface", only: "frosted" },
-    { key: "border_color", label: "Border colour",           kind: "color",  def: "theme:outline", only: "frosted" },
-    { key: "bg_alpha",     label: "Opacity",             kind: "range",  def: 0.55, min: 0,   max: 1,   step: 0.01 },
+    { key: "bg",           label: "Background tint",      kind: "color",  def: "theme:surface", only: "frosted,solid" },
+    { key: "border_color", label: "Border colour",           kind: "color",  def: "theme:outline", only: "frosted,solid" },
+    { key: "bg_alpha",     label: "Opacity",             kind: "range",  def: 0.55, min: 0,   max: 1,   step: 0.01, only: "frosted,liquid" },
     { key: "refraction",   label: "Refraction",       kind: "range",  def: 1.0,  min: 0,   max: 2,   step: 0.01, only: "liquid" },
     { key: "bezel",        label: "Edge thickness",            kind: "range",  def: 1.0,  min: 0.3, max: 2,   step: 0.01, only: "liquid" },
     { key: "aberration",   label: "Colour fringe",              kind: "range",  def: 1.0,  min: 0,   max: 3,   step: 0.01, only: "liquid" },
@@ -37,7 +41,7 @@ var STYLE_PROPS = [
     { key: "font",         label: "Font",            kind: "font",   def: "" },
     { key: "font_size",    label: "Font size",          kind: "int",    def: 16,   min: 8,   max: 64,  step: 1 },
     { key: "radius",       label: "Corner radius",           kind: "int",    def: 24,   min: 0,   max: 80,  step: 1 },
-    { key: "border_alpha", label: "Border",                kind: "range",  def: 0.14, min: 0,   max: 0.6, step: 0.01, only: "frosted" },
+    { key: "border_alpha", label: "Border",                kind: "range",  def: 0.14, min: 0,   max: 0.6, step: 0.01, only: "frosted,solid" },
     { key: "shadow",       label: "Shadow",              kind: "range",  def: 0.35, min: 0,   max: 1.5, step: 0.01 },
     { key: "glass",        label: "Glass shine",            kind: "bool",   def: true, only: "frosted" }
 ];
@@ -69,7 +73,8 @@ var LIQUID_PRESETS = {
 // applied when the glass mode of a widget is switched
 var MODE_PRESETS = {
     frosted: { bg_alpha: 0.55, radius: 24, border_alpha: 0.14, shadow: 0.35, glass: true },
-    liquid:  Object.assign({}, LIQUID_DEFAULTS)
+    liquid:  Object.assign({}, LIQUID_DEFAULTS),
+    solid:   { radius: 24, border_alpha: 0.16, shadow: 0.35, glass: false }
 };
 
 var BUILDER_DEFAULT = { glass: "frosted", opacity: 0.78, liveCapture: false,

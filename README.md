@@ -34,7 +34,7 @@ cd WidgetDeck-
 ## Funktionen auf einen Blick
 
 - **Builder** mit Raster, Hilfslinien, Mehrfachauswahl, Ausrichten und Verteilen
-- **Zwei Glas-Stile:** Frosted Glass und Liquid Glass (eigener Shader, der das Wallpaper bricht), pro Widget einstellbar; Liquid Glass hat Presets und eine optionale **Kantenlinse** (der Rand biegt den Hintergrund wie ein Wassertropfen)
+- **Drei Stile:** Frosted Glass, Liquid Glass und *Deckend* (gar nicht durchsichtig) (eigener Shader, der das Wallpaper bricht), pro Widget einstellbar; Liquid Glass hat Presets und eine optionale **Kantenlinse** (der Rand biegt den Hintergrund wie ein Wassertropfen)
 - **Stil kopieren und einfügen:** das Aussehen eines Widgets auf andere übertragen, auch auf mehrere gleichzeitig
 - **Theming** mit Matugen: Farben folgen dem Wallpaper (optional, sonst feste Standardpalette)
 - **Mehrere Monitore** mit stabiler Monitor-Kennung, eigenem Layout und Wallpaper pro Monitor
@@ -199,14 +199,18 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 
 ### Glas-Stile
 
-| | Frosted Glass (Milchglas) | Liquid Glass |
-|---|---|---|
-| Wirkung | Hintergrund-Blur von Hyprland | eigener Shader, der das Wallpaper bricht |
-| Braucht | Blur in Hyprland (Standard) und die Regeldatei | `qsb` (`qt6-shadertools`) und ein erkanntes Wallpaper |
-| Fehlt es | – | alle Widgets fallen auf Frosted Glass zurück |
-| Einstellungen | Tönung, Rand, Deckkraft, Glanz | Presets *Perle*, *Klar*, *Dezent*, *Kristall*, *Wassertropfen* (dazu eigene Presets) und Regler für Deckkraft, Brechungsstärke, Rand-Dicke, Farbsaum, Blur, Sättigung, Highlight, Lichtwinkel, Körnung; dazu die *Kantenlinse* |
+| | Frosted Glass (Milchglas) | Liquid Glass | Deckend |
+|---|---|---|---|
+| Wirkung | Hintergrund-Blur von Hyprland | eigener Shader, der das Wallpaper bricht | undurchsichtige Karte, nichts scheint durch |
+| Braucht | Blur in Hyprland (Standard) und die Regeldatei | `qsb` (`qt6-shadertools`) und ein erkanntes Wallpaper | nichts |
+| Fehlt es | – | alle Widgets fallen auf Frosted Glass zurück | – |
+| Einstellungen | Tönung, Rand, Deckkraft, Glanz | Presets *Perle*, *Klar*, *Dezent*, *Kristall*, *Wassertropfen* (dazu eigene Presets) und Regler für Deckkraft, Brechungsstärke, Rand-Dicke, Farbsaum, Blur, Sättigung, Highlight, Lichtwinkel, Körnung; dazu die *Kantenlinse* | Hintergrundfarbe, Rand, Schatten, Eckenradius |
 
 ![Gesamtansicht mit Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
+
+Der Stil *Deckend* ist eine ganz undurchsichtige Karte (Hintergrundfarbe, Rand und Schatten einstellbar), ohne Blur und ohne Shader:
+
+![Gesamtansicht mit dem Stil Deckend](docs/images/gesamtansicht-deckend.webp)
 
 Den Stil und die Regler stellst du pro Widget im Panel rechts unter *Glas-Stil* ein (Liquid Glass bearbeiten: Preset wählen, dann Regler anpassen). Die Preset-Knöpfe brechen bei Bedarf in mehrere Zeilen um:
 

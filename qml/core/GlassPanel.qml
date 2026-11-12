@@ -1,5 +1,6 @@
 // Reusable glass background + container for ONE widget / panel.
 //
+//   style.mode = "solid": the same card, but fully opaque (no blur needed, nothing shines through)
 //   style.mode = "frosted": translucent card, the blur comes from Hyprland (layerrule on the window)
 //   style.mode = "liquid" : Liquid Glass (glass.frag, derived from MacShell, MIT - see NOTICE.md; same pipeline idea as its widget layer):
 //                           backdrop item (wallpaper placed at the real screen position) -> Gaussian pre-blur
@@ -263,13 +264,13 @@ Item {
                     id: frCard
                     anchors.fill: parent
                     radius: root.style.radius
-                    color: Qt.rgba(D.hexRgb(root.style.bg)[0], D.hexRgb(root.style.bg)[1], D.hexRgb(root.style.bg)[2], root.style.bg_alpha)
+                    color: Qt.rgba(D.hexRgb(root.style.bg)[0], D.hexRgb(root.style.bg)[1], D.hexRgb(root.style.bg)[2], root.style.mode === "solid" ? 1 : root.style.bg_alpha)
                     border.width: 1
                     border.color: Qt.rgba(D.hexRgb(root.style.border_color)[0], D.hexRgb(root.style.border_color)[1], D.hexRgb(root.style.border_color)[2], root.style.border_alpha)
                     layer.enabled: true
                     visible: false
                     Rectangle {   // sheen
-                        visible: root.style.glass
+                        visible: root.style.glass && root.style.mode !== "solid"
                         anchors.fill: parent
                         radius: parent.radius
                         gradient: Gradient {

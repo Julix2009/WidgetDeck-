@@ -66,7 +66,7 @@ Item {
         for (var i = 0; i < D.STYLE_PROPS.length; i++) {
             var p = D.STYLE_PROPS[i];
             if (p.key === "mode") continue;
-            if (p.only && p.only !== st.mode) continue;
+            if (!D.shownIn(p, st.mode)) continue;
             if (p.needs && !(Number(st[p.needs]) > 0)) continue;      // e.g. the lens controls only while the lens is on
             out.push(p);
         }
