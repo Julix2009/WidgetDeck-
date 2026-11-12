@@ -175,7 +175,7 @@ install_files() {
     run rm -rf "$tmp"
     run cp -a "$SCRIPT_DIR/qml" "$tmp"
     if [ "$DRY_RUN" = 0 ]; then
-        printf '%s\n' "$VERSION" > "$tmp/VERSION"; chmod +x "$tmp"/widgets/sysmon/*.sh "$tmp"/widgets/focustimer/*.sh "$tmp"/core/*.sh "$tmp"/modules/*.sh
+        printf '%s\n' "$VERSION" > "$tmp/VERSION"; chmod +x "$tmp"/widgets/sysmon/*.sh "$tmp"/widgets/focustimer/*.sh "$tmp"/widgets/lyrics/*.sh "$tmp"/core/*.sh "$tmp"/modules/*.sh
         # where updates come from (read by widgetdeck-update and the update hint in the settings)
         local url="" rev=""
         if command -v git >/dev/null 2>&1 && git -C "$SCRIPT_DIR" rev-parse --git-dir >/dev/null 2>&1; then

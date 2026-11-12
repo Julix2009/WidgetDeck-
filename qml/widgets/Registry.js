@@ -86,6 +86,17 @@ var TYPES = {
             { key: "poll_s", label: "Poll interval (seconds)", kind: "int", def: 60, min: 10, max: 600, step: 10 }
         ]
     },
+    lyrics: {
+        label: "Lyrics", desc: "Synchronised lyrics of the playing song, the line being sung is highlighted (LRCLIB, needs a player with MPRIS)", icon: "music", size: [520, 300], file: "LyricsWidget.qml",
+        style: { bg_alpha: 0.35 },
+        props: [
+            { key: "text_size", label: "Text size", kind: "range", def: 1.3, min: 0.8, max: 2.4, step: 0.05 },
+            { key: "align", label: "Alignment", kind: "choice", def: "left", options: [["left", "Left"], ["center", "Centre"]] },
+            { key: "accent_current", label: "Current line in the accent colour", kind: "bool", def: false },
+            { key: "show_title", label: "Show title and artist", kind: "bool", def: false },
+            { key: "player", label: "Player (empty = automatic)", kind: "text", def: "" }
+        ]
+    },
     airquality: {
         label: "Air quality", desc: "European AQI, PM2.5, PM10, ozone (Open-Meteo)", icon: "leaf", size: [400, 230], file: "AirQualityWidget.qml",
         props: [

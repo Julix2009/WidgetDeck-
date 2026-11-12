@@ -6,7 +6,7 @@ Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas) und Liqu
 
 Widgets mit zwei Größen haben im Builder die Knöpfe *Klein* und *Groß*. Das Aussehen eines Widgets (Glas-Stil, Regler, Farben) lässt sich mit *Stil kopieren* und *Stil einfügen* auf andere übertragen. Bei Liquid Glass gibt es außerdem die optionale *Kantenlinse* (*Linsenstärke*, *Kantenbiegung*, *Regenbogensaum*, *Linsen-Tönung*) und die Presets *Kristall* und *Wassertropfen*; bei Linsenstärke 0 bleibt alles wie zuvor. Alle anderen haben eine Standardgröße, die du über Breite und Höhe frei ändern kannst.
 
-Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [System-Info](#system-info-fastfetch) · [Visualizer](#musik-visualizer)
+Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [Songtext](#songtext) · [System-Info](#system-info-fastfetch) · [Visualizer](#musik-visualizer)
 
 ## Uhr & Datum
 
@@ -329,6 +329,22 @@ Ohne Secret Service bietet das Setup eine private Datei (`chmod 600`, `~/.local/
 | Anzeige | *Schulwoche* (Standard) oder *Schultag* |
 | Meine Gruppe | leer = alle Stunden zählen, sonst nur die der eigenen Gruppe |
 | Stunden anzeigen | zeigt zusätzlich die Zählung, zum Beispiel „5 von 30“ |
+
+## Songtext
+
+*Der Text des laufenden Lieds, synchron zur Wiedergabe: Die Zeile, die gerade gesungen wird, leuchtet hell auf, die übrigen sind gedimmt, und der Text scrollt weich mit (wie bei Spotify).* Größe 520×300. Instrumentale Pausen erscheinen als ♪.
+
+**Voraussetzung:** ein Player mit MPRIS (Spotify, Browser, mpv …) und Internet. Der Player muss Titel, Interpret und möglichst die Länge melden; die Position liest das Widget vom Player.
+
+**Datenquelle:** [LRCLIB](https://lrclib.net) (frei, ohne Schlüssel). Pro Lied geht eine Anfrage mit Interpret, Titel, Album und Länge hin (dazu die IP-Adresse, wie bei jeder Verbindung); findet sie nichts, folgt eine Suche. Treffer werden 30 Tage in `~/.cache/widgetdeck/lyrics/` gespeichert (Dateirechte 600), „nichts gefunden“ einen Tag, ein Netzfehler nie. Gibt es keinen synchronisierten Text, sagt das Widget es. Die Songtexte gehören den Rechteinhabern; WidgetDeck liefert keine mit.
+
+| Einstellung | Schlüssel | Standard | Werte |
+|---|---|---|---|
+| Textgröße | `text_size` | 1.3 | 0.8 – 2.4 |
+| Ausrichtung | `align` | Links | Links / Mitte |
+| Aktuelle Zeile in der Akzentfarbe | `accent_current` | aus | an / aus |
+| Titel und Interpret anzeigen | `show_title` | aus | an / aus |
+| Player (leer = automatisch) | `player` | leer | Text |
 
 ## System-Info (fastfetch)
 

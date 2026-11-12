@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ## [Unveröffentlicht]
 
 ### Hinzugefügt
+- Neues Widget „Songtext“: zeigt nur den Text des laufenden Lieds, synchron zur Wiedergabe – die gesungene Zeile leuchtet hell auf, die anderen sind gedimmt, der Text scrollt mit (Quelle: LRCLIB, ein Abruf pro Lied, lokal zwischengespeichert; Position vom MPRIS-Player).
 - Builder: eigene Glas-Presets speichern, anwenden und löschen (*Aktuellen Look als Preset speichern*; in `config.json` unter `user_presets`).
 - Visualizer: Einstellung „Flüssigkeit (Bilder pro Sekunde)“ (20, 30, 45, 60; Standard jetzt 30 statt 45).
 - Neues Widget „System-Info“ im Stil von fastfetch (System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, kleines Logo, Farbblöcke) mit Liquid Glass; braucht `fastfetch`, das der Installer optional anbietet.

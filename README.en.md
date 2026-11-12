@@ -60,6 +60,7 @@ The detailed documents in `docs/` are currently written in German only.
 | School progress | how many percent of the school day or week are over | Standard | data of the timetable widget |
 | Timetable | WebUntis through the Untis Mobile access | Small / Large | `python`, `zbar`, `libsecret`, Secret Service |
 | Music visualizer | audio-reactive bars | default | `cava` |
+| Lyrics | synchronised lyrics of the playing song, the line being sung lights up like on Spotify | default | MPRIS player, internet ([LRCLIB](https://lrclib.net)) |
 | System info | fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk, small logo | default | `fastfetch` |
 
 Pixel sizes and all settings are listed in [docs/widgets.md](docs/widgets.md) (German).
@@ -316,6 +317,16 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 </details>
 
 <details>
+<summary>Lyrics</summary>
+
+- **Purpose:** shows only the text of the playing song, in sync with the playback: the line being sung is bright, the others are dimmed, and the text scrolls along. Instrumental breaks appear as ♪.
+- **Data source:** [LRCLIB](https://lrclib.net) (free, no key). One request per song (artist, title, album, length and, as with every connection, your IP address); lyrics that were found are cached for 30 days in `~/.cache/widgetdeck/lyrics/`. The position comes from the MPRIS player.
+- **Settings:** text size, alignment, current line in the accent colour, title and artist, player. If a song has no synchronised lyrics, the widget says so.
+- **Note:** the lyrics belong to their rights holders; WidgetDeck only shows them on your computer and ships none.
+
+</details>
+
+<details>
 <summary>System info (fastfetch)</summary>
 
 - **Purpose:** a fastfetch-style overview: system, kernel, uptime, packages, CPU, GPU, memory, disk, plus a small logo and colour blocks.
@@ -362,6 +373,7 @@ Shows the next race weekend with track outline, countdown, all sessions in local
 | Target | When | What is sent | How to switch off |
 |---|---|---|---|
 | Open-Meteo (`api.open-meteo.com`, `air-quality-api.open-meteo.com`) | while weather, weather card or air quality are visible | coordinates; the server sees the IP address as with any connection | remove the widgets; choose *No weather* in the assistant |
+| LRCLIB (`lrclib.net`) | only with the lyrics widget, once per song (then from the local cache) | artist, title, album and length of the song; the server sees your IP address as with any connection | remove the widget |
 | ipwho.is | only with location *Automatic*, after the assistant, at most once a week (the result is stored) | your IP address; the city-level location comes back | enter coordinates yourself or `"location": {"auto": false}` in `config.json` |
 | Jolpica-F1, OpenF1 | only with the Formula 1 widget | the request for calendar and results; no personal data besides the IP | remove the widget; live data is off by default |
 | Your school's server (WebUntis) | only with the timetable widget, every 15 minutes | your Untis user ID and a one-time code computed from the key (never the key itself), over HTTPS with certificate verification | `widgetdeck-untis-setup --remove`, remove the widget |
@@ -440,6 +452,7 @@ All known problems (notification daemon conflict, expired timetable access, key 
 | [Open-Meteo](https://open-meteo.com) | weather and air quality | data CC BY 4.0, the free API is meant for non-commercial use |
 | [Jolpica-F1](https://github.com/jolpica/jolpica-f1) | race calendar, results, standings | CC BY-NC-SA 4.0 (non-commercial only) |
 | [OpenF1](https://openf1.org) | cancelled races, optional live view | unofficial project, licence CC BY-NC-SA 4.0 according to `NOTICE.md` |
+| [LRCLIB](https://lrclib.net) | lyrics (synchronised) | free service; the lyrics belong to their rights holders, none are shipped |
 | ipwho.is | location by IP | service without a licence statement in the project |
 
 Not bundled: fonts (preferably Adwaita Sans from `adwaita-fonts`, OFL 1.1 according to `NOTICE.md`), emoji data, Blender (only needed to regenerate the weather icons). The icons (`qml/core/Icons.js`), the 3D weather icons and the focus timer sound are own work.

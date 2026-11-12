@@ -58,6 +58,7 @@ cd WidgetDeck-
 | Schulfortschritt | wie viel Prozent vom Schultag oder von der Schulwoche vorbei sind | Standard | Daten des Stundenplan-Widgets |
 | Stundenplan | WebUntis über den Untis-Mobile-Zugang | Klein / Groß | `python`, `zbar`, `libsecret`, Secret Service |
 | Musik-Visualizer | audio-reaktive Balken | Standard | `cava` |
+| Songtext | synchroner Songtext des laufenden Lieds, die gesungene Zeile leuchtet auf wie bei Spotify | Standard | MPRIS-Player, Internet ([LRCLIB](https://lrclib.net)) |
 | System-Info | Überblick im Stil von fastfetch: System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, kleines Logo | Standard | `fastfetch` |
 
 Die Pixelgrößen und alle Einstellungen stehen in [docs/widgets.md](docs/widgets.md).
@@ -314,6 +315,16 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 </details>
 
 <details>
+<summary>Songtext</summary>
+
+- **Zweck:** zeigt nur den Text des laufenden Lieds, synchron zur Wiedergabe: Die Zeile, die gerade gesungen wird, ist hell, die anderen sind gedimmt, und der Text scrollt mit. Instrumentale Pausen erscheinen als ♪.
+- **Datenquelle:** [LRCLIB](https://lrclib.net) (frei, ohne Schlüssel). Pro Lied geht eine Anfrage hin (Interpret, Titel, Album, Länge und wie bei jeder Verbindung deine IP-Adresse); gefundene Texte werden 30 Tage lokal in `~/.cache/widgetdeck/lyrics/` gespeichert. Die Position kommt vom MPRIS-Player.
+- **Einstellungen:** Textgröße, Ausrichtung, aktuelle Zeile in der Akzentfarbe, Titel und Interpret, Player. Gibt es für ein Lied keinen synchronisierten Text, sagt das Widget es.
+- **Hinweis:** Die Songtexte gehören den Rechteinhabern; WidgetDeck zeigt sie nur auf deinem Rechner an und liefert keine mit.
+
+</details>
+
+<details>
 <summary>System-Info (fastfetch)</summary>
 
 - **Zweck:** Überblick im Stil von `fastfetch`: System, Kernel, Laufzeit, Pakete, CPU, GPU, RAM, Speicher, dazu kleines Logo und Farbblöcke.
@@ -360,6 +371,7 @@ Zeigt das nächste Rennwochenende mit Streckenumriss, Countdown, allen Sessions 
 | Ziel | Wann | Was geht hin | Abschalten |
 |---|---|---|---|
 | Open-Meteo (`api.open-meteo.com`, `air-quality-api.open-meteo.com`) | solange Wetter, Wetter-Karte oder Luftqualität sichtbar sind | Koordinaten; die IP-Adresse sieht der Server wie bei jeder Verbindung | die Widgets entfernen; im Assistenten *Kein Wetter* |
+| LRCLIB (`lrclib.net`) | nur mit Songtext-Widget, einmal pro Lied (danach aus dem lokalen Zwischenspeicher) | Interpret, Titel, Album und Länge des Lieds; die IP-Adresse sieht der Server wie bei jeder Verbindung | Widget entfernen |
 | ipwho.is | nur bei Standort *Automatisch*, nach dem Assistenten, höchstens einmal pro Woche (Ergebnis wird gespeichert) | deine IP-Adresse; zurück kommt der Ort auf Stadtebene | Koordinaten selbst eintragen oder `"location": {"auto": false}` in `config.json` |
 | Jolpica-F1, OpenF1 | nur mit Formel-1-Widget | die Anfrage nach Kalender und Ergebnissen; keine persönlichen Daten außer der IP | Widget entfernen; Live-Daten sind standardmäßig aus |
 | Server deiner Schule (WebUntis) | nur mit Stundenplan-Widget, alle 15 Minuten | deine Untis-Benutzerkennung und ein aus dem Schlüssel berechneter Einmalcode (der Schlüssel selbst nie), per HTTPS mit Zertifikatsprüfung | `widgetdeck-untis-setup --remove`, Widget entfernen |
@@ -438,6 +450,7 @@ Alle bekannten Probleme (Benachrichtigungsdienst-Konflikt, Stundenplan-Zugang ab
 | [Open-Meteo](https://open-meteo.com) | Wetter und Luftqualität | Daten CC BY 4.0, die freie API ist für nicht-kommerzielle Nutzung gedacht |
 | [Jolpica-F1](https://github.com/jolpica/jolpica-f1) | Rennkalender, Ergebnisse, Wertung | CC BY-NC-SA 4.0 (nur nicht-kommerziell) |
 | [OpenF1](https://openf1.org) | abgesagte Rennen, optionale Live-Ansicht | inoffizielles Projekt, Lizenz laut `NOTICE.md` CC BY-NC-SA 4.0 |
+| [LRCLIB](https://lrclib.net) | Songtexte (synchronisiert) | freier Dienst; die Texte gehören den Rechteinhabern, es wird nichts mitgeliefert |
 | ipwho.is | Standort per IP | Dienst ohne Lizenzangabe im Projekt |
 
 Nicht mitgeliefert: Schriften (bevorzugt Adwaita Sans aus `adwaita-fonts`, OFL 1.1 laut `NOTICE.md`), Emoji-Daten, Blender (nur zum Neuerzeugen der Wetter-Icons nötig). Eigene Arbeit sind die Icons (`qml/core/Icons.js`), die 3D-Wetter-Icons und der Ton des Fokus-Timers.
