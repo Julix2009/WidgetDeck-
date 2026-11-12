@@ -28,6 +28,13 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.0.1] - 2026-11-12
+
+### Geändert
+- README neu (de/en) mit Galerie und aktuellen Bildern (Demo-Daten, eigenes Wallpaper), Versionsangabe 1.0.1
+- Wort fuer Wort aufleuchten (Zeit der Zeile nach Wortlaenge verteilt)
+- Versionsangabe 1.0.0
+
 ## [1.0.0] - 2026-11-12
 
 ### Hinzugefügt
