@@ -57,6 +57,18 @@ Scope {
         // A change of the monitor set / size / scale is only taken over once it has stayed the same for a moment (settle timer). Right after resume from
         // suspend (or while a monitor is reconfigured) Quickshell and Hyprland briefly report half-updated data (e.g. another size under the same
         // monitor); acting on it would re-express the saved layout against a wrong area and leave the widgets at a wrong size.
+        // Plausibility: Quickshell's screen size (logical) must match what Hyprland says (pixels / scale). Right after boot Qt can keep a stale screen
+        // (e.g. 1463x914 = a scale of 1.75) while the monitor already runs at 1.25: every window is then drawn too big and a saved layout would be
+        // re-expressed against the wrong area. Such data is never published; if it stays that way the daemon restarts itself (selfRestart).
+        var bad = false;
+        for (i = 0; i < out.length; i++) {
+            var rm = out[i];
+            if (rm.hyprId < 0 || !(rm.scale > 0) || !(rm.pw > 0)) continue;
+            var lw = (rm.transform % 2 === 1) ? rm.ph : rm.pw, lh = (rm.transform % 2 === 1) ? rm.pw : rm.ph;
+            if (Math.abs(rm.w - lw / rm.scale) > 3 || Math.abs(rm.h - lh / rm.scale) > 3) bad = true;
+        }
+        mon.inconsistent = bad;
+        if (bad && !mon.gaveUp) return;
         var sig = JSON.stringify(out.map(function (m) { return [m.key, m.name, m.x, m.y, m.w, m.h, m.pw, m.ph, m.scale, m.transform]; }));
         if (list.length > 0 && out.length > 0 && sig !== mon.sigPublished) {
             if (sig !== mon.sigPending) { mon.sigPending = sig; settle.restart(); return; }
@@ -65,6 +77,25 @@ Scope {
         mon.sigPending = ""; mon.sigPublished = sig;
         list = out;
         rev++;
+    }
+    property bool inconsistent: false             // Quickshell's screen data contradicts hyprctl (see rebuild)
+    property bool gaveUp: false                   // restarting did not help twice: publish what there is
+    // 8 s of contradiction (the compositor needs a moment after boot) -> restart the daemon, at most twice within 5 minutes
+    Timer { interval: 8000; running: mon.inconsistent && !mon.gaveUp; onTriggered: restartProc.running = true }
+    Process {
+        id: restartProc
+        command: ["sh", "-c", `d="\${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck"; f="$d/self-restart"; mkdir -p "$d"; now=$(date +%s); last=0; n=0
+            [ -f "$f" ] && read -r last n < "$f"
+            [ $((now - \${last:-0})) -gt 300 ] && n=0
+            [ "\${n:-0}" -ge 2 ] && exit 3
+            echo "$now $((n + 1))" > "$f"
+            wd=$(command -v widgetdeck 2>/dev/null || echo "$HOME/.local/bin/widgetdeck"); [ -x "$wd" ] || wd=/usr/bin/widgetdeck
+            setsid sh -c 'sleep 1; exec "$0" restart' "$wd" >/dev/null 2>&1 &
+            exit 0`]
+        onExited: (code, status) => {
+            if (code === 3) { console.log("[widgetdeck] the screen data still contradicts Hyprland after two restarts - using it as it is"); mon.gaveUp = true; mon.rebuild(); }
+            else console.log("[widgetdeck] the screen data contradicts Hyprland - restarting WidgetDeck");
+        }
     }
     property string sigPending: ""
     property string sigPublished: ""
