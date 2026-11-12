@@ -240,6 +240,7 @@ var de = {
  "Light": "Hell",
  "Light angle (°)": "Lichtwinkel (°)",
  "Light reflection": "Lichtreflex",
+ "Light up word by word": "Wort für Wort aufleuchten",
  "Line": "Linie",
  "Liquid Glass": "Liquid Glass",
  "Liquid Glass bends the picture behind a widget, so it needs to know your wallpaper. WidgetDeck looks for it in awww, swww, hyprpaper, swaybg and wpaperd. If you use something else, choose the picture yourself.": "Liquid Glass bricht das Bild hinter einem Widget, deshalb muss es dein Wallpaper kennen. WidgetDeck sucht es in awww, swww, hyprpaper, swaybg und wpaperd. Nutzt du etwas anderes, wähle das Bild selbst.",

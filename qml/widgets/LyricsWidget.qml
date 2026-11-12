@@ -81,8 +81,9 @@ Item {
     }
 
     property real pos: 0                                        // seconds into the song
+    readonly property bool wordMode: props.word_highlight !== false
     Timer {
-        interval: 200; repeat: true; running: w.live && w.playing && w.lines.length > 0
+        interval: w.wordMode ? 100 : 200; repeat: true; running: w.live && w.playing && w.lines.length > 0
         onTriggered: { try { w.player.positionChanged(); } catch (e) { } w.pos = w.player.positionSupported ? w.player.position : 0; }
     }
     onLinesChanged: pos = (player && player.positionSupported) ? player.position : 0
@@ -91,6 +92,29 @@ Item {
         var l = lines, p = pos + 0.3, lo = 0, hi = l.length - 1, r = -1;
         while (lo <= hi) { var mid = (lo + hi) >> 1; if (l[mid].t <= p) { r = mid; lo = mid + 1; } else hi = mid - 1; }
         return r;
+    }
+
+    // Word by word (karaoke): LRCLIB only knows when a LINE starts, so the time of a line is spread over its words by their length (a word counts its
+    // letters + 1) and the words of the line being sung light up one after the other. A sung word is fully bright, a word still to come is dim.
+    function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function hex2(v) { var h = Math.max(0, Math.min(255, Math.round(v))).toString(16); return h.length < 2 ? "0" + h : h; }
+    function wordMarkup(i) {
+        var L = lines[i];
+        if (!L) return "";
+        var base = props.accent_current === true ? cAcc : cFg, rgb = hex2(base.r * 255) + hex2(base.g * 255) + hex2(base.b * 255);
+        var words = String(L.text).split(/\s+/).filter(function (x) { return x !== ""; });
+        if (words.length === 0) return esc(L.text);
+        var next = i + 1 < lines.length ? lines[i + 1].t : L.t + 6, active = Math.max(0.5, next - L.t);
+        var dur = Math.max(0.6, Math.min(active - 0.1, String(L.text).length / 11));       // about 11 letters per second, never longer than the gap to the next line
+        var frac = Math.max(0, Math.min(1, (pos + 0.3 - L.t) / dur)), total = 0, k;
+        for (k = 0; k < words.length; k++) total += words[k].length + 1;
+        var acc = 0, out = [];
+        for (k = 0; k < words.length; k++) {
+            var f0 = acc / total; acc += words[k].length + 1;
+            var p = Math.max(0, Math.min(1, (frac - f0) / (acc / total - f0)));
+            out.push('<font color="#' + hex2((0.42 + 0.58 * p) * 255) + rgb + '">' + esc(words[k]) + "</font>");
+        }
+        return out.join(" ");
     }
 
     // ───────────── drawing ─────────────
@@ -123,7 +147,9 @@ Item {
                         width: parent.width; wrapMode: Text.WordWrap
                         horizontalAlignment: w.centered ? Text.AlignHCenter : Text.AlignLeft
                         wstyle: w.tstyle; font.bold: true; font.pixelSize: w.fs
-                        text: modelData.text === "" ? "♪" : modelData.text
+                        readonly property bool words: parent.on && w.wordMode && modelData.text !== ""
+                        textFormat: words ? Text.StyledText : Text.PlainText
+                        text: modelData.text === "" ? "♪" : (words ? w.wordMarkup(index) : modelData.text)
                         color: parent.on && w.props.accent_current === true ? w.cAcc : w.cFg
                         opacity: parent.on ? 1.0 : Math.max(w.noGlass ? 0.25 : 0.1, (w.noGlass ? 0.62 : 0.5) - 0.1 * (parent.dist - 1))      // without the glass the dim lines need more light
                         Behavior on opacity { NumberAnimation { duration: 300 } }

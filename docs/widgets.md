@@ -336,12 +336,13 @@ Ohne Secret Service bietet das Setup eine private Datei (`chmod 600`, `~/.local/
 
 **Voraussetzung:** ein Player mit MPRIS (Spotify, Browser, mpv …) und Internet. Der Player muss Titel, Interpret und möglichst die Länge melden; die Position liest das Widget vom Player.
 
-**Datenquelle:** [LRCLIB](https://lrclib.net) (frei, ohne Schlüssel). Pro Lied geht eine Anfrage mit Interpret, Titel, Album und Länge hin (dazu die IP-Adresse, wie bei jeder Verbindung); findet sie nichts, folgt eine Suche. Treffer werden 30 Tage in `~/.cache/widgetdeck/lyrics/` gespeichert (Dateirechte 600), „nichts gefunden“ einen Tag, ein Netzfehler nie. Gibt es keinen synchronisierten Text, sagt das Widget es. Die Songtexte gehören den Rechteinhabern; WidgetDeck liefert keine mit.
+**Datenquelle:** [LRCLIB](https://lrclib.net) (frei, ohne Schlüssel). Pro Lied geht eine Anfrage mit Interpret, Titel, Album und Länge hin (dazu die IP-Adresse, wie bei jeder Verbindung); findet sie nichts, folgt eine Suche. Treffer werden 30 Tage in `~/.cache/widgetdeck/lyrics/` gespeichert (Dateirechte 600), „nichts gefunden“ einen Tag, ein Netzfehler nie. **Wort für Wort:** LRCLIB kennt nur den Beginn jeder Zeile, nicht jedes Wortes. Das Widget verteilt die Zeit einer Zeile deshalb nach der Länge der Wörter (etwa 11 Buchstaben pro Sekunde, nie länger als bis zur nächsten Zeile): Die Wörter der gesungenen Zeile leuchten nacheinander auf, ein gesungenes Wort ist hell, ein kommendes gedimmt. Das ist eine Schätzung, kein echtes Wort-Timing. Gibt es keinen synchronisierten Text, sagt das Widget es. Die Songtexte gehören den Rechteinhabern; WidgetDeck liefert keine mit.
 
 | Einstellung | Schlüssel | Standard | Werte |
 |---|---|---|---|
 | Textgröße | `text_size` | 1.3 | 0.8 – 2.4 |
 | Ausrichtung | `align` | Links | Links / Mitte |
+| Wort für Wort aufleuchten | `word_highlight` | an | an / aus |
 | Aktuelle Zeile in der Akzentfarbe | `accent_current` | aus | an / aus |
 | Titel und Interpret anzeigen | `show_title` | aus | an / aus |
 | Nur Text (ohne Glas-Behälter) | `no_glass` | aus | an / aus |

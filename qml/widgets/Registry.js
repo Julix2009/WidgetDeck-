@@ -92,6 +92,7 @@ var TYPES = {
         props: [
             { key: "text_size", label: "Text size", kind: "range", def: 1.3, min: 0.8, max: 2.4, step: 0.05 },
             { key: "align", label: "Alignment", kind: "choice", def: "left", options: [["left", "Left"], ["center", "Centre"]] },
+            { key: "word_highlight", label: "Light up word by word", kind: "bool", def: true },
             { key: "accent_current", label: "Current line in the accent colour", kind: "bool", def: false },
             { key: "show_title", label: "Show title and artist", kind: "bool", def: false },
             { key: "no_glass", label: "Text only (no glass container)", kind: "bool", def: false },

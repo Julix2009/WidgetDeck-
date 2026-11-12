@@ -317,7 +317,7 @@ Alle Einstellungen, Schlüssel und Standardwerte stehen in [docs/widgets.md](doc
 <details>
 <summary>Songtext</summary>
 
-- **Zweck:** zeigt nur den Text des laufenden Lieds, synchron zur Wiedergabe: Die Zeile, die gerade gesungen wird, ist hell, die anderen sind gedimmt, und der Text scrollt mit. Instrumentale Pausen erscheinen als ♪.
+- **Zweck:** zeigt nur den Text des laufenden Lieds, synchron zur Wiedergabe: Die Zeile, die gerade gesungen wird, ist hell, die anderen sind gedimmt, und der Text scrollt mit. Instrumentale Pausen erscheinen als ♪. Auf Wunsch leuchten die Wörter der Zeile nacheinander auf (geschätzt aus der Länge der Wörter).
 - **Datenquelle:** [LRCLIB](https://lrclib.net) (frei, ohne Schlüssel). Pro Lied geht eine Anfrage hin (Interpret, Titel, Album, Länge und wie bei jeder Verbindung deine IP-Adresse); gefundene Texte werden 30 Tage lokal in `~/.cache/widgetdeck/lyrics/` gespeichert. Die Position kommt vom MPRIS-Player.
 - **Einstellungen:** Textgröße, Ausrichtung, aktuelle Zeile in der Akzentfarbe, Titel und Interpret, *Nur Text (ohne Glas-Behälter)* (dann steht der Text frei auf dem Wallpaper), Player. Gibt es für ein Lied keinen synchronisierten Text, sagt das Widget es.
 - **Hinweis:** Die Songtexte gehören den Rechteinhabern; WidgetDeck zeigt sie nur auf deinem Rechner an und liefert keine mit.
