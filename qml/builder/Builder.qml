@@ -45,10 +45,13 @@ FloatingWindow {
     readonly property var focusItem: root.Window.window ? root.Window.window.activeFocusItem : null
     readonly property bool textFocus: focusItem !== null && focusItem !== undefined && focusItem.cursorPosition !== undefined
     readonly property bool styleKeysOk: visible && sels.length > 0 && !colorPop.visible && !listPop.visible
-    function copyStyleKey() { if (styleKeysOk) store.copyStyle(sel); }
+    function copyStyleKey() { if (sel !== "" && store.copyStyle(sel)) propsPanel.styleMsg = I18n.tr("Style copied - select another widget and paste it"); }
     function pasteStyleKey() { if (styleKeysOk) pasteStyleToSelection(); }
     // "Paste style": onto every selected widget (or the one in the panel)
-    function pasteStyleToSelection() { store.pasteStyle(sels.length > 0 ? sels : [sel]); }
+    function pasteStyleToSelection() {
+        var n = store.pasteStyle(sels.length > 0 ? sels : [sel]);
+        propsPanel.styleMsg = n === 1 ? I18n.tr("Style pasted") : I18n.trf("Style pasted to %1 widgets", n);
+    }
     function removeSelected() {
         var ids = sels.length > 0 ? sels.slice() : (sel !== "" ? [sel] : []);
         for (var i = 0; i < ids.length; i++) store.remove(ids[i]);
@@ -261,11 +264,12 @@ FloatingWindow {
                 screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
                 padPx: 0; interactive: false
                 PropsPanel {
+                    id: propsPanel
                     anchors.fill: parent; anchors.margins: 14
                     store: win.store; th: th; sel: win.sel; scrollRequest: win.propsScroll
                     onRemoveRequested: win.removeSelected()
                     onDuplicateRequested: win.sel = win.store.duplicate(win.sel)
-                    onCopyStyleRequested: win.store.copyStyle(win.sel)
+                    onCopyStyleRequested: win.copyStyleKey()
                     onPasteStyleRequested: win.pasteStyleToSelection()
                 }
             }

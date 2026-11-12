@@ -14,6 +14,9 @@ Item {
     signal duplicateRequested()
     signal copyStyleRequested()
     signal pasteStyleRequested()
+    property string styleMsg: ""            // short confirmation under the copy / paste buttons (set by the builder)
+    onStyleMsgChanged: if (styleMsg !== "") styleMsgTimer.restart()
+    Timer { id: styleMsgTimer; interval: 3500; onTriggered: pp.styleMsg = "" }
 
     readonly property var c: { store.geomRev; return sel !== "" ? store.cfg(sel) : null; }
     readonly property var st: { store.rev; return sel !== "" ? store.styleOf(sel) : null; }
@@ -153,6 +156,7 @@ Item {
                 GButton { th: pp.th; label: I18n.tr("Copy style"); width: (col.width - 6) / 2; onClicked: pp.copyStyleRequested() }
                 GButton { th: pp.th; label: I18n.tr("Paste style"); width: (col.width - 6) / 2; enabled: pp.store.styleClip !== null; opacity: enabled ? 1 : 0.4; onClicked: pp.pasteStyleRequested() }
             }
+            Text { visible: pp.styleMsg !== ""; height: visible ? implicitHeight : 0; width: parent.width; wrapMode: Text.WordWrap; text: pp.styleMsg; color: th.accent; font.family: th.font; font.pixelSize: 11 }
             GChoice {
                 width: parent.width; th: pp.th; label: I18n.tr("Glass style"); options: D.MODES; value: pp.st ? pp.st.mode : "frosted"
                 onPicked: v => pp.store.setStyle(pp.sel, "mode", v)
