@@ -507,6 +507,7 @@ var de = {
  "Test: phases of seconds": "Test: Phasen von Sekunden",
  "Test: weekend": "Test: Wochenende",
  "Text colour": "Textfarbe",
+ "Text only (no glass container)": "Nur Text (ohne Glas-Behälter)",
  "Text size": "Textgröße",
  "The calendar of the next season is not available yet.": "Der Kalender der nächsten Saison ist noch nicht verfügbar.",
  "The check is switched off.": "Die Prüfung ist abgeschaltet.",

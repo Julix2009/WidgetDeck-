@@ -20,6 +20,9 @@ Item {
     readonly property bool live: Window.window !== null && Window.window.visible
     readonly property string dir: decodeURIComponent(Qt.resolvedUrl("lyrics/").toString().replace("file://", ""))
     readonly property bool centered: props.align === "center"
+    // "text only": no glass behind the text - the text then always gets the fine dark shadow of Liquid Glass, so it stays readable on any wallpaper
+    readonly property bool noGlass: props.no_glass === true
+    readonly property var tstyle: noGlass ? Object.assign({}, style, { mode: "liquid" }) : style
 
     // ───────────── player (same rule as the music widget) ─────────────
     readonly property var player: {
@@ -119,10 +122,10 @@ Item {
                         id: lineT
                         width: parent.width; wrapMode: Text.WordWrap
                         horizontalAlignment: w.centered ? Text.AlignHCenter : Text.AlignLeft
-                        wstyle: w.style; font.bold: true; font.pixelSize: w.fs
+                        wstyle: w.tstyle; font.bold: true; font.pixelSize: w.fs
                         text: modelData.text === "" ? "♪" : modelData.text
                         color: parent.on && w.props.accent_current === true ? w.cAcc : w.cFg
-                        opacity: parent.on ? 1.0 : Math.max(0.1, 0.5 - 0.1 * (parent.dist - 1))
+                        opacity: parent.on ? 1.0 : Math.max(w.noGlass ? 0.25 : 0.1, (w.noGlass ? 0.62 : 0.5) - 0.1 * (parent.dist - 1))      // without the glass the dim lines need more light
                         Behavior on opacity { NumberAnimation { duration: 300 } }
                         Behavior on color { ColorAnimation { duration: 300 } }
                     }
@@ -135,7 +138,7 @@ Item {
     GText {
         visible: w.props.show_title === true && w.title !== ""
         anchors { left: parent.left; right: parent.right; top: parent.top }
-        elide: Text.ElideRight; wstyle: w.style; opacity: 0.6; font.pixelSize: (w.style.font_size || 16) * 0.8
+        elide: Text.ElideRight; wstyle: w.tstyle; opacity: 0.6; font.pixelSize: (w.style.font_size || 16) * 0.8
         horizontalAlignment: w.centered ? Text.AlignHCenter : Text.AlignLeft
         text: w.artist !== "" ? w.title + " – " + w.artist : w.title
     }
@@ -148,13 +151,13 @@ Item {
         spacing: w.s(6)
         GText {
             width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.WordWrap
-            wstyle: w.style; font.bold: true; font.pixelSize: (w.style.font_size || 16) * 1.05; opacity: 0.8
+            wstyle: w.tstyle; font.bold: true; font.pixelSize: (w.style.font_size || 16) * 1.05; opacity: 0.8
             text: w.state === "idle" ? I18n.tr("Nothing is playing") : w.title
         }
         GText {
             visible: w.state !== "idle"
             width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.WordWrap
-            wstyle: w.style; opacity: 0.55; font.pixelSize: (w.style.font_size || 16) * 0.85
+            wstyle: w.tstyle; opacity: 0.55; font.pixelSize: (w.style.font_size || 16) * 0.85
             text: w.state === "loading" ? I18n.tr("Searching lyrics ...")
                 : (w.state === "error" ? I18n.tr("The lyrics service cannot be reached")
                 : (w.d.instrumental ? I18n.tr("Instrumental") : I18n.tr("No synchronised lyrics found for this song")))

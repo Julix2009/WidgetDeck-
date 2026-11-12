@@ -42,6 +42,7 @@ ShellRoot {
     readonly property var instList: { theStore.rev; theStore.mons; theStore.primaryKey; theStore.configRev; return theStore.monsReady ? theStore.instances() : []; }
     function liquidInst(inst) {
         var id = inst.split("|")[0], key = inst.substring(inst.indexOf("|") + 1), m = theStore.monRec(key);
+        if (theStore.propsOf(id).no_glass === true) return true;        // "text only": no glass; the namespace without the compositor blur rule, or the whole window would be blurred
         theWall.outputs; theWall.extra; theWall.extraOk; theWall.detected;
         return theStore.styleOf(id).mode === "liquid" && theBackend.ready && !!m && (theStore.data.wallpaperPath ? theWall.usable : theWall.usableFor(key, m.name));
     }

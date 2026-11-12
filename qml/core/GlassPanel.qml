@@ -27,6 +27,7 @@ Item {
     property var peers: []                // other glass rectangles: [{x,y,w,h,style}] in screen coordinates
     property real padPx: 56               // room the hosting window leaves around the panel
     property bool interactive: true       // hover / press springs
+    property bool plain: false            // no glass at all: only the content (a widget setting "text only"); also frees the backdrop textures
     property Item backdrop: null          // optional backdrop item (live capture); default = wallpaper
     // Shared mode (many glass surfaces fed by ONE blurred wallpaper texture of the whole screen; not used by the desktop widgets),
     // every surface samples it by its absolute screen position (screenX/screenY, kept up to date by the owner).
@@ -43,7 +44,7 @@ Item {
     readonly property var bdTexture: backdropLoader.item ? backdropLoader.item.blurred : null
     readonly property size bdSize: backdropLoader.item ? Qt.size(backdropLoader.item.outW, backdropLoader.item.outH) : Qt.size(1, 1)
 
-    readonly property bool liquid: style.mode === "liquid" && backend.ready && wall.usable
+    readonly property bool liquid: style.mode === "liquid" && backend.ready && wall.usable && !plain
     readonly property bool panelReady: !liquid || (backdropLoader.item !== null && backdropLoader.item.ready)
     // The glass is a SHAPE: its size animates (gw/gh), the backdrop texture stays glued to the screen. Nothing here is
     // scaled as a bitmap. The shader item has a fixed size (panel + growRoom), the glass is centred inside it.
@@ -256,7 +257,7 @@ Item {
         Loader {
             id: frostedLoader
             anchors.fill: parent
-            active: !root.liquid
+            active: !root.liquid && !root.plain
             sourceComponent: Item {
                 Rectangle {
                     id: frCard

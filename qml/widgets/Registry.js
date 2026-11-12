@@ -94,6 +94,7 @@ var TYPES = {
             { key: "align", label: "Alignment", kind: "choice", def: "left", options: [["left", "Left"], ["center", "Centre"]] },
             { key: "accent_current", label: "Current line in the accent colour", kind: "bool", def: false },
             { key: "show_title", label: "Show title and artist", kind: "bool", def: false },
+            { key: "no_glass", label: "Text only (no glass container)", kind: "bool", def: false },
             { key: "player", label: "Player (empty = automatic)", kind: "text", def: "" }
         ]
     },

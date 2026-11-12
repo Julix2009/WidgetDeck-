@@ -344,6 +344,7 @@ Ohne Secret Service bietet das Setup eine private Datei (`chmod 600`, `~/.local/
 | Ausrichtung | `align` | Links | Links / Mitte |
 | Aktuelle Zeile in der Akzentfarbe | `accent_current` | aus | an / aus |
 | Titel und Interpret anzeigen | `show_title` | aus | an / aus |
+| Nur Text (ohne Glas-Behälter) | `no_glass` | aus | an / aus |
 | Player (leer = automatisch) | `player` | leer | Text |
 
 ## System-Info (fastfetch)

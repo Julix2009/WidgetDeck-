@@ -321,7 +321,7 @@ All settings, keys and defaults are in [docs/widgets.md](docs/widgets.md) (Germa
 
 - **Purpose:** shows only the text of the playing song, in sync with the playback: the line being sung is bright, the others are dimmed, and the text scrolls along. Instrumental breaks appear as ♪.
 - **Data source:** [LRCLIB](https://lrclib.net) (free, no key). One request per song (artist, title, album, length and, as with every connection, your IP address); lyrics that were found are cached for 30 days in `~/.cache/widgetdeck/lyrics/`. The position comes from the MPRIS player.
-- **Settings:** text size, alignment, current line in the accent colour, title and artist, player. If a song has no synchronised lyrics, the widget says so.
+- **Settings:** text size, alignment, current line in the accent colour, title and artist, *Text only (no glass container)* (the text then floats on the wallpaper), player. If a song has no synchronised lyrics, the widget says so.
 - **Note:** the lyrics belong to their rights holders; WidgetDeck only shows them on your computer and ships none.
 
 </details>
