@@ -26,6 +26,21 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.0.0] - 2026-11-12
+
+### Hinzugefügt
+- Neues Widget: Songtext (synchron zum laufenden Lied, gesungene Zeile leuchtet auf), Quelle LRCLIB mit lokalem Zwischenspeicher
+- Neues Widget: System-Info im Stil von fastfetch (Liquid Glass), fastfetch als optionales Paket
+
+### Geändert
+- Widerspruechliche Bildschirmdaten (Qt gegen hyprctl) nie veroeffentlichen, nach 8 s Selbstneustart (max. 2x in 5 min)
+- Einstellung 'Nur Text (ohne Glas-Behaelter)', allgemein ueber den Widget-Schluessel no_glass
+- Widgets nach dem Start zu gross: Fenster mit falscher Skalierung werden erkannt und neu erzeugt
+- Aenderungen erst nach 2 s Stabilitaet uebernehmen (Widgets blieben nach dem Aufwachen aus dem Standby zu gross)
+- Bei Fehlschlag ohne Daten schneller erneut versuchen (30 s bis 5 min) statt 15 Minuten warten
+- Visualizer sparsamer (30 fps, cava nur bei sichtbarem Widget), Hintergrundbild nicht groesser als Textur, eigene Glas-Presets, Widget-Liste uebersetzt
+- Widget-Fenster auf ganze physische Pixel (gebrochene Skalierung), Glas-Texturen mit echtem Pixelverhältnis
+
 ## [0.9.0] - 2026-11-08
 
 ### Geändert
