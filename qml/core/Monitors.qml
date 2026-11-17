@@ -68,6 +68,7 @@ Scope {
             if (Math.abs(rm.w - lw / rm.scale) > 3 || Math.abs(rm.h - lh / rm.scale) > 3) bad = true;
         }
         mon.inconsistent = bad;
+        if (!bad) mon.gaveUp = false;
         if (bad && !mon.gaveUp) return;
         var sig = JSON.stringify(out.map(function (m) { return [m.key, m.name, m.x, m.y, m.w, m.h, m.pw, m.ph, m.scale, m.transform]; }));
         if (list.length > 0 && out.length > 0 && sig !== mon.sigPublished) {
@@ -80,21 +81,24 @@ Scope {
     }
     property bool inconsistent: false             // Quickshell's screen data contradicts hyprctl (see rebuild)
     property bool gaveUp: false                   // restarting did not help twice: publish what there is
-    // 8 s of contradiction (the compositor needs a moment after boot) -> restart the daemon, at most twice within 5 minutes
-    Timer { interval: 8000; running: mon.inconsistent && !mon.gaveUp; onTriggered: restartProc.running = true }
+    // The screen data contradicts hyprctl for 8 s -> restart the daemon (a fresh process sees the settled compositor). Right after boot this can take
+    // several tries: at most 8 restarts within 10 minutes, at least 25 s apart. Only after that the data is used as it is.
+    Timer { interval: 10000; repeat: true; running: mon.inconsistent && !mon.gaveUp; onTriggered: mon.requestRestart() }
+    function requestRestart() { if (!restartProc.running) restartProc.running = true; }       // also asked for by a window whose scale stays wrong (DesktopWidget)
     Process {
         id: restartProc
         command: ["sh", "-c", `d="\${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck"; f="$d/self-restart"; mkdir -p "$d"; now=$(date +%s); last=0; n=0
             [ -f "$f" ] && read -r last n < "$f"
-            [ $((now - \${last:-0})) -gt 300 ] && n=0
-            [ "\${n:-0}" -ge 2 ] && exit 3
+            [ $((now - \${last:-0})) -gt 600 ] && n=0
+            [ "\${n:-0}" -ge 8 ] && exit 3
+            [ $((now - \${last:-0})) -lt 25 ] && exit 4
             echo "$now $((n + 1))" > "$f"
             wd=$(command -v widgetdeck 2>/dev/null || echo "$HOME/.local/bin/widgetdeck"); [ -x "$wd" ] || wd=/usr/bin/widgetdeck
             setsid sh -c 'sleep 1; exec "$0" restart' "$wd" >/dev/null 2>&1 &
             exit 0`]
         onExited: (code, status) => {
-            if (code === 3) { console.log("[widgetdeck] the screen data still contradicts Hyprland after two restarts - using it as it is"); mon.gaveUp = true; mon.rebuild(); }
-            else console.log("[widgetdeck] the screen data contradicts Hyprland - restarting WidgetDeck");
+            if (code === 3) { console.log("[widgetdeck] the screen data still contradicts Hyprland after 8 restarts - using it as it is"); mon.gaveUp = true; mon.rebuild(); }
+            else if (code === 0) console.log("[widgetdeck] the screen data or a window scale contradicts Hyprland - restarting WidgetDeck");
         }
     }
     property string sigPending: ""

@@ -61,11 +61,12 @@ PanelWindow {
     property int scaleBad: 0
     property int rebuilds: 0
     Timer {
-        interval: 3000; repeat: true; running: win.visible && win.rec !== null && win.rec.hyprId >= 0 && win.rebuilds < 3
+        interval: 3000; repeat: true; running: win.visible && win.rec !== null && win.rec.hyprId >= 0
         onTriggered: {
             var dpr = win.devicePixelRatio, sc = win.rec ? win.rec.scale : 0;
             if (dpr > 0 && sc > 0 && Math.abs(dpr - sc) > 0.03) win.scaleBad++; else win.scaleBad = 0;
-            if (win.scaleBad >= 2) {
+            if (win.scaleBad >= 2 && win.rebuilds >= 3) { if (!win.mons.gaveUp) win.mons.requestRestart(); win.scaleBad = 0; }       // the surfaces keep the wrong scale: a fresh process
+            else if (win.scaleBad >= 2) {
                 console.log("[widgetdeck] " + win.wid + ": window scale " + dpr + " but monitor scale " + sc + " - creating the surface again");
                 win.scaleBad = 0; win.rebuilds++; win.recreate = true; rebuildTimer.restart();
             }
