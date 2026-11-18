@@ -14,6 +14,10 @@ find_qml() {
 QML="$(find_qml)" || { echo "widgetdeck: cannot find the QML files (looked in ~/.config/quickshell/widgetdeck, /usr/share/widgetdeck/qml). Run ./install.sh first." >&2; exit 1; }
 VERSION="$(tr -d '[:space:]' < "$QML/VERSION" 2>/dev/null || true)"; VERSION="${VERSION:-unknown}"
 QS="quickshell -p $QML"
+# The size of the screen comes from the compositor only. A scale variable inherited from another Qt program (QT_SCALE_FACTOR=1.4 is common where a
+# bar is enlarged on purpose, and it leaks into everything that bar starts) would make every widget that much bigger and the saved layout wrong.
+# Set WIDGETDECK_KEEP_QT_SCALE=1 to keep them.
+[ -n "${WIDGETDECK_KEEP_QT_SCALE:-}" ] || unset QT_SCALE_FACTOR QT_SCREEN_SCALE_FACTORS QT_AUTO_SCREEN_SCALE_FACTOR
 CONF="${WIDGETDECK_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/widgetdeck}"
 
 running() { $QS ipc call widgetdeck ping >/dev/null 2>&1; }
