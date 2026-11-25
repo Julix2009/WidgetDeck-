@@ -32,6 +32,17 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.1.0] - 2026-11-25
+
+### Hinzugefügt
+- Neuer Stil 'Deckend' (Solid): gar nicht durchsichtig, ohne Blur und Shader
+
+### Geändert
+- Stil 'Deckend' ausgebaut: feste Paletten, eigene Presets pro Stil, Assistent, Schalter 'Alle Widgets', Doctor (Issue #2)
+- Vererbte QT_SCALE_FACTOR-Variablen entfernen (Widgets waren um den Faktor 1,4 zu gross)
+- Selbstneustart bis zu 8x in 10 min (mind. 25 s Abstand), auch bei falscher Fenster-Skalierung
+- Rueckmeldung beim Kopieren und Einfuegen des Stils
+
 ## [1.0.1] - 2026-11-12
 
 ### Geändert
