@@ -210,7 +210,7 @@ On the first start a setup assistant opens once. You can skip it and run it agai
 
 ![Overview with Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
-The *Solid* style is a completely opaque card (background colour, border and shadow are adjustable), without blur and without a shader. It has fixed colour palettes that do not depend on the wallpaper (*AMOLED*, *Dark grey*, *Nord*, *Gruvbox*, *Light*) and your own presets. Pick it in the setup assistant under "Look"; under *Settings → All widgets* you switch every widget to one style with one click:
+The *Solid* style is a completely opaque card (background colour, border and shadow are adjustable), without blur and without a shader. It has fixed colour palettes that do not depend on the wallpaper (*AMOLED*, *Dark grey*, *Nord*, *Gruvbox*, *Light*) and your own presets. If the **Serpantinum** shell is installed, the palette *Serpantinum* is offered too: it follows the colours from `~/.local/state/serpantinum/qs_colors.json` live (card `mantle`, border `surface2`, text `text`, accent `blue`), so widgets and bar always match; without the file it falls back to the Matugen colours. Pick it in the setup assistant under "Look"; under *Settings → All widgets* you switch every widget to one style with one click:
 
 ![Overview with the Solid style](docs/images/gesamtansicht-deckend.webp)
 

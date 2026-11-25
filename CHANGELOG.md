@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ## [Unveröffentlicht]
 
 ### Hinzugefügt
+- Palette „Serpantinum“ für den Stil „Deckend“ (Issue #2): folgt live den Farben der Shell Serpantinum aus `$XDG_STATE_HOME/serpantinum/qs_colors.json` (Karte `mantle`, Rand `surface2`, Text `text`, Akzent `blue`); wird nur angeboten, wenn die Datei existiert, und fällt ohne sie auf die Matugen-Farben zurück. Neue Farbquelle `shell:<Name>` in der Style-Konfiguration.
 - Stil „Deckend“ ausgebaut: feste Farbpaletten unabhängig vom Wallpaper (AMOLED, Dunkelgrau, Nord, Gruvbox, Hell), eigene Presets für jeden Glas-Stil (sie gehören dem Stil, in dem sie gespeichert wurden), Auswahl im Einrichtungsassistenten, Schalter „Alle Widgets“ in den Einstellungen und Anzeige der Stile im `widgetdeck-doctor`. Umschalten zwischen den Stilen funktioniert live (Anregung aus Issue #2).
 - Neuer Stil „Deckend“ (Solid): eine ganz undurchsichtige Karte ohne Blur und ohne Shader, mit einstellbarer Hintergrundfarbe, Rand, Schatten und Eckenradius; pro Widget wählbar. Der Builder selbst bleibt bei Frosted oder Liquid.
 - Neue README (Deutsch und Englisch) mit Galerie und neuen Bildern: Gesamtansichten in Liquid Glass (Preset Wassertropfen) und Frosted Glass, Builder mit Glas-Panel und eigenen Presets sowie Bilder zu Songtext und System-Info (alle mit erfundenen Demo-Daten und selbst erzeugtem Wallpaper).

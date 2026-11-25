@@ -5,7 +5,8 @@
 //   This object watches that file, so palette changes arrive live; every role is an animated colour
 //   (Palette.qml) and fades smoothly. No file / theming off -> fixed fallback palette (ThemeData.js).
 //
-// Colour sources in the widget config: "theme:<role>" (follows Matugen) or "#rrggbb" (own colour, never touched).
+// Colour sources in the widget config: "theme:<role>" (follows Matugen), "shell:<name>" (the colours of another Quickshell setup, see below)
+// or "#rrggbb" (own colour, never touched).
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -68,9 +69,40 @@ Scope {
         onFileChanged: reload()
     }
 
+    // ───────────── colours of another shell: "shell:<name>" ─────────────
+    // The Serpantinum shell (Catppuccin names: base, mantle, text, surface0-2, blue, red ...) writes them to $XDG_STATE_HOME/serpantinum/qs_colors.json whenever its
+    // wallpaper changes - with its own matugen configuration, so theme.json does not see it. The file is watched: the widgets follow live.
+    // Without the file "shell:<name>" falls back to the matching Matugen role, and the Serpantinum palette is not offered.
+    property var shellColors: ({})
+    readonly property bool shellColorsAvailable: Object.keys(shellColors).length > 0
+    readonly property string shellColorsPath: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/serpantinum/qs_colors.json"
+    readonly property var shellFallback: ({ base: "surface", mantle: "surface_container", crust: "surface_container_lowest", text: "on_surface", subtext0: "on_surface_variant",
+        subtext1: "outline", surface0: "surface_container_high", surface1: "surface_container_highest", surface2: "outline_variant", overlay0: "outline", overlay1: "outline", overlay2: "outline",
+        blue: "primary", sapphire: "primary", teal: "tertiary", green: "secondary", mauve: "primary", pink: "tertiary", peach: "tertiary", yellow: "tertiary", maroon: "error", red: "error" })
+    FileView {
+        id: sfile
+        path: root.shellColorsPath
+        watchChanges: true
+        onLoaded: {
+            try {
+                var o = JSON.parse(text()), ok = {};
+                for (var k in o) if (typeof o[k] === "string" && /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(o[k])) ok[k] = o[k];
+                root.shellColors = ok;
+            } catch (e) { }                      // mid-write: the next change event brings the full file
+        }
+        onLoadFailed: error => { root.shellColors = ({}); }
+        onFileChanged: reload()
+    }
+
     // ───────────── colour access ─────────────
     // "theme:primary" -> current (animated) colour, "#aabbcc" -> unchanged
     function resolve(spec) {
+        if (typeof spec === "string" && spec.indexOf("shell:") === 0) {
+            var name = spec.substring(6), sc = shellColors[name];
+            if (sc !== undefined) return sc;
+            var fb = palette[shellFallback[name] || "primary"];
+            return fb === undefined ? "#ff00ff" : fb.toString();
+        }
         if (typeof spec === "string" && spec.indexOf("theme:") === 0) {
             var c = palette[spec.substring(6)];
             return c === undefined ? "#ff00ff" : c.toString();

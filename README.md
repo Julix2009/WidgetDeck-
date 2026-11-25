@@ -208,7 +208,7 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 
 ![Gesamtansicht mit Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
-Der Stil *Deckend* ist eine ganz undurchsichtige Karte (Hintergrundfarbe, Rand und Schatten einstellbar), ohne Blur und ohne Shader. Er hat feste Farbpaletten, die nicht vom Wallpaper abhängen (*AMOLED*, *Dunkelgrau*, *Nord*, *Gruvbox*, *Hell*), und eigene Presets. Im Einrichtungsassistenten wählst du ihn unter „Look“; unter *Einstellungen → Alle Widgets* stellst du alle Widgets mit einem Klick auf einen Stil um:
+Der Stil *Deckend* ist eine ganz undurchsichtige Karte (Hintergrundfarbe, Rand und Schatten einstellbar), ohne Blur und ohne Shader. Er hat feste Farbpaletten, die nicht vom Wallpaper abhängen (*AMOLED*, *Dunkelgrau*, *Nord*, *Gruvbox*, *Hell*), und eigene Presets. Läuft die Shell **Serpantinum**, erscheint zusätzlich die Palette *Serpantinum*: Sie folgt live den Farben aus `~/.local/state/serpantinum/qs_colors.json` (Karte `mantle`, Rand `surface2`, Text `text`, Akzent `blue`), sodass Widgets und Leiste zusammenpassen; ohne die Datei fällt sie auf die Matugen-Farben zurück. Im Einrichtungsassistenten wählst du ihn unter „Look“; unter *Einstellungen → Alle Widgets* stellst du alle Widgets mit einem Klick auf einen Stil um:
 
 ![Gesamtansicht mit dem Stil Deckend](docs/images/gesamtansicht-deckend.webp)
 

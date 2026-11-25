@@ -27,7 +27,11 @@ Item {
     readonly property string curMode: st ? st.mode : "frosted"
     // a user preset belongs to the glass style it was saved in (older ones have no "mode": they are Liquid Glass presets)
     readonly property var userPresetNames: Object.keys(userPresets).filter(function (n) { return (userPresets[n].mode || "liquid") === pp.curMode; }).sort()
-    readonly property var builtinPresets: D.presetsFor(curMode)
+    readonly property var builtinPresets: {
+        var all = D.presetsFor(curMode), out = {};
+        for (var n in all) if (n !== "Serpantinum" || th.themeStore.shellColorsAvailable) out[n] = all[n];
+        return out;
+    }
     property string presetMsg: ""
     property string presetText: ""
     // the look of a style = the keys that belong to it; corner radius and merging belong to the widget, not to the look

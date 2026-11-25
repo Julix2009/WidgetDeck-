@@ -83,7 +83,9 @@ var SOLID_PRESETS = {
     "Dark grey": { bg: "#1e1f24", border_color: "#4a4d57", border_alpha: 0.6, fg: "#e8e9ee", accent: "#8ab4ff" },
     "Nord":      { bg: "#2e3440", border_color: "#4c566a", border_alpha: 0.8, fg: "#eceff4", accent: "#88c0d0" },
     "Gruvbox":   { bg: "#282828", border_color: "#504945", border_alpha: 0.9, fg: "#ebdbb2", accent: "#fabd2f" },
-    "Light":     { bg: "#f4f4f6", border_color: "#c9cad2", border_alpha: 0.9, fg: "#1a1a1f", accent: "#2f6bff" }
+    "Light":     { bg: "#f4f4f6", border_color: "#c9cad2", border_alpha: 0.9, fg: "#1a1a1f", accent: "#2f6bff" },
+    // follows the colours of the Serpantinum shell live (only offered when its colour file exists, see ThemeStore.shellColors)
+    "Serpantinum": { bg: "shell:mantle", border_color: "shell:surface2", border_alpha: 1.0, fg: "shell:text", accent: "shell:blue" }
 };
 // the built-in presets of a glass style (Frosted has none)
 function presetsFor(mode) { return mode === "liquid" ? LIQUID_PRESETS : (mode === "solid" ? SOLID_PRESETS : {}); }

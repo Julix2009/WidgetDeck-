@@ -425,6 +425,7 @@ var de = {
  "Select a widget on the stage or add one on the left.": "Wähle ein Widget auf der Fläche aus oder füge links eins hinzu.",
  "Sep": "Sep",
  "Sepang International Circuit": "Sepang International Circuit",
+ "Serpantinum": "Serpantinum",
  "Session running": "Session läuft",
  "Set the glass style of every widget at once. Each widget keeps its own settings for the other styles.": "Den Glas-Stil aller Widgets auf einmal setzen. Jedes Widget behält seine eigenen Einstellungen für die anderen Stile.",
  "Set up": "Einrichten",
