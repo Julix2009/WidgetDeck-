@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 ## [Unveröffentlicht]
 
 ### Hinzugefügt
+- Stil „Deckend“ ausgebaut: feste Farbpaletten unabhängig vom Wallpaper (AMOLED, Dunkelgrau, Nord, Gruvbox, Hell), eigene Presets für jeden Glas-Stil (sie gehören dem Stil, in dem sie gespeichert wurden), Auswahl im Einrichtungsassistenten, Schalter „Alle Widgets“ in den Einstellungen und Anzeige der Stile im `widgetdeck-doctor`. Umschalten zwischen den Stilen funktioniert live (Anregung aus Issue #2).
 - Neuer Stil „Deckend“ (Solid): eine ganz undurchsichtige Karte ohne Blur und ohne Shader, mit einstellbarer Hintergrundfarbe, Rand, Schatten und Eckenradius; pro Widget wählbar. Der Builder selbst bleibt bei Frosted oder Liquid.
 - Neue README (Deutsch und Englisch) mit Galerie und neuen Bildern: Gesamtansichten in Liquid Glass (Preset Wassertropfen) und Frosted Glass, Builder mit Glas-Panel und eigenen Presets sowie Bilder zu Songtext und System-Info (alle mit erfundenen Demo-Daten und selbst erzeugtem Wallpaper).
 - Songtext: Einstellung „Wort für Wort aufleuchten“ (Standard an): Die Wörter der gesungenen Zeile leuchten nacheinander auf; das Timing ist aus der Länge der Wörter geschätzt, weil LRCLIB nur den Zeilenanfang kennt.

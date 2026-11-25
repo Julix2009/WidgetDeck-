@@ -131,6 +131,9 @@ if [ -f "$CONF/config.json" ]; then
     else fail "config.json is not valid JSON" "fix or delete $CONF/config.json (a backup is in ${CONF}.bak-*)"; fi
 else warn "no config.json yet (created by ./install.sh)"; fi
 if [ -f "$CONF/widgets.json" ]; then jq -e . "$CONF/widgets.json" >/dev/null 2>&1 && ok "widgets.json: $(jq '.widgets|length' "$CONF/widgets.json") widgets" || fail "widgets.json is not valid JSON"; fi
+if [ -f "$CONF/widgets.json" ] && jq -e . "$CONF/widgets.json" >/dev/null 2>&1; then
+    echo "widget styles: $(jq -r '[.widgets[] | (.style.mode // "frosted")] | group_by(.) | map("\(.[0]) \(length)") | join(" · ")' "$CONF/widgets.json")"
+fi
 
 head_ "Timetable widget (Untis Mobile)"
 if [ -f "$QML/widgets/timetable/untis.py" ] && command -v python3 >/dev/null 2>&1; then

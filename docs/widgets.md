@@ -2,7 +2,7 @@
 
 [Zurück zur README](../README.md) · [English README](../README.en.md)
 
-Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas), Liquid Glass und der undurchsichtige Stil *Deckend* gelten also für jedes Widget gleich, Raster, Einrasten und mehrere Monitore ebenso. Die Einstellungen eines Widgets stehen im Builder rechts im Eigenschaften-Panel. Die Spalte „Schlüssel“ ist der Name, den `widgetdeck ipc setProp <id> <schlüssel> <json>` erwartet.
+Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas), Liquid Glass und der undurchsichtige Stil *Deckend* (mit festen Paletten *AMOLED*, *Dunkelgrau*, *Nord*, *Gruvbox*, *Hell*) gelten also für jedes Widget gleich, Raster, Einrasten und mehrere Monitore ebenso. Die Einstellungen eines Widgets stehen im Builder rechts im Eigenschaften-Panel. Die Spalte „Schlüssel“ ist der Name, den `widgetdeck ipc setProp <id> <schlüssel> <json>` erwartet.
 
 Widgets mit zwei Größen haben im Builder die Knöpfe *Klein* und *Groß*. Das Aussehen eines Widgets (Glas-Stil, Regler, Farben) lässt sich mit *Stil kopieren* und *Stil einfügen* auf andere übertragen. Bei Liquid Glass gibt es außerdem die optionale *Kantenlinse* (*Linsenstärke*, *Kantenbiegung*, *Regenbogensaum*, *Linsen-Tönung*) und die Presets *Kristall* und *Wassertropfen*; bei Linsenstärke 0 bleibt alles wie zuvor. Alle anderen haben eine Standardgröße, die du über Breite und Höhe frei ändern kannst.
 

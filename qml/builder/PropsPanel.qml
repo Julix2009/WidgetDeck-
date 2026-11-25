@@ -24,11 +24,16 @@ Item {
     readonly property var tinfo: c ? store.typeInfo(c.type) : null
     // ───────────── the user's own glass presets ─────────────
     readonly property var userPresets: { var v = store.cget("user_presets", ({})); return (v && typeof v === "object") ? v : ({}); }
-    readonly property var userPresetNames: Object.keys(userPresets).sort()
+    readonly property string curMode: st ? st.mode : "frosted"
+    // a user preset belongs to the glass style it was saved in (older ones have no "mode": they are Liquid Glass presets)
+    readonly property var userPresetNames: Object.keys(userPresets).filter(function (n) { return (userPresets[n].mode || "liquid") === pp.curMode; }).sort()
+    readonly property var builtinPresets: D.presetsFor(curMode)
     property string presetMsg: ""
     property string presetText: ""
-    // the look = every liquid glass key (the built-in presets set the same ones); corner radius and merging belong to the widget, not to the look
+    // the look of a style = the keys that belong to it; corner radius and merging belong to the widget, not to the look
     function lookKeys() {
+        if (curMode === "solid") return ["bg", "border_color", "border_alpha", "shadow", "fg", "accent"];
+        if (curMode === "frosted") return ["bg", "border_color", "border_alpha", "bg_alpha", "shadow", "glass", "fg", "accent"];
         var keys = Object.keys(D.LIQUID_DEFAULTS);
         for (var i = 0; i < D.STYLE_PROPS.length; i++) { var p = D.STYLE_PROPS[i]; if (p.only === "liquid" && keys.indexOf(p.key) < 0) keys.push(p.key); }
         return keys.filter(function (k) { return k !== "radius" && k !== "merge"; });
@@ -36,8 +41,8 @@ Item {
     function saveUserPreset(name) {
         name = String(name || "").trim();
         if (name === "" || !st) { presetMsg = I18n.tr("Type a name first."); return; }
-        if (D.LIQUID_PRESETS[name] !== undefined) { presetMsg = I18n.tr("A built-in preset already has this name."); return; }
-        var o = {}, k = lookKeys();
+        if (builtinPresets[name] !== undefined) { presetMsg = I18n.tr("A built-in preset already has this name."); return; }
+        var o = { mode: curMode }, k = lookKeys();
         for (var i = 0; i < k.length; i++) if (st[k[i]] !== undefined) o[k[i]] = st[k[i]];
         var all = JSON.parse(JSON.stringify(userPresets));
         all[name] = o;
@@ -162,20 +167,20 @@ Item {
                 onPicked: v => pp.store.setStyle(pp.sel, "mode", v)
             }
             Item {
-                visible: pp.st && pp.st.mode === "liquid"
+                visible: !!pp.st
                 width: parent.width; height: visible ? presetCol.height + 4 : 0
                 Column {
                     id: presetCol
                     width: parent.width; spacing: 6
-                    Text { text: I18n.tr("Preset"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
+                    Text { visible: Object.keys(pp.builtinPresets).length > 0; text: I18n.tr("Preset"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
                     Flow {                                                       // wraps: any number of presets, nothing is cut off
                         width: parent.width; spacing: 6
                         Repeater {
-                            model: Object.keys(D.LIQUID_PRESETS)
+                            model: Object.keys(pp.builtinPresets)
                             delegate: GButton {
                                 required property string modelData
                                 th: pp.th; label: I18n.tr(modelData); width: (col.width - 12) / 3
-                                onClicked: pp.store.applyStyle(pp.sel, D.LIQUID_PRESETS[modelData])
+                                onClicked: pp.store.applyStyle(pp.sel, pp.builtinPresets[modelData])
                             }
                         }
                     }

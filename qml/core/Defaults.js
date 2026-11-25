@@ -77,6 +77,17 @@ var MODE_PRESETS = {
     solid:   { radius: 24, border_alpha: 0.16, shadow: 0.35, glass: false }
 };
 
+// Fixed colours for the Solid style (independent of the wallpaper / Matugen): background, border, text, accent
+var SOLID_PRESETS = {
+    "AMOLED":    { bg: "#000000", border_color: "#3a3a3a", border_alpha: 0.7, fg: "#ffffff", accent: "#8ab4ff" },
+    "Dark grey": { bg: "#1e1f24", border_color: "#4a4d57", border_alpha: 0.6, fg: "#e8e9ee", accent: "#8ab4ff" },
+    "Nord":      { bg: "#2e3440", border_color: "#4c566a", border_alpha: 0.8, fg: "#eceff4", accent: "#88c0d0" },
+    "Gruvbox":   { bg: "#282828", border_color: "#504945", border_alpha: 0.9, fg: "#ebdbb2", accent: "#fabd2f" },
+    "Light":     { bg: "#f4f4f6", border_color: "#c9cad2", border_alpha: 0.9, fg: "#1a1a1f", accent: "#2f6bff" }
+};
+// the built-in presets of a glass style (Frosted has none)
+function presetsFor(mode) { return mode === "liquid" ? LIQUID_PRESETS : (mode === "solid" ? SOLID_PRESETS : {}); }
+
 var BUILDER_DEFAULT = { glass: "frosted", opacity: 0.78, liveCapture: false,
                         themeEnabled: true, themeMode: "dark", themeScheme: "scheme-tonal-spot" };
 var SCHEMES = [["scheme-tonal-spot", "Tonal Spot"], ["scheme-vibrant", "Vibrant"], ["scheme-expressive", "Expressive"], ["scheme-content", "Content"],

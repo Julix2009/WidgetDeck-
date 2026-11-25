@@ -60,7 +60,7 @@ FloatingWindow {
             store.setConfig("units", units); store.setConfig("time_format", timeFmt); store.setConfig("language", lang);
             var types = typeKeys.filter(function (k) { return picked[k] && store.typeInfo(k); });
             if (locMode === "off") types = types.filter(function (k) { return k !== "weather" && k !== "weathercard" && k !== "airquality"; });
-            store.setupLayout(types, size === "S" ? 0.85 : (size === "L" ? 1.25 : 1), style === "liquid" && liquidOk ? "liquid" : "frosted", monMap);
+            store.setupLayout(types, size === "S" ? 0.85 : (size === "L" ? 1.25 : 1), style === "solid" ? "solid" : (style === "liquid" && liquidOk ? "liquid" : "frosted"), monMap);
         }
         store.setConfig("setup.done", true);
     }
@@ -142,7 +142,7 @@ FloatingWindow {
                 visible: wz.step === 3; width: parent.width; spacing: 12
                 Text { text: I18n.tr("Look"); color: th.fg; font.family: th.font; font.pixelSize: 18; font.bold: true }
                 GChoice { width: parent.width; th: th; label: I18n.tr("Glass style")
-                    options: [["frosted", I18n.tr("Standard (Frosted)")], ["liquid", "Liquid Glass"]]; value: wz.style; onPicked: v => wz.style = v }
+                    options: [["frosted", I18n.tr("Standard (Frosted)")], ["liquid", "Liquid Glass"], ["solid", I18n.tr("Solid (not transparent)")]]; value: wz.style; onPicked: v => wz.style = v }
                 Text { visible: wz.style === "liquid" && !wz.liquidOk; width: parent.width; wrapMode: Text.WordWrap; color: th.danger; font.family: th.font; font.pixelSize: 12
                     text: I18n.tr("Liquid Glass is not available right now (see the wallpaper / shader notes on the first page). The widgets will use Frosted Glass; you can switch later in the builder.") }
                 GChoice { width: parent.width; th: th; label: I18n.tr("Widget size")

@@ -371,6 +371,20 @@ Scope {
         if (key === "mode") Object.assign(c.style, D.MODE_PRESETS[value] || {});
         touch(false);
     }
+    // every widget gets the same glass style. Keys that a widget already has (its own look) stay; the mode's defaults only fill what is missing,
+    // so going back to Liquid Glass finds the old liquid look again. Returns the number of widgets.
+    function setAllMode(mode) {
+        var n = 0, defs = D.MODE_PRESETS[mode] || {};
+        for (var i = 0; i < data.widgets.length; i++) {
+            var c = raw(data.widgets[i].id); if (!c) continue;
+            var st = Object.assign({}, c.style || {}), k;
+            st.mode = mode;
+            for (k in defs) if (st[k] === undefined) st[k] = defs[k];
+            c.style = st; n++;
+        }
+        if (n > 0) touch(false);
+        return n;
+    }
     function applyStyle(id, obj) {
         var c = raw(id); if (!c) return;
         c.style = Object.assign({}, c.style || {}, obj);

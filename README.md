@@ -208,7 +208,7 @@ Beim ersten Start öffnet sich einmalig ein Einrichtungsassistent. Er lässt sic
 
 ![Gesamtansicht mit Frosted Glass](docs/images/gesamtansicht-milchglas.webp)
 
-Der Stil *Deckend* ist eine ganz undurchsichtige Karte (Hintergrundfarbe, Rand und Schatten einstellbar), ohne Blur und ohne Shader:
+Der Stil *Deckend* ist eine ganz undurchsichtige Karte (Hintergrundfarbe, Rand und Schatten einstellbar), ohne Blur und ohne Shader. Er hat feste Farbpaletten, die nicht vom Wallpaper abhängen (*AMOLED*, *Dunkelgrau*, *Nord*, *Gruvbox*, *Hell*), und eigene Presets. Im Einrichtungsassistenten wählst du ihn unter „Look“; unter *Einstellungen → Alle Widgets* stellst du alle Widgets mit einem Klick auf einen Stil um:
 
 ![Gesamtansicht mit dem Stil Deckend](docs/images/gesamtansicht-deckend.webp)
 

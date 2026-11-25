@@ -30,6 +30,7 @@ Column {
     signal runWizard()
     spacing: 8
 
+    property string allMsg: ""
     component Section: Text { topPadding: 8; color: sp.th.dim; font.family: sp.th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2 }
     component Note: Text { width: sp.width; wrapMode: Text.WordWrap; color: sp.th.dim; font.family: sp.th.font; font.pixelSize: 11 }
     function cfgStr(k, d) { var v = store.cget(k, d); return v === null ? "" : String(v); }
@@ -155,6 +156,22 @@ Column {
                 text: I18n.tr("Scheme and mode run Matugen on the current wallpaper. An executable ~/.config/widgetdeck/hooks/after-matugen runs afterwards (e.g. to reload other programs).") }
         }
     }
+
+    // ───────────── all widgets at once ─────────────
+    Section { text: I18n.tr("ALL WIDGETS") }
+    Text { width: parent.width; wrapMode: Text.WordWrap; color: sp.th.dim; font.family: sp.th.font; font.pixelSize: 12; text: I18n.tr("Set the glass style of every widget at once. Each widget keeps its own settings for the other styles.") }
+    Row {
+        spacing: 6; width: parent.width
+        Repeater {
+            model: D.MODES
+            delegate: GButton {
+                required property var modelData
+                th: sp.th; label: I18n.tr(modelData[1]); width: (parent.width - 12) / 3
+                onClicked: sp.allMsg = I18n.trf("%1 widgets set to %2", sp.store.setAllMode(modelData[0]), I18n.tr(modelData[1]))
+            }
+        }
+    }
+    Text { visible: sp.allMsg !== ""; width: parent.width; wrapMode: Text.WordWrap; color: sp.th.accent; font.family: sp.th.font; font.pixelSize: 11; text: sp.allMsg }
 
     // ───────────── builder look ─────────────
     Section { text: I18n.tr("BUILDER LOOK") }
