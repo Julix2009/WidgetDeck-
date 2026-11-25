@@ -8,7 +8,7 @@ Desktop widgets for **Hyprland** on **Arch Linux**, built with Quickshell: clock
 
 > Unofficial hobby project, not affiliated with Formula 1, Untis, Apple or any other trademark owner named here. The screenshots show invented demo data and a wallpaper made for this purpose.
 
-**Version** 1.0.1 · **Licence** MIT · **Supported:** Arch Linux with Hyprland and Quickshell only
+**Version** 1.1.0 · **Licence** MIT · **Supported:** Arch Linux with Hyprland and Quickshell only
 
 ```bash
 git clone https://github.com/Julix2009/WidgetDeck-.git
