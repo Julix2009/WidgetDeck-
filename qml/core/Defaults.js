@@ -10,6 +10,7 @@ var BUILDER_MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"]]; 
 function isFreeForm(type, props) {
     if (!props) return false;
     if (props.no_glass === true) return true;
+    if (type === "f1") return !!props.design && props.design !== "classic" && props.design_glass !== true;
     if (type === "music") return ["poster", "disc", "minimal", "cassette"].indexOf(props.skin) >= 0 && props.skin_glass !== true;
     return type === "clock" && !!props.clock_style && props.clock_style !== "digital" && props.clock_glass !== true;
 }

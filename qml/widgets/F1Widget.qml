@@ -19,6 +19,11 @@ Item {
     property var appConfig: ({})
 
     readonly property real fs: style.font_size || 16
+    // ---- designs: "classic" is the full card below; the others (f1/<Name>Skin.qml) are free shapes without the glass card
+    readonly property var skinFiles: ({ track: "TrackSkin.qml", countdown: "CountdownSkin.qml", lights: "LightsSkin.qml", tower: "TowerSkin.qml", ticket: "TicketSkin.qml" })
+    readonly property string skinFile: skinFiles[props.design] || ""
+    readonly property bool forcePlain: skinFile !== "" && props.design_glass !== true
+    readonly property var tstyle: forcePlain ? Object.assign({}, style, { mode: "liquid" }) : style
     function s(v) { return v * fs / 16; }
     readonly property color cFg: style.fg || "#f2f4f8"
     readonly property color cAcc: style.accent || "#8ab4ff"
@@ -154,9 +159,22 @@ Item {
     readonly property bool offline: !demoOn && fd && fd.state === "ok" && fd.stale === true
 
     // ================================================================================== content ==================================================================================
+    Loader {
+        id: skinLoader
+        anchors.fill: parent
+        visible: w.shown.kind !== "empty" && (!!w.race || w.props.design === "tower")
+        function load() {
+            if (w.skinFile === "") source = "";
+            else setSource("f1/" + w.skinFile, { host: w });
+        }
+        Component.onCompleted: load()
+        Connections { target: w; function onSkinFileChanged() { skinLoader.load(); } }
+    }
+
     Item {
         id: content
         anchors.fill: parent
+        visible: w.skinFile === ""
         readonly property real hh: w.fs * 1.05
         readonly property real topY: hh + w.s(8)
         readonly property real topH: w.lerp(w.s(124), w.s(176))

@@ -178,6 +178,8 @@ Ein zweites Wetter-Widget mit 3D-Icon: jetzt, die nächsten 4–8 Stunden und di
 
 *Nächstes Rennwochenende: Streckenumriss, Countdown, alle Sessions in Ortszeit, letztes Ergebnis und Wertung (inoffizielles Fan-Widget).* Größe: Klein 420×240, Groß 580×540 (logische Pixel, Breite × Höhe).
 
+**Designs** (Einstellung „Design“): *Klassische Karte* wie bisher, dazu *Strecke* (große Streckenzeichnung mit Name und Countdown), *Großer Countdown*, *Startampel* (für jeden Tag näher am Rennen leuchtet eine der fünf Lampen mehr, am Renntag alle, während des Rennens aus), *WM-Turm* (Fahrerwertung wie im Fernsehen, Plätze über „Platzierungen“) und *Renn-Ticket*. Alle außer der Karte stehen ohne Glas-Behälter; mit „Glas hinter dem Design“ kommt er zurück.
+
 ![Formel-1-Karte: Milchglas und Liquid Glass, groß und klein (erfundene Demo-Daten)](images/f1-card.webp)
 
 > **Inoffizielles Fan-Widget.** Keine Verbindung zu Formula 1, FIA, Teams oder Fahrern. „Formula 1“, „F1“ und „FIA“ sowie verwandte Marken gehören ihren Inhabern. Es werden keine Logos, Team- oder Fahrerbilder mitgeliefert oder geladen, und es wird nichts von Webseiten gelesen. Der Screenshot zeigt **erfundene Demo-Daten** (die *Test*-Optionen des Widgets).

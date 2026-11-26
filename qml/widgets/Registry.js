@@ -141,6 +141,8 @@ var TYPES = {
         label: "Formula 1", desc: "Next race weekend: track outline, countdown, all sessions in local time, last result and standings (unofficial fan widget)", icon: "clock", size: [580, 540], file: "F1Widget.qml",
         sizes: { small: [420, 240], large: [580, 540] },
         props: [
+            { key: "design", label: "Design", kind: "choice", def: "classic", options: [["classic", "Classic card"], ["track", "Circuit"], ["countdown", "Big countdown"], ["lights", "Start lights"], ["tower", "Standings tower"], ["ticket", "Race ticket"]] },
+            { key: "design_glass", label: "Glass behind the design", kind: "bool", def: false },
             { key: "show_results", label: "Show last result", kind: "bool", def: true },
             { key: "show_standings", label: "Show driver standings", kind: "bool", def: true },
             { key: "standings", label: "Standings places (large size)", kind: "range", def: 3, min: 3, max: 10, step: 1 },

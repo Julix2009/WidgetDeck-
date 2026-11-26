@@ -54,7 +54,7 @@ cd WidgetDeck-
 | Luftqualität | Europäischer AQI, PM2.5, PM10, Ozon | Standard | Internet (Open-Meteo) |
 | Wetter | Temperatur und Wetterlage, Regen- und Schneepartikel (nur Liquid Glass) | Standard | Internet (Open-Meteo) |
 | Wetter-Karte | 3D-Icons, nächste Stunden und Tage | Klein / Groß | Internet (Open-Meteo), gleiche Daten wie *Wetter* |
-| Formel 1 (inoffiziell) | nächstes Rennwochenende, Ergebnis, Wertung | Klein / Groß | `python`, Internet (Jolpica-F1, OpenF1) |
+| Formel 1 (inoffiziell) | nächstes Rennwochenende, Ergebnis, Wertung; Designs Karte, Strecke, Countdown, Startampel, WM-Turm, Ticket | Klein / Groß | `python`, Internet (Jolpica-F1, OpenF1) |
 | Fokus-Timer | Pomodoro-Ring mit Sessions | Klein / Groß | Befehl `focus-timer`; Ton und Meldung optional |
 | Schulfortschritt | wie viel Prozent vom Schultag oder von der Schulwoche vorbei sind | Standard | Daten des Stundenplan-Widgets |
 | Stundenplan | WebUntis über den Untis-Mobile-Zugang | Klein / Groß | `python`, `zbar`, `libsecret`, Secret Service |
