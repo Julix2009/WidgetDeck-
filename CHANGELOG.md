@@ -37,6 +37,12 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.5.1.0] - 2026-11-26
+
+- New widget “GitHub activity”: the contribution calendar with total and streak. Enter the user name once in the settings; no login needed.
+- When a newer version exists, the builder asks: update now or not.
+- Updates are looked for every hour and when the builder is opened (before: once a day).
+
 ## [1.5.0.2] - 2026-11-26
 
 - Every widget has a switch “Box behind the widget” (builder, simple and advanced mode); without a box only the content is shown on the wallpaper.
