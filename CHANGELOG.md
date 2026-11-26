@@ -37,6 +37,15 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.3.0] - 2026-11-26
+
+### Geändert
+- Layout der neuen Uhr-, Musik- und F1-Stile fuer jede Groesse (nichts laeuft ueber den Rand)
+- Formel 1: neue Designs Strecke, Countdown, Startampel, WM-Turm, Renn-Ticket
+- Neue Stile Poster, Drehscheibe, Typografie, Kassette, Kapsel
+- Sieben Stile (Digital, Bluete, Poster, Grusskarte, Gestapelt, Tagesring, Pixel), ohne Glas-Behaelter frei auf dem Wallpaper
+- Versionsangabe 1.2.0
+
 ## [1.2.0] - 2026-11-25
 
 ### Geändert
