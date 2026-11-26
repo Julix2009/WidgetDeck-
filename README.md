@@ -34,6 +34,18 @@ with colours that follow your wallpaper or your shell. Built with Quickshell.
 
 <sub>Demo data. Wallpaper: <a href="https://commons.wikimedia.org/wiki/File:Hakkoda_Mountains,_Part_II-_Foothills_-_Hakkoda6929.jpg">Hakkoda Mountains</a> by lumoplank, CC0.</sub>
 
+## More variants
+
+The pictures show only one look per widget. Several widgets come in more designs, which you can flip through with the arrows in the library:
+
+| Widget | Variants |
+|---|---|
+| Clock | 7: digital, flower (analogue), poster, greeting card, stacked, day ring, pixel |
+| Music | 7: normal, turntable, poster, spinning disc, typography, cassette, capsule |
+| Formula 1 | 6: classic card, circuit, big countdown, start lights, standings tower, race ticket |
+| Visualizer | 3: bars, mirrored, line |
+| CPU & RAM, Temperatures | 2: rings, bars |
+
 ## Installation
 
 For **Arch Linux** with **Hyprland** only.
