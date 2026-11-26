@@ -22,10 +22,17 @@ Item {
     readonly property var designProp: { for (var i = 0; i < allProps.length; i++) if (allProps[i].design === true) return allProps[i]; return null; }
     // simple mode: the flagged options (plugins without flags: the first three); advanced: every option
     readonly property var shownProps: {
-        var rest = allProps.filter(function (p) { return p.design !== true; });
+        // the four keys of the box switch are not listed again among the options
+        var rest = allProps.filter(function (p) { return p.design !== true && ["no_glass", "clock_glass", "skin_glass", "design_glass"].indexOf(p.key) < 0; });
         if (adv) return rest;
         var s = rest.filter(function (p) { return p.simple === true; });
         return s.length > 0 || designProp ? s : rest.slice(0, 3);
+    }
+    function setBox(on) {
+        var key = D.boxKey(c.type, wp);
+        if (key === "no_glass") { store.setProp(sel, "no_glass", !on); return; }
+        if (on && wp.no_glass === true) store.setProp(sel, "no_glass", false);
+        store.setProp(sel, key, on);
     }
     function designSize(value) {
         var s = tinfo && tinfo.skinSizes ? tinfo.skinSizes[value] : null;
@@ -242,6 +249,12 @@ Item {
                 }
             }
 
+            GSwitch {
+                visible: pp.showStyle && !!pp.c
+                width: parent.width; th: pp.th; label: I18n.tr("Box behind the widget")
+                checked: !!pp.c && !!pp.wp && D.hasBox(pp.c.type, pp.wp)
+                onToggled: v => pp.setBox(v)
+            }
             Text { visible: pp.showStyle; text: I18n.tr("GLASS"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
             Row {
                 visible: pp.showStyle && pp.adv

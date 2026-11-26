@@ -16,6 +16,21 @@ FloatingWindow {
     signal identifyRequested()
     onSettingsClose: page = "editor"
     property string page: "editor"              // editor | library | presets | settings
+    // short page change: the new page fades in and slides a little from the side it lies on (settings is a dialog, not a page)
+    readonly property var pageOrder: ["editor", "library", "presets"]
+    property string lastPage: "editor"
+    property real pageIn: 1                     // 0 -> 1 while the new page comes in
+    property int pageDir: 1
+    onPageChanged: {
+        var to = pageOrder.indexOf(page), from = pageOrder.indexOf(lastPage);
+        if (to < 0) return;
+        lastPage = page;
+        if (to === from) return;
+        pageDir = to > from ? 1 : -1;
+        pageAnim.stop(); pageIn = 0;
+        Qt.callLater(pageAnim.start);           // after the new page is built, so its first frame is part of the animation
+    }
+    NumberAnimation { id: pageAnim; target: win; property: "pageIn"; to: 1; duration: 220; easing.type: Easing.OutCubic }
     function showSettings(on) { page = on ? "settings" : "editor"; }
     function scrollSettings(y) { setFlick.contentY = Math.max(0, Math.min(y, setFlick.contentHeight - setFlick.height)); }
     readonly property var selRec: { store.mons; store.selMon; return store.monRec(store.curKey()); }
@@ -188,6 +203,7 @@ FloatingWindow {
             Item {
                 anchors.fill: parent
                 visible: win.page === "editor" || win.page === "settings"
+                opacity: win.pageIn; transform: Translate { x: (1 - win.pageIn) * 28 * win.pageDir }
                 Rectangle {
                     width: body.leftW; height: body.height; radius: th.cardRadius; color: th.card
                     WidgetPalette {
@@ -262,11 +278,13 @@ FloatingWindow {
             Loader {
                 anchors { fill: parent; margins: 6 }
                 active: win.visible && win.page === "library"
+                opacity: win.pageIn; transform: Translate { x: (1 - win.pageIn) * 28 * win.pageDir }
                 sourceComponent: Library { store: win.store; th: win.thm; theme: win.theme; backend: win.backend; wall: swall; onAddRequested: (type, props, size) => win.addFromLibrary(type, props, size) }
             }
             Loader {
                 anchors { fill: parent; margins: 6 }
                 active: win.visible && win.page === "presets"
+                opacity: win.pageIn; transform: Translate { x: (1 - win.pageIn) * 28 * win.pageDir }
                 sourceComponent: PresetsPage { store: win.store; th: win.thm; theme: win.theme; backend: win.backend; wall: swall }
             }
         }

@@ -3,6 +3,7 @@
 // To add a language: add a table here and its code to LANGS. tools/check-i18n.py lists missing keys.
 var LANGS = ["en", "de"];
 var de = {
+ "Box behind the widget": "Box hinter dem Widget",
  "Open builder": "Builder öffnen",
  "Quit WidgetDeck": "WidgetDeck beenden",
  "Icon in the system tray": "Symbol im System-Tray",

@@ -14,6 +14,14 @@ function isFreeForm(type, props) {
     if (type === "music") return ["poster", "disc", "minimal", "cassette"].indexOf(props.skin) >= 0 && props.skin_glass !== true;
     return type === "clock" && !!props.clock_style && props.clock_style !== "digital" && props.clock_glass !== true;
 }
+// the setting behind the builder switch "Box behind the widget": free-shape designs have their own "glass behind it" key
+// (true = box), every other widget uses no_glass (true = no box)
+function boxKey(type, props) {
+    var p = Object.assign({}, props || {}, { no_glass: false, clock_glass: false, skin_glass: false, design_glass: false });
+    if (!isFreeForm(type, p)) return "no_glass";
+    return type === "clock" ? "clock_glass" : (type === "music" ? "skin_glass" : "design_glass");
+}
+function hasBox(type, props) { return !isFreeForm(type, props || {}); }
 function shownIn(p, mode) { return !p.only || String(p.only).split(",").indexOf(mode) >= 0; }
 
 // kind: color | range | int | bool | font | choice   (only: show the control only for that glass mode)

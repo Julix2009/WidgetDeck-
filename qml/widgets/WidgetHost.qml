@@ -1,5 +1,6 @@
 // A widget = glass panel + the widget's QML content. Used by the desktop layer AND by the builder preview.
 import QtQuick
+import QtQuick.Effects
 import "../core"
 
 GlassPanel {
@@ -39,6 +40,9 @@ GlassPanel {
         opacity: host.panelReady ? 1 : 0           // content appears together with its glass
         Behavior on opacity { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
         source: host.tinfo ? (host.tinfo.url ? host.tinfo.url : Qt.resolvedUrl(host.tinfo.file)) : ""
+        // without a box the content stands on the wallpaper: a soft shadow keeps text and lines readable
+        layer.enabled: host.wprops.no_glass === true
+        layer.effect: MultiEffect { shadowEnabled: true; shadowColor: "#000000"; shadowOpacity: 0.75; shadowBlur: 0.35; shadowVerticalOffset: 1; autoPaddingEnabled: true }
     }
     // widgets that declare `particleKind` ("rain" | "snow" | "") get the drops overlay: above the glass, below their content
     overlay: [
