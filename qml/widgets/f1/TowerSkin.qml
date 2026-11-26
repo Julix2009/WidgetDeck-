@@ -12,7 +12,7 @@ Item {
 
     Column {
         id: col
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.centerIn: parent
         width: s.w0
         spacing: 2
         Rectangle {

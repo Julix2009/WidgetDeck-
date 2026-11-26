@@ -39,7 +39,7 @@ Item {
                             readonly property bool on: (digit.rows[Math.floor(index / 5)] >> (4 - index % 5)) & 1
                             width: p.cell; height: p.cell
                             Rectangle {                         // a soft dark edge under lit dots: readable on bright wallpapers too
-                                visible: parent.on; anchors.centerIn: parent; anchors.verticalCenterOffset: p.cell * 0.09; width: p.cell * 0.86; height: width; radius: width * 0.3; color: "#59000000"
+                                visible: parent.on; anchors.centerIn: parent; anchors.verticalCenterOffset: p.cell * 0.09; width: p.cell * 0.92; height: width; radius: width * 0.3; color: "#a0000000"
                             }
                             Rectangle {
                                 anchors.centerIn: parent; width: p.cell * 0.78; height: width; radius: width * 0.28

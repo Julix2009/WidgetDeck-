@@ -7,13 +7,14 @@ Item {
     id: d
     required property var host
     readonly property bool labels: height > width * 1.1                      // tall widget: title and artist under the disc
-    readonly property real side: Math.min(width, labels ? height - width * 0.32 : height)
+    readonly property bool beside: width > height * 1.55                     // wide widget: title, artist and controls to the right of the disc
+    readonly property real side: Math.max(10, Math.min(width, labels ? height - width * 0.32 : height))
     readonly property real ring: Math.max(3, side * 0.03)
 
     Item {
         id: disc
         width: d.side; height: d.side
-        anchors.horizontalCenter: parent.horizontalCenter
+        x: d.beside ? 0 : (d.width - width) / 2
         y: d.labels ? 0 : (d.height - height) / 2
         Shape {
             anchors.fill: parent; layer.enabled: true; layer.samples: 4
@@ -37,8 +38,16 @@ Item {
         MouseArea { anchors.fill: art; cursorShape: Qt.PointingHandCursor; onClicked: d.host.togglePlay() }
     }
     Column {
+        visible: d.beside
+        anchors { left: disc.right; leftMargin: d.side * 0.12; right: parent.right; verticalCenter: parent.verticalCenter }
+        spacing: d.side * 0.03
+        GText { width: parent.width; elide: Text.ElideRight; wstyle: d.host.tstyle; font.bold: true; font.pixelSize: Math.max(11, Math.min(d.side * 0.16, d.width * 0.055)); text: d.host.titleText }
+        GText { width: parent.width; elide: Text.ElideRight; wstyle: d.host.tstyle; opacity: 0.75; font.pixelSize: Math.max(10, Math.min(d.side * 0.11, d.width * 0.038)); text: d.host.artistText }
+        SkinControls { visible: d.host.props.show_controls !== false; host: d.host; size: Math.max(20, d.side * 0.18); fg: d.host.tstyle.fg || "#ffffff" }
+    }
+    Column {
         visible: d.labels
-        anchors { top: disc.bottom; topMargin: d.side * 0.05; left: parent.left; right: parent.right }
+        anchors { top: disc.bottom; topMargin: d.side * 0.04; left: parent.left; right: parent.right }
         spacing: 2
         GText { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; wstyle: d.host.tstyle; font.bold: true; font.pixelSize: Math.max(12, d.side * 0.08); text: d.host.titleText }
         GText { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; wstyle: d.host.tstyle; opacity: 0.7; font.pixelSize: Math.max(10, d.side * 0.058); text: d.host.artistText }
