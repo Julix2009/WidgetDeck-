@@ -34,6 +34,12 @@ Item {
 
     // ───────────── style: "normal" (cover + progress bar) or "turntable" (record + tonearm); both read the state below ─────────────
     readonly property bool turntable: props.skin === "turntable"
+    // more styles (music/<Name>Skin.qml); they read the same state as the two above. All but "pill" are free shapes without the glass card
+    // (unless "Glass behind the style" is on) - then WidgetHost draws no glass and the text gets the fine dark shadow.
+    readonly property var skinFiles: ({ poster: "PosterSkin.qml", disc: "DiscSkin.qml", minimal: "MinimalSkin.qml", cassette: "CassetteSkin.qml", pill: "PillSkin.qml" })
+    readonly property string skinFile: skinFiles[props.skin] || ""
+    readonly property bool forcePlain: skinFile !== "" && props.skin !== "pill" && props.skin_glass !== true
+    readonly property var tstyle: forcePlain ? Object.assign({}, style, { mode: "liquid" }) : style
     readonly property bool live: Window.window !== null && Window.window.visible          // no animation work while the widget is not on screen
     function prevTrack() { noteSkip(-1); if (player) player.previous(); }
     function nextTrack() { noteSkip(1); if (player) player.next(); }
@@ -110,7 +116,7 @@ Item {
         else if (!progAnim.running) prog = progTarget;                                              // normal 1 Hz tick: no animation
     }
     NumberAnimation { id: progAnim; target: w; property: "prog"; duration: 460; easing.type: Easing.OutCubic }
-    Timer { interval: 1000; repeat: true; running: w.playing && (w.props.show_progress !== false || w.turntable); onTriggered: { try { w.player.positionChanged(); } catch (e) { } } }
+    Timer { interval: 1000; repeat: true; running: w.playing && (w.props.show_progress !== false || w.turntable || w.skinFile !== ""); onTriggered: { try { w.player.positionChanged(); } catch (e) { } } }
 
     // ───────────── layout ─────────────
     // the style switch is a crossfade between the two views (the glass behind is not touched)
@@ -123,10 +129,21 @@ Item {
         visible: opacity > 0.01
         sourceComponent: TurntableView { host: w }
     }
+    Loader {
+        id: skinLoader
+        anchors.fill: parent
+        opacity: w.contentOpacity
+        function load() {
+            if (w.skinFile === "") source = "";
+            else setSource("music/" + w.skinFile, { host: w });
+        }
+        Component.onCompleted: load()
+        Connections { target: w; function onSkinFileChanged() { skinLoader.load(); } }
+    }
     Item {
       id: normalView
       anchors.fill: parent
-      opacity: w.turntable ? 0 : 1
+      opacity: (w.turntable || w.skinFile !== "") ? 0 : 1
       visible: opacity > 0.01
       Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
     Row {

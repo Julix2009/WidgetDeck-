@@ -257,6 +257,8 @@ Ein Ring mit der Restzeit, der Phase und den heutigen Sessions. Es gibt **einen*
 
 *Aktueller Titel (MPRIS) mit Cover.* Größe: Klein 380×160, Groß 460×180; Plattenspieler: Klein 300×340, Groß 580×260 (logische Pixel, Breite × Höhe).
 
+**Stile** (Einstellung „Stil“): *Normal* und *Plattenspieler* wie bisher, dazu *Poster* (hohes Cover mit Titel und Wellen-Fortschritt), *Drehscheibe* (rundes, drehendes Cover mit Fortschrittsring; ein Klick auf das Cover hält an), *Typografie* (riesiger Titel frei auf dem Wallpaper), *Kassette* (Spulen drehen sich, das Band wandert) und *Kapsel* (kompakt). Poster, Drehscheibe, Typografie und Kassette stehen ohne Glas-Behälter; mit „Glas hinter dem Stil“ kommt er zurück.
+
 ![Musik: Normal und Plattenspieler (Liquid Glass)](images/music-turntable.webp)
 
 Zeigt den aktuellen Titel eines beliebigen MPRIS-Players. Die Option *Style* schaltet live zwischen **Normal** (Cover, Fortschrittsbalken, Tasten) und **Plattenspieler** um: drehende Platte mit dem Cover als Label und ein Tonarm, der beim Start auf die Platte schwenkt, dem Fortschritt folgt und bei Pause abhebt. Ein Klick auf Platte oder Tonarm schaltet Play/Pause.

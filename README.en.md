@@ -49,7 +49,7 @@ The detailed documents in `docs/` are currently written in German only.
 |---|---|---|---|
 | Clock & date | clock with date in seven styles: digital, flower (analogue), poster, greeting card, stacked, day ring, pixel | default | – |
 | CPU & RAM | load as rings or bars | default | – |
-| Music | current track, style Normal or Turntable | Small / Large | MPRIS player; `playerctl` optional |
+| Music | current track in the styles Normal, Turntable, Poster, Spinning disc, Typography, Cassette and Capsule | Small / Large | MPRIS player; `playerctl` optional |
 | Network | live down/upload, 60 s curve, Wi-Fi, ping | default | `iproute2`, `iputils`; `networkmanager` optional; pings `1.1.1.1` by default |
 | Temperatures & fans | CPU, GPU, SSD, fans | default | hwmon sensors; missing ones are left out |
 | Uptime & status | uptime, kernel, failed systemd services | default | systemd |

@@ -35,9 +35,11 @@ var TYPES = {
     music: {
         label: "Music", desc: "Current track (MPRIS) with cover", icon: "music", size: [460, 180], file: "MusicWidget.qml",
         sizes: { small: [380, 160], large: [460, 180] },
-        skinSizes: { turntable: { small: [300, 340], large: [580, 260] } },
+        skinSizes: { turntable: { small: [300, 340], large: [580, 260] }, poster: { small: [240, 360], large: [320, 480] }, disc: { small: [220, 260], large: [320, 380] },
+                     minimal: { small: [420, 170], large: [640, 230] }, cassette: { small: [340, 220], large: [480, 310] }, pill: { small: [320, 90], large: [440, 120] } },
         props: [
-            { key: "skin", label: "Style", kind: "choice", def: "normal", options: [["normal", "Normal"], ["turntable", "Turntable"]] },
+            { key: "skin", label: "Style", kind: "choice", def: "normal", options: [["normal", "Normal"], ["turntable", "Turntable"], ["poster", "Poster"], ["disc", "Spinning disc"], ["minimal", "Typography"], ["cassette", "Cassette"], ["pill", "Capsule"]] },
+            { key: "skin_glass", label: "Glass behind the style", kind: "bool", def: false },
             { key: "rpm", label: "Speed (RPM)", kind: "choice", def: "33", options: [["33", "33 RPM"], ["45", "45 RPM"]], when: { key: "skin", is: "turntable" } },
             { key: "arm_follows", label: "Tonearm follows the progress", kind: "bool", def: true, when: { key: "skin", is: "turntable" } },
             { key: "vinyl_color", label: "Vinyl colour", kind: "choice", def: "black", options: [["black", "Black"], ["cover", "From the cover"]], when: { key: "skin", is: "turntable" } },
