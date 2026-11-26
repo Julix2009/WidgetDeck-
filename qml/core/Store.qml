@@ -35,7 +35,8 @@ Scope {
         // bar = "all" | [keys] (monitors that get the bar), osd = same values as notify (volume / brightness indicators of other tools use it)
         monitors: { primary: "", unplugged: "wait", cross_edge: false, notify: "focused", bar: "all" },
         update: { check: true, channel: "main" },
-        tray: true
+        tray: true,
+        github_user: ""
     })
     property var config: JSON.parse(JSON.stringify(configDefaults))
     property int configRev: 0                 // bumped AFTER the file was written / read: widgets that depend on it fetch again

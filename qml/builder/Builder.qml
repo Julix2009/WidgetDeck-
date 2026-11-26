@@ -116,6 +116,7 @@ FloatingWindow {
         return Qt.point(Math.max(8, Math.min(root.width - w - 8, p.x)), Math.min(root.height - h - 8, p.y));
     }
     Component.onCompleted: {
+        if (update.enabled) update.check(false);          // at most 15 minutes old (the script caches)
         th.pickColor = function (item, hex, cb) {
             win._colorCb = cb;
             colorPop.hex = hex;
@@ -136,6 +137,7 @@ FloatingWindow {
         focus: true
         Keys.onPressed: event => {
             if (splashLoader.item) { splashLoader.item.skip(); event.accepted = true; return; }
+            if (updateDialog.visible) { if (event.key === Qt.Key_Escape) updateDialog.later(); event.accepted = true; return; }
             if (event.key === Qt.Key_Escape) { if (colorPop.visible || listPop.visible) { colorPop.visible = false; listPop.visible = false; } else if (win.page !== "editor") win.page = "editor"; else win.visible = false; event.accepted = true; return; }
             if (win.sels.length === 0 || !win.editorKeys) return;
             // arrow keys: one grid cell (Shift: five cells), for the whole selection; Delete removes the selection
@@ -365,6 +367,13 @@ FloatingWindow {
         }
 
         CommandPalette { id: commands; z: 250; anchors.fill: parent; th: win.thm }
+
+        // newer version: ask (below the start animation, above everything else)
+        UpdateDialog {
+            id: updateDialog
+            anchors.fill: parent; z: 300; th: win.thm; update: win.update
+            allowed: !splashLoader.active
+        }
 
         // start animation: only built when it is switched on, gone after it ran
         Loader {

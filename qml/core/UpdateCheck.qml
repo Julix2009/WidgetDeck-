@@ -1,5 +1,5 @@
-// Version display and the once-a-day update hint (no automatic installation).
-// core/updatecheck.sh does the work (git ls-remote, cached 24 h, silent without network / access); installing is started by the user via
+// Version display and the update hint (no automatic installation).
+// core/updatecheck.sh does the work (git ls-remote, cached 15 min, silent without network / access); installing is started by the user via
 // the button, which opens `widgetdeck-update` in a terminal.
 import QtQuick
 import Quickshell
@@ -20,6 +20,7 @@ Scope {
     property bool manual: false
     property string message: ""
     readonly property bool available: state === "available"
+    property string dismissedKey: ""     // the builder dialog was answered with "not now" for this version (until the next start)
 
     function check(force) {
         if (proc.running) return;
@@ -50,8 +51,8 @@ Scope {
         }
         onExited: root.busy = false
     }
-    // once a day at most (the script caches), first look shortly after the start; nothing while switched off
+    // first look shortly after the start, then every hour (and when the builder opens); nothing while switched off
     Timer { interval: 25000; running: root.enabled; onTriggered: root.check(false) }
-    Timer { interval: 6 * 3600 * 1000; repeat: true; running: root.enabled; onTriggered: root.check(false) }
+    Timer { interval: 3600 * 1000; repeat: true; running: root.enabled; onTriggered: root.check(false) }
     onEnabledChanged: if (enabled) check(false); else { state = "disabled"; }
 }

@@ -20,7 +20,7 @@ Item {
     clip: true
 
     // demo data where a widget would otherwise need an account
-    readonly property var demo: type === "timetable" ? ({ source: "demo" }) : ({})
+    readonly property var demo: type === "timetable" ? ({ source: "demo" }) : (type === "github" ? ({ user: "demo" }) : ({}))
 
     Item {
         x: (pt.width - width * pt.k) / 2

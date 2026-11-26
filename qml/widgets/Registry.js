@@ -186,6 +186,15 @@ var TYPES = {
             { key: "source", label: "Data source", kind: "choice", def: "auto", options: [["auto", "Untis Mobile"], ["demo", "Demo (invented lessons)"], ["demo-holiday", "Demo (holidays)"]] }
         ]
     },
+    github: {
+        label: "GitHub activity", desc: "Your GitHub contribution calendar with totals and streak", icon: "branch", size: [820, 230], file: "GithubWidget.qml",
+        sizes: { small: [420, 200], large: [820, 230] },
+        props: [
+            { key: "colors", simple: true, label: "Colours", kind: "choice", def: "green", options: [["green", "GitHub green"], ["accent", "Accent colour"]] },
+            { key: "show_totals", simple: true, label: "Show total and streak", kind: "bool", def: true },
+            { key: "show_legend", label: "Show legend and user name", kind: "bool", def: true }
+        ]
+    },
     schoolprogress: {
         label: "Progress", desc: "How much of the school day or the school week is over, in percent (counts the lessons of the timetable)", icon: "calendar", size: [200, 200], file: "SchoolProgressWidget.qml",
         props: [

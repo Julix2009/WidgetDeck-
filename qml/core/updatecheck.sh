@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Update check: prints ONE json line, never fails, never prompts.
 #   updatecheck.sh [--force]
-# Runs at most once a day (result cached in ~/.cache/widgetdeck/update-check.json) unless --force. Disabled with config.json: update.check = false.
+# Asks the repository at most every 15 minutes (result cached in ~/.cache/widgetdeck/update-check.json) unless --force. Disabled with config.json: update.check = false.
 # Source: `git ls-remote` of the repository recorded in ../SOURCE (no API, no token). Stays silent (state "unknown") without network / access.
 QML="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 export LC_ALL=C GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=true SSH_ASKPASS=true
@@ -32,7 +32,7 @@ if [ "$FORCE" = 0 ] && [ -f "$CF" ]; then
     age=$(( now - $(jq -r '.checked // 0' "$CF" 2>/dev/null || echo 0) ))
     st="$(jq -r '.state // ""' "$CF" 2>/dev/null)"
     same="$(jq -r --arg v "$VER" --arg r "$REV" --arg c "$CHANNEL" '(.version == $v) and (.rev == $r) and (.channel == $c)' "$CF" 2>/dev/null)"
-    limit=86400; [ "$st" = unknown ] && limit=3600
+    limit=900
     if [ "$same" = true ] && [ "$age" -lt "$limit" ] && [ "$age" -ge 0 ]; then cat "$CF"; exit 0; fi
 fi
 

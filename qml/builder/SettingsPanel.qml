@@ -154,6 +154,10 @@ Item {
         GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Start animation of the builder"); checked: sp.store.builder.splash !== false; onToggled: v => sp.store.setBuilder("splash", v) }
         GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Icon in the system tray"); checked: sp.store.cget("tray", true); onToggled: v => sp.store.setConfig("tray", v) }
         }
+        Card { title: "GITHUB"
+        GField { width: parent.width; th: sp.th; label: I18n.tr("GitHub user name (for the activity widget)"); value: sp.cfgStr("github_user", ""); onCommitted: v => sp.store.setConfig("github_user", v.trim()) }
+        Note { text: I18n.tr("Only public data is read, no login needed. Empty = the account of the gh tool, if it is logged in.") }
+        }
         Card { title: I18n.tr("VERSION & UPDATES")
         Row {
             width: parent.width; spacing: 10
@@ -170,7 +174,7 @@ Item {
             GButton { th: sp.th; width: parent.width; primary: true; label: I18n.tr("Start the update in a terminal"); onClicked: sp.update.startUpdate() }
             Note { opacity: 0.8; text: I18n.tr("Nothing is installed automatically: the terminal shows the changes and asks first. Your settings are kept.") }
         }
-        GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Check for updates daily"); checked: sp.store.cget("update.check", true); onToggled: v => sp.store.setConfig("update.check", v) }
+        GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Check for updates automatically"); checked: sp.store.cget("update.check", true); onToggled: v => sp.store.setConfig("update.check", v) }
         }
         Card { title: I18n.tr("GLASS BACKGROUND")
         Text { width: parent.width; wrapMode: Text.WordWrap; color: sp.wall.usable ? sp.th.dim : sp.th.danger; font.family: sp.th.font; font.pixelSize: 12

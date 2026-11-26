@@ -394,3 +394,14 @@ Audio-reaktive Balken. `cava` läuft über PipeWire (Quelle: Standard, einstellb
 | Audioquelle (auto = Standard) | `source` | auto | Text |
 
 </details>
+
+## GitHub-Aktivität
+
+Der Beitragskalender mit Summe und Serie. **Benutzername einmal** unter *Einstellungen → GitHub* eintragen (`config.json`: `github_user`), er gilt für alle Instanzen. Eine Anmeldung ist nicht nötig; gelesen wird die öffentliche Beitragsseite. Bleibt das Feld leer, wird das Konto des angemeldeten `gh` benutzt.
+
+| Schlüssel | Bedeutung | Standard |
+|---|---|---|
+| `colors` | `green` oder `accent` | `green` |
+| `show_totals`, `show_legend` | Kopfzeile bzw. Legende und Name | an |
+
+Zwischenspeicher: `~/.cache/widgetdeck/github-<name>.json`, 30 Minuten. Braucht `python`.
