@@ -67,7 +67,7 @@ Update with `widgetdeck-update`, remove with `./uninstall.sh`. `./install.sh --d
 
 ## Thanks
 
-<sub>Liquid Glass shader derived from <a href="https://github.com/0-ss/MacShell">MacShell</a> (MIT) · F1 track outlines from <a href="https://github.com/bacinger/f1-circuits">bacinger/f1-circuits</a> (MIT) · Built with <a href="https://quickshell.org">Quickshell</a> · Builder and settings layout inspired by the ArtCraft launcher<br>
+<sub>Liquid Glass shader derived from <a href="https://github.com/0-ss/MacShell">MacShell</a> (MIT) · F1 track outlines from <a href="https://github.com/bacinger/f1-circuits">bacinger/f1-circuits</a> (MIT) · Built with <a href="https://quickshell.org">Quickshell</a><br>
 Data: <a href="https://open-meteo.com">Open-Meteo</a> (weather, air quality) · <a href="https://api.jolpi.ca/ergast/f1/">Jolpica-F1</a> and <a href="https://openf1.org">OpenF1</a> (Formula 1) · <a href="https://lrclib.net">LRCLIB</a> (lyrics) · <a href="https://ipwho.is">ipwho.is</a> (location) · GitHub (contribution calendar)</sub>
 
 ---
