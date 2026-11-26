@@ -10,7 +10,9 @@ Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) ·
 
 ## Uhr & Datum
 
-*Digitaluhr mit Datum.* Größe: Standard 380×190 (logische Pixel, Breite × Höhe).
+*Uhr mit Datum in sieben Stilen.* Größe: Standard 380×190 (logische Pixel, Breite × Höhe); die Stile passen sich an die Größe an, runde Stile am besten quadratisch ziehen.
+
+**Uhr-Stile** (Einstellung „Uhr-Stil“): *Digital* (Glaskarte wie bisher), *Blüte* (analoge Uhr mit gewelltem Rand, Stundenpunkten und Datum), *Poster* (riesige Uhrzeit und Datum nebeneinander), *Grußkarte* (Linie, Begrüßung nach Tageszeit, Wochentag, Datum, Uhrzeit, Linie), *Gestapelt* (Stunden über Minuten in zwei Farben), *Tagesring* (Anteil des vergangenen Tages als Ring mit leuchtendem Punkt) und *Pixel* (Punktmatrix-Ziffern). Alle außer *Digital* stehen ohne Glas-Behälter frei auf dem Wallpaper; mit „Glas hinter dem Uhr-Stil“ kommt die Glaskarte zurück.
 
 Ein leeres Zeit- oder Datumsformat bedeutet „automatisch“. Das Widget braucht keine Zusatzpakete und keinen Netzwerkzugriff.
 
@@ -22,6 +24,11 @@ Ein leeres Zeit- oder Datumsformat bedeutet „automatisch“. Das Widget brauch
 | Zeitformat (leer = automatisch) | `time_format` | leer | Text |
 | Datumsformat (leer = automatisch) | `date_format` | leer | Text |
 | Datum anzeigen | `show_date` | an | an / aus |
+| Uhr-Stil | `clock_style` | Digital | Digital / Blüte / Poster / Grußkarte / Gestapelt / Tagesring / Pixel |
+| Glas hinter dem Uhr-Stil | `clock_glass` | aus | an / aus |
+| Sekunden (Zeiger / blinkender Doppelpunkt) | `show_seconds` | an | an / aus |
+| Blütenblätter | `petals` | 10 | 5 – 16 |
+| Blüte dreht sich langsam | `spin` | aus | an / aus |
 | Größe der Uhrzeit | `time_scale` | 3.6 | 1.5 – 7 |
 | Ausrichtung | `align` | Links | Links / Mitte / Rechts |
 

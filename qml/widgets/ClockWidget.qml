@@ -8,6 +8,14 @@ Item {
     property real innerRadius: 8
     property date now: new Date()
     property var appConfig: ({})          // config.json (WidgetHost): time_format auto|24h|12h
+    property var palette: ({})
+    // ───────────── clock styles ─────────────
+    // "digital" is the glass card; every other style is a free shape or free text on the wallpaper (no container, unless "Glass behind it" is on)
+    readonly property string face: w.props.clock_style || "digital"
+    readonly property bool forcePlain: face !== "digital" && w.props.clock_glass !== true       // WidgetHost: draw no glass
+    // free on the wallpaper: the fine dark shadow of Liquid Glass keeps the text readable on any picture
+    readonly property var tstyle: forcePlain ? Object.assign({}, style, { mode: "liquid" }) : style
+    readonly property var faces: ({ flower: "FlowerClock.qml", poster: "PosterClock.qml", card: "CardClock.qml", stacked: "StackedClock.qml", ring: "DayRingClock.qml", pixel: "PixelClock.qml" })
     // empty format in the widget props = follow the global setting (24 h / 12 h / the system locale)
     readonly property bool use12h: {
         var t = appConfig && appConfig.time_format ? appConfig.time_format : "auto";
@@ -47,7 +55,19 @@ Item {
 
     Timer { interval: 500; running: true; repeat: true; onTriggered: w.now = new Date() }
 
+    Loader {
+        id: faceLoader
+        anchors.fill: parent
+        function load() {
+            var file = w.faces[w.face];
+            if (file === undefined) source = "";
+            else setSource("clock/" + file, { w: w });
+        }
+        Component.onCompleted: load()
+        Connections { target: w; function onFaceChanged() { faceLoader.load(); } }
+    }
     Column {
+        visible: w.face === "digital" || w.faces[w.face] === undefined
         width: parent.width
         anchors.verticalCenter: parent.verticalCenter
         spacing: 2

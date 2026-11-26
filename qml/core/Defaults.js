@@ -6,6 +6,12 @@
 var MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"], ["solid", "Solid"]];
 var BUILDER_MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"]];          // the builder window itself is never opaque
 // `only` can name several modes: "frosted,solid"
+// a widget that draws no glass at all (setting "Text only", or a free-shape clock style)
+function isFreeForm(type, props) {
+    if (!props) return false;
+    if (props.no_glass === true) return true;
+    return type === "clock" && !!props.clock_style && props.clock_style !== "digital" && props.clock_glass !== true;
+}
 function shownIn(p, mode) { return !p.only || String(p.only).split(",").indexOf(mode) >= 0; }
 
 // kind: color | range | int | bool | font | choice   (only: show the control only for that glass mode)

@@ -45,7 +45,7 @@ cd WidgetDeck-
 
 | Widget | Was es zeigt | Größen | Besonderheit, benötigt |
 |---|---|---|---|
-| Uhr & Datum | Digitaluhr mit Datum | Standard | – |
+| Uhr & Datum | Uhr mit Datum in sieben Stilen: Digital, Blüte (analog), Poster, Grußkarte, Gestapelt, Tagesring, Pixel | Standard | – |
 | CPU & RAM | Auslastung als Ringe oder Balken | Standard | – |
 | Musik | aktueller Titel, Stil Normal oder Plattenspieler | Klein / Groß | MPRIS-Player; `playerctl` optional |
 | Netzwerk | Down- und Upload live, 60-s-Kurve, WLAN, Ping | Standard | `iproute2`, `iputils`; `networkmanager` optional; pingt standardmäßig `1.1.1.1` |
