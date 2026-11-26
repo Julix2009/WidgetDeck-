@@ -5,25 +5,6 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 
 ## [Unveröffentlicht]
 
-### Tray
-- WidgetDeck zeigt ein Symbol im System-Tray (braucht `python-gobject`): Klick öffnet oder schließt den Builder, im Menü Einstellungen und Beenden. Abschaltbar in den Einstellungen.
-
-### Farbquellen
-- Farben nicht mehr nur über Matugen: vorhandene Farbdateien (Quickshell-Shells, pywal, Serpantinum u. a.) werden erkannt, eine eigene JSON-Datei lässt sich angeben, und ohne beides liest WidgetDeck die Farben selbst aus dem Wallpaper.
-
-### Geändert
-- Flächen in Builder und Widgets sind neutralgrau ohne Blaustich; nur die Akzente folgen der Farbquelle (abschaltbar unter „Farben“).
-- Builder mit festem neutralem Hintergrund; nur die Akzentfarbe folgt Wallpaper bzw. Shell.
-- Startanimation beim Öffnen des Builders (aus dem „W“ wird „WidgetDeck“); Klick oder Taste überspringt sie, in den Einstellungen abschaltbar.
-- Musik: Stil „Kassette“ neu gestaltet (Cover und Akzentstreifen auf dem Etikett, Schrauben, Bandfenster; Fortschritt, Zeit und Knöpfe in einer eigenen Leiste).
-- Formel 1: WM-Turm, Startampel und Renn-Ticket neu gestaltet (Leader groß mit Teamfarbe, Ampel mit zwei Lampen je Säule und Countdown-Kacheln, dunkler Rennpass).
-- Einstellungen öffnen sich über das Zahnrad neben dem Schließen-Knopf, als Dialog über dem Builder: Kopf mit Akzentlinie, zwei Spalten mit Gruppenkästen, Fußleiste mit „Fertig“.
-- Einfachere Widget-Namen: Uhr, CPU & RAM, Musik, Netzwerk, Temperaturen, Laufzeit, System, Songtext, Luft, Wetter, Vorhersage, Formel 1, Timer, Stundenplan, Fortschritt, Visualizer (Typ-Schlüssel und Layout bleiben gleich).
-- Die Ebenenliste zeigt nur die Widgets des bearbeiteten Monitors.
-- Builder neu gestaltet: deckende, schwebende Karten statt Glas; Seiten Editor, Bibliothek (Karten mit Live-Vorschau, mit Pfeilen durch die Designs blättern), Presets und Einstellungen; Ebenenliste links.
-- Widget-Einstellungen mit Modus „Einfach“ (Design-Kacheln, Glas-Stil, Presets, wichtigste Optionen, Klein/Groß) und „Erweitert“ (Reiter Inhalt, Stil, Layout).
-- Neu: Befehlssuche (Strg+K) und Rückgängig / Wiederholen (Strg+Z, Strg+Umschalt+Z). Die Einstellungen zum Builder-Glas entfallen; Widgets werden nicht mehr aus der Liste auf die Bühne gezogen, sondern in der Bibliothek hinzugefügt.
-
 ### Hinzugefügt
 - Layout der neuen Uhr-, Musik- und F1-Stile an jede Widget-Größe angepasst: nichts läuft mehr über den Rand; breite Widgets bekommen eine Seite-an-Seite-Anordnung, hohe eine untereinander (Poster, Drehscheibe, Strecke, Countdown, Poster-Uhr).
 - Neue Designs im Formel-1-Widget: Strecke, Großer Countdown, Startampel, WM-Turm und Renn-Ticket (die bisherige Karte bleibt Standard); die neuen stehen ohne Glas-Behälter.
@@ -55,6 +36,27 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - README und Widget-Dokumentation auf den aktuellen Stand gebracht (Version, Schulfortschritt, Kantenlinse und Presets, Stil kopieren und einfügen, Builder wird nur bei Bedarf geladen); Bilder unverändert.
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
+
+## [1.5.0] - 2026-11-26
+
+### Tray
+- WidgetDeck zeigt ein Symbol im System-Tray (braucht `python-gobject`): Klick öffnet oder schließt den Builder, im Menü Einstellungen und Beenden. Abschaltbar in den Einstellungen.
+
+### Farbquellen
+- Farben nicht mehr nur über Matugen: vorhandene Farbdateien (Quickshell-Shells, pywal, Serpantinum u. a.) werden erkannt, eine eigene JSON-Datei lässt sich angeben, und ohne beides liest WidgetDeck die Farben selbst aus dem Wallpaper.
+
+### Geändert
+- Flächen in Builder und Widgets sind neutralgrau ohne Blaustich; nur die Akzente folgen der Farbquelle (abschaltbar unter „Farben“).
+- Builder mit festem neutralem Hintergrund; nur die Akzentfarbe folgt Wallpaper bzw. Shell.
+- Startanimation beim Öffnen des Builders (aus dem „W“ wird „WidgetDeck“); Klick oder Taste überspringt sie, in den Einstellungen abschaltbar.
+- Musik: Stil „Kassette“ neu gestaltet (Cover und Akzentstreifen auf dem Etikett, Schrauben, Bandfenster; Fortschritt, Zeit und Knöpfe in einer eigenen Leiste).
+- Formel 1: WM-Turm, Startampel und Renn-Ticket neu gestaltet (Leader groß mit Teamfarbe, Ampel mit zwei Lampen je Säule und Countdown-Kacheln, dunkler Rennpass).
+- Einstellungen öffnen sich über das Zahnrad neben dem Schließen-Knopf, als Dialog über dem Builder: Kopf mit Akzentlinie, zwei Spalten mit Gruppenkästen, Fußleiste mit „Fertig“.
+- Einfachere Widget-Namen: Uhr, CPU & RAM, Musik, Netzwerk, Temperaturen, Laufzeit, System, Songtext, Luft, Wetter, Vorhersage, Formel 1, Timer, Stundenplan, Fortschritt, Visualizer (Typ-Schlüssel und Layout bleiben gleich).
+- Die Ebenenliste zeigt nur die Widgets des bearbeiteten Monitors.
+- Builder neu gestaltet: deckende, schwebende Karten statt Glas; Seiten Editor, Bibliothek (Karten mit Live-Vorschau, mit Pfeilen durch die Designs blättern), Presets und Einstellungen; Ebenenliste links.
+- Widget-Einstellungen mit Modus „Einfach“ (Design-Kacheln, Glas-Stil, Presets, wichtigste Optionen, Klein/Groß) und „Erweitert“ (Reiter Inhalt, Stil, Layout).
+- Neu: Befehlssuche (Strg+K) und Rückgängig / Wiederholen (Strg+Z, Strg+Umschalt+Z). Die Einstellungen zum Builder-Glas entfallen; Widgets werden nicht mehr aus der Liste auf die Bühne gezogen, sondern in der Bibliothek hinzugefügt.
 
 ## [1.3.0] - 2026-11-26
 
