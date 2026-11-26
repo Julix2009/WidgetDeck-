@@ -86,6 +86,10 @@ FloatingWindow {
             // ---------------- 0: wallpaper ----------------
             Column {
                 visible: wz.step === 0; width: parent.width; spacing: 12
+                // first thing, saved at once (so "Skip setup" keeps it); the shell's binding to config.json applies it
+                GChoice { width: parent.width; th: th; label: "Language  ·  Sprache"
+                    options: [["auto", I18n.tr("From system")], ["en", "English"], ["de", "Deutsch"]]; value: wz.lang
+                    onPicked: v => { wz.lang = v; wz.store.setConfig("language", v); } }
                 Text { text: I18n.tr("Wallpaper"); color: th.fg; font.family: th.font; font.pixelSize: 18; font.bold: true }
                 Text { width: parent.width; wrapMode: Text.WordWrap; color: th.dim; font.family: th.font; font.pixelSize: 13
                     text: I18n.tr("Liquid Glass bends the picture behind a widget, so it needs to know your wallpaper. WidgetDeck looks for it in awww, swww, hyprpaper, swaybg and wpaperd. If you use something else, choose the picture yourself.") }
@@ -128,13 +132,11 @@ FloatingWindow {
             // ---------------- 2: units ----------------
             Column {
                 visible: wz.step === 2; width: parent.width; spacing: 12
-                Text { text: I18n.tr("Units and language"); color: th.fg; font.family: th.font; font.pixelSize: 18; font.bold: true }
+                Text { text: I18n.tr("Units"); color: th.fg; font.family: th.font; font.pixelSize: 18; font.bold: true }
                 GChoice { width: parent.width; th: th; label: I18n.tr("Temperature and speed")
                     options: [["auto", I18n.tr("From system")], ["metric", "°C, m/s"], ["imperial", "°F, mph"]]; value: wz.units; onPicked: v => wz.units = v }
                 GChoice { width: parent.width; th: th; label: I18n.tr("Clock")
                     options: [["auto", I18n.tr("From system")], ["24h", "24 h"], ["12h", "12 h"]]; value: wz.timeFmt; onPicked: v => wz.timeFmt = v }
-                GChoice { width: parent.width; th: th; label: I18n.tr("Language")
-                    options: [["auto", I18n.tr("From system")], ["en", "English"], ["de", "Deutsch"]]; value: wz.lang; onPicked: v => { wz.lang = v; I18n.setting = v; } }
             }
 
             // ---------------- 3: style + size ----------------

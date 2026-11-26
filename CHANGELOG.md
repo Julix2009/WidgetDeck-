@@ -5,6 +5,8 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 
 ## [Unveröffentlicht]
 
+- Setup assistant: the language (system, English, German) is now the first choice and applies at once.
+
 ### Hinzugefügt
 - Layout der neuen Uhr-, Musik- und F1-Stile an jede Widget-Größe angepasst: nichts läuft mehr über den Rand; breite Widgets bekommen eine Seite-an-Seite-Anordnung, hohe eine untereinander (Poster, Drehscheibe, Strecke, Countdown, Poster-Uhr).
 - Neue Designs im Formel-1-Widget: Strecke, Großer Countdown, Startampel, WM-Turm und Renn-Ticket (die bisherige Karte bleibt Standard); die neuen stehen ohne Glas-Behälter.

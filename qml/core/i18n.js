@@ -621,7 +621,6 @@ var de = {
  "UPLOAD": "UPLOAD",
  "UPTIME": "LAUFZEIT",
  "Units": "Einheiten",
- "Units and language": "Einheiten und Sprache",
  "Unknown code": "Unbekannter Code",
  "Unknown title": "Unbekannter Titel",
  "Untis Mobile": "Untis Mobile",
