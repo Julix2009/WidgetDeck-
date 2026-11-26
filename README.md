@@ -32,7 +32,7 @@ with colours that follow your wallpaper or your shell. Built with Quickshell.
 
 ![Solid](docs/images/stil-solid.webp)
 
-<sub>Demo data and a self-made wallpaper.</sub>
+<sub>Demo data. Wallpaper: <a href="https://commons.wikimedia.org/wiki/File:Hakkoda_Mountains,_Part_II-_Foothills_-_Hakkoda6929.jpg">Hakkoda Mountains</a> by lumoplank, CC0.</sub>
 
 ## Installation
 
