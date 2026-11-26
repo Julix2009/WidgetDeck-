@@ -66,13 +66,14 @@ Item {
         selectionRequested([id], id);
     }
     // palette click / IPC: a new widget at the first free grid position near the top-left of the usable area
-    function addAtFree(type) {
+    function addAtFree(type, size) {                // size [w, h]: a design with its own size (default: the type's)
         var t = store.typeInfo(type);
         if (!t) return "";
-        var a = areaR(), g = grid, w = Math.min(t.size[0], a.w), h = Math.min(t.size[1], a.h);
+        var a = areaR(), g = grid, sz = size || t.size, w = Math.min(sz[0], a.w), h = Math.min(sz[1], a.h);
         var f = SE.fit({ x: SE.gridPos(a.x + 3 * g.cell, a.x, g.cell), y: SE.gridPos(a.y + 3 * g.cell, a.y, g.cell), w: w, h: h }, a);
         if (!g.overlap) { var nf = SE.nearestFree([f], store.rects([]), a, g.cell); if (nf) { f.x += nf.dx; f.y += nf.dy; } }
         var id = store.add(type, f.x, f.y);
+        if (size) { var o = {}; o[id] = { w: f.w, h: f.h }; store.setGeomMany(o); }
         return id;
     }
     // arrow keys: move the selection by n grid cells (clamped to the usable area)
@@ -233,7 +234,7 @@ Item {
             width: screenSize.width; height: screenSize.height
             scale: cv.zoom; transformOrigin: Item.TopLeft
 
-            Rectangle { anchors.fill: parent; color: "#14161c" }
+            Rectangle { anchors.fill: parent; color: "#161616" }
             Image {
                 anchors.fill: parent
                 source: cv.wall.url
@@ -346,7 +347,7 @@ Item {
                         visible: modelData === cv.sel && cv.sels.length <= 1
                         width: 16 / cv.zoom; height: width; radius: width / 2
                         x: parent.width - width - 8 / cv.zoom; y: parent.height - height - 8 / cv.zoom
-                        color: cv.invalid ? cv.th.danger : cv.th.accent; border.color: "#0b0c10"; border.width: 2 / cv.zoom
+                        color: cv.invalid ? cv.th.danger : cv.th.accent; border.color: "#0c0c0c"; border.width: 2 / cv.zoom
                     }
                 }
             }

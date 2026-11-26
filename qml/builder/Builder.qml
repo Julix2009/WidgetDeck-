@@ -1,7 +1,6 @@
 // The visual editor window.
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import "../core"
 import "../core/Defaults.js" as D
 
@@ -15,18 +14,16 @@ FloatingWindow {
     required property var mons                 // Monitors.qml
     signal settingsClose()
     signal identifyRequested()
-    onSettingsClose: settings.visible = false
-    function showSettings(on) { settings.visible = on; }
+    onSettingsClose: page = "editor"
+    property string page: "editor"              // editor | library | presets | settings
+    function showSettings(on) { page = on ? "settings" : "editor"; }
     function scrollSettings(y) { setFlick.contentY = Math.max(0, Math.min(y, setFlick.contentHeight - setFlick.height)); }
-    // the monitor this window is on (its own glass refracts THAT monitor's picture) and the one that is being edited (the stage)
-    property var bmon: null
-    readonly property size screenSize: bmon ? Qt.size(bmon.w, bmon.h) : (mons.list.length > 0 ? Qt.size(mons.list[0].w, mons.list[0].h) : Qt.size(2560, 1600))
-    MonitorWall { id: bwall; wall: win.wall; key: win.bmon ? win.bmon.key : ""; name: win.bmon ? win.bmon.name : "" }
     readonly property var selRec: { store.mons; store.selMon; return store.monRec(store.curKey()); }
-    MonitorWall { id: swall; wall: win.wall; key: win.store.curKey(); name: win.selRec ? win.selRec.name : "" }
+    MonitorWall { id: swall; wall: win.wall; key: win.store.curKey(); name: win.selRec ? win.selRec.name : "" }   // wallpaper of the edited monitor
     property string sel: ""                  // primary selection (props panel)
     property var sels: []                    // all selected widgets (Shift+click / rubber band)
     property real propsScroll: -1
+    property alias propsTab: propsPanel.tab
     onSelChanged: {                          // a selection set from outside (palette, layer list, IPC) becomes the only one
         if (sel === "") { if (sels.length > 0) sels = []; }
         else if (sels.indexOf(sel) < 0) sels = [sel];
@@ -44,7 +41,8 @@ FloatingWindow {
     // (after typing in a text field the focus stays there). Ctrl+C / V belong to the text field while a text field has the focus.
     readonly property var focusItem: root.Window.window ? root.Window.window.activeFocusItem : null
     readonly property bool textFocus: focusItem !== null && focusItem !== undefined && focusItem.cursorPosition !== undefined
-    readonly property bool styleKeysOk: visible && sels.length > 0 && !colorPop.visible && !listPop.visible
+    readonly property bool editorKeys: page === "editor" && !colorPop.visible && !listPop.visible && !commands.visible
+    readonly property bool styleKeysOk: visible && editorKeys && sels.length > 0 && !colorPop.visible && !listPop.visible
     function copyStyleKey() { if (sel !== "" && store.copyStyle(sel)) propsPanel.styleMsg = I18n.tr("Style copied - select another widget and paste it"); }
     function pasteStyleKey() { if (styleKeysOk) pasteStyleToSelection(); }
     // "Paste style": onto every selected widget (or the one in the panel)
@@ -61,56 +59,38 @@ FloatingWindow {
     readonly property alias canvasItem: canvas
     visible: false
     title: "WidgetDeck"
-    color: "transparent"
+    color: th.bg
     implicitWidth: 1500
     implicitHeight: 920
     minimumSize: Qt.size(1100, 700)
 
-    readonly property bool liquidUi: store.builder.glass === "liquid" && backend.ready && bwall.usable
-    readonly property bool liveOn: store.builder.liveCapture === true && liquidUi
-    Loader {
-        id: liveLoader
-        active: win.liveOn && win.visible
-        sourceComponent: LiveBackdrop { wall: bwall; screenSize: win.screenSize }
-    }
-    readonly property Item liveItem: liveLoader.item
-    Theme { id: th; themeStore: win.theme; liquid: win.liquidUi }
+    Theme { id: th; themeStore: win.theme }
+    readonly property Theme thm: th
 
-    // ───────────── where is this window on the monitor? (the glass refracts the wallpaper behind it) ─────────────
-    property point winPos: Qt.point(Math.max(0, (screenSize.width - width) / 2), Math.max(0, (screenSize.height - height) / 2))
-    function updatePos() {
-        var ts = Hyprland.toplevels.values;
-        for (var i = 0; i < ts.length; i++) {
-            if (ts[i].title !== "WidgetDeck") continue;
-            var o = ts[i].lastIpcObject;
-            if (o && o.at) {
-                // `at` is in the layout of ALL monitors: subtract the origin of the monitor the window is on
-                var m = null;
-                for (var j = 0; j < mons.list.length; j++) if (mons.list[j].hyprId === o.monitor) m = mons.list[j];
-                if (!m) m = mons.at(o.at[0] + 20, o.at[1] + 20) || (mons.list.length > 0 ? mons.list[0] : null);
-                if (m !== bmon) bmon = m;
-                winPos = Qt.point(o.at[0] - (m ? m.x : 0), o.at[1] - (m ? m.y : 0));
-                return;
-            }
-        }
+    function addFromLibrary(type, props, size) {
+        var id = canvas.addAtFree(type, size);
+        if (id === "") return;
+        for (var k in props || {}) store.setProp(id, k, props[k]);
+        page = "editor"; sel = id;
     }
-    Timer {
-        interval: 300; repeat: true; running: win.visible
-        onTriggered: { Hyprland.refreshToplevels(); win.updatePos(); }
+    function commandList() {
+        var out = [
+            { name: I18n.tr("Editor"), run: function () { win.page = "editor"; } },
+            { name: I18n.tr("Library"), run: function () { win.page = "library"; } },
+            { name: I18n.tr("Presets"), run: function () { win.page = "presets"; } },
+            { name: I18n.tr("Settings"), run: function () { win.page = "settings"; } },
+            { name: I18n.tr("Undo"), run: function () { win.store.undo(); } },
+            { name: I18n.tr("Redo"), run: function () { win.store.redo(); } },
+            { name: I18n.tr("Show grid"), run: function () { win.store.setGrid("grid", !win.store.grid.grid); } },
+            { name: I18n.tr("Snap (grid + guides)"), run: function () { win.store.setGrid("snap", !win.store.grid.snap); } },
+            { name: I18n.tr("Align all to the grid"), run: function () { win.store.snapAll(); } }
+        ];
+        Object.keys(store.allTypes).forEach(function (type) {
+            out.push({ name: I18n.trf("Add: %1", I18n.tr(win.store.allTypes[type].label)), run: function () { win.addFromLibrary(type); } });
+        });
+        return out;
     }
-    onVisibleChanged: if (visible) { Hyprland.refreshToplevels(); Qt.callLater(updatePos); }
-
-    // ───────────── glass styles of the builder itself ─────────────
-    readonly property real op: store.builder.opacity
-    function gstyle(radius, alphaScale, extra) {
-        // liquid: the default look (all defaults); only the tint follows the "Deckkraft" setting and the theme
-        var base = liquidUi
-            ? { mode: "liquid", radius: radius, bg_alpha: Math.max(0.3, (op - 0.3) * 1.0) * alphaScale, shadow: 0.0 }
-            : { mode: "frosted", radius: radius, bg: "theme:surface", bg_alpha: Math.min(0.97, op * alphaScale), border_alpha: 0.10, shadow: 0, glass: false };
-        return theme.resolveStyle(D.resolveStyle(Object.assign(base, extra || {})));
-    }
-    readonly property var winStyle: gstyle(30, 1.0)
-    readonly property var panelStyle: gstyle(24, 0.55, liquidUi ? { bg_alpha: Math.max(0.2, (op - 0.3) * 0.7) } : { bg_alpha: Math.min(0.5, op * 0.2), border_alpha: 0.09 })
+    function openCommands() { colorPop.visible = false; listPop.visible = false; commands.commands = commandList(); commands.open(); }
 
     // ───────────── popups (live here so no panel clips them) ─────────────
     property var _colorCb: null
@@ -140,8 +120,9 @@ FloatingWindow {
         anchors.fill: parent
         focus: true
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_Escape) { if (colorPop.visible || listPop.visible || settings.visible) { colorPop.visible = false; listPop.visible = false; settings.visible = false; } else win.visible = false; event.accepted = true; return; }
-            if (win.sels.length === 0 || colorPop.visible || listPop.visible) return;
+            if (splashLoader.item) { splashLoader.item.skip(); event.accepted = true; return; }
+            if (event.key === Qt.Key_Escape) { if (colorPop.visible || listPop.visible) { colorPop.visible = false; listPop.visible = false; } else if (win.page !== "editor") win.page = "editor"; else win.visible = false; event.accepted = true; return; }
+            if (win.sels.length === 0 || !win.editorKeys) return;
             // arrow keys: one grid cell (Shift: five cells), for the whole selection; Delete removes the selection
             var st = (event.modifiers & Qt.ShiftModifier) ? 5 : 1;
             if (event.key === Qt.Key_Delete) { win.removeSelected(); event.accepted = true; }
@@ -156,162 +137,228 @@ FloatingWindow {
         Shortcut { sequence: "Ctrl+C"; enabled: win.styleKeysOk && !win.textFocus; onActivated: win.copyStyleKey() }
         Shortcut { sequence: "Ctrl+V"; enabled: win.styleKeysOk && !win.textFocus; onActivated: win.pasteStyleKey() }
 
-        // window background
-        GlassPanel {
-            id: winGlass
-            width: root.width; height: root.height
-            style: win.winStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
-            screenX: win.winPos.x; screenY: win.winPos.y; screenSize: win.screenSize
-            padPx: 0; interactive: false
-        }
+        Shortcut { sequence: "Ctrl+K"; enabled: win.visible; onActivated: commands.visible ? commands.close() : win.openCommands() }
+        Shortcut { sequence: "Ctrl+Z"; enabled: win.visible && !win.textFocus && !commands.visible; onActivated: win.store.undo() }
+        Shortcut { sequences: ["Ctrl+Shift+Z", "Ctrl+Y"]; enabled: win.visible && !win.textFocus && !commands.visible; onActivated: win.store.redo() }
 
-        // header (drag area)
+        // header (drag area): name, pages, command search, undo / redo, close
         Item {
             id: header
-            x: 22; y: 14; width: root.width - 44; height: 40
+            x: 10; y: 0; width: root.width - 20; height: 60
             MouseArea {
                 anchors.fill: parent
-                property point start
                 onPressed: mouse => { if (typeof win.startSystemMove === "function") win.startSystemMove(); }
             }
-            Text { anchors.verticalCenter: parent.verticalCenter; text: "◈  WidgetDeck"; color: th.fg; font.family: th.font; font.pixelSize: 16; font.bold: true }
-            Text { x: 150; width: Math.max(0, parent.width - 150 - 220); elide: Text.ElideRight; visible: !win.store.multi && width > 120; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: th.dim; font.family: th.font; font.pixelSize: 12 }
-            // several monitors: pick the one you edit (cards + a small map of the arrangement); with one monitor none of this exists
-            MonitorStrip { visible: win.store.multi; x: 150; width: parent.width - 150 - 190; height: parent.height; store: win.store; th: th; mons: win.mons; onIdentify: win.identifyRequested() }
+            Text { x: 14; anchors.verticalCenter: parent.verticalCenter; textFormat: Text.StyledText; color: th.fg; font.family: th.font; font.pixelSize: 17; font.bold: true
+                text: "Widget<font color=\"" + th.accent + "\">Deck</font>" }
+            Row {
+                x: 220; anchors.verticalCenter: parent.verticalCenter; spacing: 4
+                Repeater {
+                    model: [["editor", I18n.tr("Editor")], ["library", I18n.tr("Library")], ["presets", I18n.tr("Presets")]]
+                    delegate: GButton {
+                        required property var modelData
+                        th: win.thm; label: modelData[1]; implicitHeight: 34
+                        checked: win.page === modelData[0]
+                        color: checked ? th.selected : "transparent"; border.color: "transparent"
+                        onClicked: win.page = modelData[0]
+                    }
+                }
+            }
             Row {
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 8
-                GButton { th: th; label: I18n.tr("Settings"); checked: settings.visible; onClicked: settings.visible = !settings.visible }
-                GButton { th: th; label: "✕"; danger: true; pad: 12; onClicked: win.visible = false }
+                GButton { th: win.thm; implicitHeight: 34; width: 230; label: I18n.tr("Search or command…") + "   Ctrl+K"; onClicked: win.openCommands() }
+                GButton { th: win.thm; implicitHeight: 34; width: 34; pad: 0; label: "↶"; enabled: win.store.undoStack.length > 0; opacity: enabled ? 1 : 0.38; onClicked: win.store.undo() }
+                GButton { th: win.thm; implicitHeight: 34; width: 34; pad: 0; label: "↷"; enabled: win.store.redoStack.length > 0; opacity: enabled ? 1 : 0.38; onClicked: win.store.redo() }
+                GButton {
+                    th: win.thm; implicitHeight: 34; width: 34; pad: 0; checked: win.page === "settings"
+                    onClicked: win.page = "settings"
+                    Icon { anchors.centerIn: parent; width: 18; height: 18; name: "gear"; color: th.fg }
+                }
+                GButton { th: win.thm; implicitHeight: 34; width: 34; pad: 0; label: "✕"; danger: true; onClicked: win.visible = false }
             }
         }
 
-        // three panels
         Item {
             id: body
-            x: 18; y: 62; width: root.width - 36; height: root.height - 80
-            readonly property real leftW: 270
-            readonly property real rightW: 330
+            x: 10; y: 60; width: root.width - 20; height: root.height - 92
+            readonly property real leftW: 210
+            readonly property real rightW: 332
 
-            GlassPanel {
-                id: leftGlass
-                x: 0; y: 0; width: body.leftW; height: body.height
-                style: win.panelStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
-                screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
-                padPx: 0; interactive: false
-                WidgetPalette {
-                    id: palette
-                    anchors.fill: parent; anchors.margins: 14
-                    store: win.store; th: th; sel: win.sel
-                    onAddRequested: type => { win.sel = canvas.addAtFree(type); }
-                    onDragMoved: (type, gx, gy) => { ghost.type = type; var p = root.mapFromItem(null, gx, gy); ghost.x = p.x - ghost.width / 2; ghost.y = p.y - ghost.height / 2; ghost.visible = true; }
-                    onDragEnded: (type, gx, gy, moved) => {
-                        ghost.visible = false;
-                        if (canvas.containsGlobal(gx, gy)) canvas.dropAt(type, gx, gy);
-                    }
-                    onLayerPicked: id => { var c = win.store.raw(id); if (c && win.store.monRec(win.store.homeKey(c))) win.store.selMon = win.store.homeKey(c); win.sel = id; }
-                }
-            }
-            GlassPanel {
-                id: midGlass
-                x: body.leftW + 12; y: 0; width: body.width - body.leftW - body.rightW - 24; height: body.height
-                style: win.panelStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
-                screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
-                padPx: 0; interactive: false
-                // a monitor without any widget (new / unknown monitor): offer to take the layout of another one
+            // ── editor ──
+            Item {
+                anchors.fill: parent
+                visible: win.page === "editor" || win.page === "settings"
                 Rectangle {
-                    id: emptyHint
-                    readonly property var donors: {
-                        win.store.rev; win.store.mons; win.store.selMon;
-                        var out = [], k = win.store.curKey(), l = win.store.mons;
-                        for (var i = 0; i < l.length; i++) {
-                            if (l[i].key === k) continue;
-                            var n = win.store.data.widgets.filter(function (w) { return win.store.homeKey(w) === l[i].key && w.monitor !== "all"; }).length;
-                            if (n > 0) out.push({ key: l[i].key, name: l[i].name, n: n });
-                        }
-                        return out;
+                    width: body.leftW; height: body.height; radius: th.cardRadius; color: th.card
+                    WidgetPalette {
+                        anchors.fill: parent; anchors.margins: 14
+                        store: win.store; th: win.thm; sel: win.sel
+                        onAddRequested: win.page = "library"
+                        onLayerPicked: id => { var c = win.store.raw(id); if (c && win.store.monRec(win.store.homeKey(c))) win.store.selMon = win.store.homeKey(c); win.sel = id; }
                     }
-                    readonly property var thm: th
-                    visible: win.store.multi && win.store.stageIds.length === 0 && donors.length > 0
-                    z: 5
-                    anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 18 }
-                    width: hintCol.width + 28; height: hintCol.height + 22; radius: 14
-                    color: Qt.rgba(0.05, 0.06, 0.09, 0.86); border.width: 1; border.color: th.line
-                    Column {
-                        id: hintCol
-                        anchors.centerIn: parent; spacing: 8
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13; text: I18n.tr("This monitor has no widgets yet.") }
-                        Row {
-                            anchors.horizontalCenter: parent.horizontalCenter; spacing: 8
-                            Repeater {
-                                model: emptyHint.donors
-                                delegate: GButton { required property var modelData; th: emptyHint.thm; label: I18n.trf("Take the layout of %1", modelData.name); onClicked: win.store.transferLayout(modelData.key, win.store.curKey()) }
+                }
+                Rectangle {
+                    x: body.leftW + 10; width: body.width - body.leftW - body.rightW - 20; height: body.height
+                    radius: th.cardRadius; color: th.well
+                    // several monitors: pick the one you edit; with one monitor none of this exists
+                    MonitorStrip { id: strip; visible: win.store.multi; x: 12; y: 10; width: parent.width - 24; height: visible ? 40 : 0; clip: true
+                        store: win.store; th: win.thm; mons: win.mons; onIdentify: win.identifyRequested() }
+                    StageCanvas {
+                        id: canvas
+                        anchors.fill: parent; anchors.margins: 12; anchors.topMargin: win.store.multi ? 60 : 12
+                        store: win.store; theme: win.theme; th: win.thm; backend: win.backend; wall: swall
+                        screenSize: win.store.screen; sel: win.sel; sels: win.sels
+                        onSelectionRequested: (ids, primary) => win.selectIds(ids, primary)
+                    }
+                    // a monitor without any widget (new / unknown monitor): offer to take the layout of another one
+                    Rectangle {
+                        id: emptyHint
+                        readonly property var donors: {
+                            win.store.rev; win.store.mons; win.store.selMon;
+                            var out = [], k = win.store.curKey(), l = win.store.mons;
+                            for (var i = 0; i < l.length; i++) {
+                                if (l[i].key === k) continue;
+                                var n = win.store.data.widgets.filter(function (w) { return win.store.homeKey(w) === l[i].key && w.monitor !== "all"; }).length;
+                                if (n > 0) out.push({ key: l[i].key, name: l[i].name, n: n });
+                            }
+                            return out;
+                        }
+                        readonly property var thm: win.thm
+                        visible: win.store.multi && win.store.stageIds.length === 0 && donors.length > 0
+                        z: 5
+                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 18 }
+                        width: hintCol.width + 28; height: hintCol.height + 22; radius: 14
+                        color: th.popup; border.width: 1; border.color: th.line
+                        Column {
+                            id: hintCol
+                            anchors.centerIn: parent; spacing: 8
+                            Text { anchors.horizontalCenter: parent.horizontalCenter; color: th.fg; font.family: th.font; font.pixelSize: 13; text: I18n.tr("This monitor has no widgets yet.") }
+                            Row {
+                                anchors.horizontalCenter: parent.horizontalCenter; spacing: 8
+                                Repeater {
+                                    model: emptyHint.donors
+                                    delegate: GButton { required property var modelData; th: emptyHint.thm; label: I18n.trf("Take the layout of %1", modelData.name); onClicked: win.store.transferLayout(modelData.key, win.store.curKey()) }
+                                }
                             }
                         }
                     }
                 }
-                StageCanvas {
-                    id: canvas
-                    anchors.fill: parent; anchors.margins: 10
-                    store: win.store; theme: win.theme; th: th; backend: win.backend; wall: swall
-                    screenSize: win.store.screen; sel: win.sel; sels: win.sels
-                    onSelectionRequested: (ids, primary) => win.selectIds(ids, primary)
+                Rectangle {
+                    x: body.width - body.rightW; width: body.rightW; height: body.height; radius: th.cardRadius; color: th.card
+                    PropsPanel {
+                        id: propsPanel
+                        anchors.fill: parent; anchors.margins: 14; anchors.rightMargin: 4
+                        store: win.store; th: win.thm; sel: win.sel; scrollRequest: win.propsScroll
+                        wtheme: win.theme; backend: win.backend; wall: swall
+                        onRemoveRequested: win.removeSelected()
+                        onDuplicateRequested: win.sel = win.store.duplicate(win.sel)
+                        onCopyStyleRequested: win.copyStyleKey()
+                        onPasteStyleRequested: win.pasteStyleToSelection()
+                    }
                 }
             }
-            GlassPanel {
-                id: rightGlass
-                x: body.width - body.rightW; y: 0; width: body.rightW; height: body.height
-                style: win.panelStyle; backend: win.backend; wall: bwall; backdrop: win.liveItem
-                screenX: win.winPos.x + body.x + x; screenY: win.winPos.y + body.y + y; screenSize: win.screenSize
-                padPx: 0; interactive: false
-                PropsPanel {
-                    id: propsPanel
-                    anchors.fill: parent; anchors.margins: 14
-                    store: win.store; th: th; sel: win.sel; scrollRequest: win.propsScroll
-                    onRemoveRequested: win.removeSelected()
-                    onDuplicateRequested: win.sel = win.store.duplicate(win.sel)
-                    onCopyStyleRequested: win.copyStyleKey()
-                    onPasteStyleRequested: win.pasteStyleToSelection()
-                }
+
+            // ── library / presets: only built while shown (their live previews run data feeds) ──
+            Loader {
+                anchors { fill: parent; margins: 6 }
+                active: win.visible && win.page === "library"
+                sourceComponent: Library { store: win.store; th: win.thm; theme: win.theme; backend: win.backend; wall: swall; onAddRequested: (type, props, size) => win.addFromLibrary(type, props, size) }
+            }
+            Loader {
+                anchors { fill: parent; margins: 6 }
+                active: win.visible && win.page === "presets"
+                sourceComponent: PresetsPage { store: win.store; th: win.thm; theme: win.theme; backend: win.backend; wall: swall }
             }
         }
 
-        // drag ghost for palette drops
+        // footer: state of the grid, widget count, version
+        Row {
+            x: 24; y: root.height - 24; spacing: 22
+            readonly property string c: th.dim
+            Text { text: I18n.trf("Grid %1 px", win.store.grid.cell); color: parent.c; font.family: th.font; font.pixelSize: 11 }
+            Text { text: win.store.grid.snap ? I18n.tr("Snap on") : I18n.tr("Snap off"); color: parent.c; font.family: th.font; font.pixelSize: 11 }
+            Text { text: I18n.trf("%1 widgets", win.store.widgetIds.length); color: parent.c; font.family: th.font; font.pixelSize: 11 }
+            Text { visible: win.page === "editor"; text: I18n.tr("Drag widgets (grid + guides, Alt = free), Shift = multi-select - changes appear live on the desktop"); color: parent.c; font.family: th.font; font.pixelSize: 11 }
+        }
+        Text { anchors { right: parent.right; rightMargin: 24 } y: root.height - 24; visible: win.update.version !== ""; text: "v" + win.update.version; color: th.dim; font.family: th.font; font.pixelSize: 11 }
+
+        // ── settings: a dialog over the dimmed editor ──
         Rectangle {
-            id: ghost
-            property string type: ""
-            visible: false; z: 100
-            width: 150; height: 64; radius: 18; opacity: 0.85
-            color: Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, 0.35)
-            border.color: th.accent; border.width: 2
-            Row {
-                anchors.centerIn: parent; spacing: 8
-                readonly property var t: win.store.typeInfo(ghost.type)
-                TypeGlyph { anchors.verticalCenter: parent.verticalCenter; ti: parent.t; color: th.fg; size: 18 }
-                Text { anchors.verticalCenter: parent.verticalCenter; color: th.fg; font.family: th.font; font.pixelSize: 14; text: parent.t ? I18n.tr(parent.t.label) : "" }
+            id: settingsLayer
+            visible: win.page === "settings"; z: 100
+            anchors.fill: parent
+            color: Qt.rgba(0, 0, 0, 0.6)
+            MouseArea { anchors.fill: parent; hoverEnabled: true; onClicked: win.page = "editor"; onWheel: wheel => wheel.accepted = true }
+            Rectangle {
+                anchors.centerIn: parent
+                width: Math.min(parent.width - 80, 980); height: parent.height - 60
+                radius: th.cardRadius; color: th.card; border.width: 1; border.color: th.line
+                MouseArea { anchors.fill: parent }
+
+                // head: accent line, mark, title and version
+                Rectangle {
+                    id: setHead
+                    x: 1; y: 1; width: parent.width - 2; height: 82
+                    topLeftRadius: th.cardRadius - 1; topRightRadius: th.cardRadius - 1
+                    color: Qt.tint(th.card, Qt.rgba(th.accent.r, th.accent.g, th.accent.b, 0.10))
+                    Rectangle { x: th.cardRadius; width: parent.width - 2 * th.cardRadius; height: 3; radius: 2; color: th.accent }
+                    Rectangle {
+                        id: mark
+                        x: 24; anchors.verticalCenter: parent.verticalCenter; width: 44; height: 44; radius: 13; color: th.accent
+                        Text { anchors.centerIn: parent; text: "W"; color: th.onAccent; font.family: th.font; font.pixelSize: 25; font.weight: Font.Black; renderType: Text.QtRendering }
+                    }
+                    Column {
+                        x: mark.x + mark.width + 16; anchors.verticalCenter: parent.verticalCenter; spacing: 2
+                        Text { text: I18n.tr("Settings"); color: th.fg; font.family: th.font; font.pixelSize: 24; font.bold: true }
+                        Text { text: ("WidgetDeck " + win.update.version).toUpperCase(); color: th.dim; font.family: th.font; font.pixelSize: 11; font.letterSpacing: 2 }
+                    }
+                    GButton { anchors { right: parent.right; rightMargin: 18; verticalCenter: parent.verticalCenter } th: win.thm; width: 34; implicitHeight: 34; pad: 0; label: "✕"; onClicked: win.page = "editor" }
+                }
+
+                Flickable {
+                    id: setFlick
+                    anchors { left: parent.left; right: parent.right; top: setHead.bottom; bottom: setFoot.top; leftMargin: 20; rightMargin: 20 }
+                    contentHeight: setCol.height + 36; clip: true; boundsBehavior: Flickable.StopAtBounds
+                    SettingsPanel {
+                        id: setCol
+                        y: 18; width: setFlick.width - 12; height: implicitHeight
+                        store: win.store; theme: win.theme; wall: win.wall; backend: win.backend; update: win.update; th: win.thm
+                        mons: win.mons; liquidOk: win.backend.ready && swall.usable
+                        onPickWallpaper: { wallPicker.startPath = ""; wallPicker.open(); }
+                        onRunWizard: { win.settingsClose(); win.store.setConfig("setup.done", false); }
+                    }
+                }
+                Rectangle {                                       // scroll position
+                    x: parent.width - 11; width: 4; radius: 2; color: th.accent; opacity: 0.7
+                    visible: setFlick.contentHeight > setFlick.height
+                    y: setFlick.y + setFlick.visibleArea.yPosition * setFlick.height
+                    height: setFlick.visibleArea.heightRatio * setFlick.height
+                }
+
+                Item {
+                    id: setFoot
+                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                    height: 62
+                    Rectangle { width: parent.width; height: 1; color: th.line }
+                    GButton { x: 20; anchors.verticalCenter: parent.verticalCenter; th: win.thm; implicitHeight: 34; label: I18n.tr("Run the setup assistant again"); onClicked: setCol.runWizard() }
+                    GButton { anchors { right: parent.right; rightMargin: 20; verticalCenter: parent.verticalCenter } th: win.thm; implicitHeight: 34; pad: 26; primary: true; label: I18n.tr("Done"); onClicked: win.page = "editor" }
+                }
             }
         }
 
-        // settings
-        GlassPanel {
-            id: settings
-            visible: false; z: 50
-            x: root.width - width - 22; y: 56; width: 360
-            height: Math.min(root.height - 80, setCol.height + 36)
-            style: win.gstyle(26, 1.2); backend: win.backend; wall: bwall; backdrop: win.liveItem
-            screenX: win.winPos.x + x; screenY: win.winPos.y + y; screenSize: win.screenSize
-            padPx: 0; interactive: false
-            Flickable {
-                id: setFlick
-                anchors.fill: parent; anchors.margins: 18
-                contentHeight: setCol.height; clip: true; boundsBehavior: Flickable.StopAtBounds
-                SettingsPanel {
-                    id: setCol
-                    width: parent.width - 8
-                    store: win.store; theme: win.theme; wall: win.wall; backend: win.backend; update: win.update; th: th
-                    mons: win.mons; liquidOk: win.backend.ready && bwall.usable
-                    onPickWallpaper: { wallPicker.startPath = ""; wallPicker.open(); }
-                    onRunWizard: { win.settingsClose(); win.store.setConfig("setup.done", false); }
-                }
+        CommandPalette { id: commands; z: 250; anchors.fill: parent; th: win.thm }
+
+        // start animation: only built when it is switched on, gone after it ran
+        Loader {
+            id: splashLoader
+            anchors.fill: parent; z: 500
+            property bool done: false
+            active: !done && win.store.loaded && win.store.builder.splash !== false
+            sourceComponent: Splash {
+                th: win.thm; ready: win.store.loaded && win.store.monsReady
+                onFinished: splashLoader.done = true
+                // a short moment for the window to appear, so the animation is seen from its first frame
+                Timer { interval: 90; running: true; onTriggered: parent.start() }
             }
         }
 

@@ -18,14 +18,14 @@ GlassPanel {
     // colours: "theme:<role>" follows the Matugen palette (animated), "#rrggbb" stays as chosen
     style: {
         store.rev;
-        var s = theme.resolveStyle(store.styleOf(wid));
+        var s = theme.resolveStyle(cfg.preview ? store.previewStyle(wtype, cfg.style) : store.styleOf(wid));
         var o = ld.item ? ld.item.tintOverride : undefined;     // a widget may tint the glass (music: cover colours)
         if (o !== undefined) { s.tint_color = o; s.bg = o; }
         return s;
     }
     plain: wprops.no_glass === true || (ld.item !== null && ld.item.forcePlain === true)      // "Text only (no glass container)", or a widget that is a free shape (clock styles)
     lightPulse: ld.item && ld.item.lightPulse !== undefined ? ld.item.lightPulse : 0
-    readonly property var wprops: { store.rev; return theme.resolveProps(tinfo ? tinfo.props : null, store.propsOf(wid)); }
+    readonly property var wprops: { store.rev; return theme.resolveProps(tinfo ? tinfo.props : null, cfg.preview ? store.previewProps(wtype, cfg.props) : store.propsOf(wid)); }
     peers: { store.rev; if (!(style.merge > 0)) return noPeers; store.geomRev; return store.peers(wid); }
     width: cfg.w
     height: cfg.h

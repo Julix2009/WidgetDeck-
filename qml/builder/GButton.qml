@@ -12,12 +12,12 @@ Rectangle {
     implicitHeight: 32
     implicitWidth: lab.implicitWidth + 2 * pad
     radius: th.ctlRadius
-    color: primary ? Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, ma.containsMouse ? 1 : 0.85)
-         : checked ? Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, 0.35)
+    color: primary ? Qt.rgba(Qt.color(th.accent).r, Qt.color(th.accent).g, Qt.color(th.accent).b, ma.containsMouse ? 1 : 0.9)
+         : checked ? th.selected
          : danger && ma.containsMouse ? Qt.rgba(1, 0.35, 0.35, 0.3)
          : ma.containsMouse ? th.fieldHover : th.field
     border.width: 1
-    border.color: checked ? th.accent : (danger && ma.containsMouse ? Qt.rgba(1, 0.45, 0.45, 0.8) : th.line)
+    border.color: checked ? th.accent : (danger && ma.containsMouse ? Qt.rgba(1, 0.45, 0.45, 0.8) : "transparent")
     scale: ma.pressed ? 0.96 : 1
     Behavior on color { ColorAnimation { duration: 160 } }
     Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
@@ -25,8 +25,9 @@ Rectangle {
         id: lab
         anchors.centerIn: parent
         text: b.label
-        color: b.primary ? "#0b0c10" : b.th.fg
+        color: b.primary ? b.th.onAccent : b.th.fg
         font.family: b.th.font; font.pixelSize: 13; font.bold: b.primary
+        width: Math.min(implicitWidth, b.width - 8); elide: Text.ElideRight; horizontalAlignment: Text.AlignHCenter
     }
     default property alias extra: slot.data
     Item { id: slot; anchors.fill: parent }

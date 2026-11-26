@@ -22,7 +22,7 @@ FloatingWindow {
     implicitWidth: 760; implicitHeight: 640
     minimumSize: Qt.size(760, 640); maximumSize: Qt.size(760, 640)
 
-    Theme { id: th; themeStore: wz.theme; liquid: false }
+    Theme { id: th; themeStore: wz.theme }
     readonly property var uiTheme: th
 
     // ---- the choices (initialised from the current config, so re-running the assistant starts from what is set) ----

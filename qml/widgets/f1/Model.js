@@ -162,3 +162,12 @@ var COUNTRY_DE = { "USA": "USA", "UK": "Großbritannien", "UAE": "Vereinigte Ara
                    "Singapore": "Singapur", "Mexico": "Mexiko", "Brazil": "Brasilien", "Qatar": "Katar", "Bahrain": "Bahrain", "Saudi Arabia": "Saudi-Arabien", "Germany": "Deutschland", "France": "Frankreich",
                    "Portugal": "Portugal", "Turkey": "Türkei", "Argentina": "Argentinien", "South Africa": "Südafrika", "Russia": "Russland" };
 function countryName(c, lang) { return lang === "de" && COUNTRY_DE[c] ? COUNTRY_DE[c] : (c || ""); }
+
+// team colour as a small accent in the designs (matched by name, grey when unknown)
+var TEAM_COLORS = [["red bull", "#3671c6"], ["racing bulls", "#6692ff"], ["rb f1", "#6692ff"], ["ferrari", "#e8002d"], ["mclaren", "#ff8000"], ["mercedes", "#27f4d2"],
+                   ["aston", "#229971"], ["alpine", "#ff87bc"], ["williams", "#64c4ff"], ["haas", "#b6babd"], ["audi", "#f50537"], ["sauber", "#52e252"], ["cadillac", "#c9a45c"]];
+function teamColor(name) {
+    var n = String(name || "").toLowerCase();
+    for (var i = 0; i < TEAM_COLORS.length; i++) if (n.indexOf(TEAM_COLORS[i][0]) >= 0) return TEAM_COLORS[i][1];
+    return "#8a8d96";
+}

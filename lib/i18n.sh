@@ -2,6 +2,7 @@
 # shellcheck disable=SC2034
 # German texts for the installer scripts. Key = the English text used in t '...'. English needs no entry.
 # tools/check-i18n.py lists missing entries.
+DE['icon in the system tray']='Symbol im System-Tray'
 DE['installer']='Installer'
 DE['options']='Optionen'
 DE['show what would happen (changes nothing)']='zeigt nur, was passieren würde (ändert nichts)'

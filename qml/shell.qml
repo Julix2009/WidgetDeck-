@@ -17,7 +17,7 @@ ShellRoot {
     id: shell
 
     Store { id: theStore }
-    ThemeStore { id: theTheme; store: theStore }
+    ThemeStore { id: theTheme; store: theStore; wallUrl: theWall.url }
     GlassBackend { id: theBackend }
     UpdateCheck { id: theUpdate; store: theStore }
     Wallpaper { id: theWall; override: theStore.data.wallpaperPath || ""; extra: theStore.data.wallpapers || ({}) }
@@ -63,6 +63,24 @@ ShellRoot {
     }
 
     Binding { target: I18n; property: "setting"; value: theStore.cget("language", "auto") }
+
+    // ───────────── tray icon ("WidgetDeck is running" in the bar): core/tray.py, config.json "tray": false switches it off ─────────────
+    Process {
+        id: tray
+        readonly property bool wanted: theStore.configLoaded && theStore.cget("tray", true)
+        // the menu texts are fixed at start: a language change restarts the helper
+        readonly property var labels: [I18n.tr("Open builder"), I18n.tr("Settings"), I18n.tr("Quit WidgetDeck")]
+        command: ["python3", "-I", decodeURIComponent(Qt.resolvedUrl("core/tray.py").toString().replace("file://", ""))].concat(labels)
+        running: wanted
+        onLabelsChanged: if (running) { running = false; running = Qt.binding(function () { return tray.wanted; }); }
+        stdout: SplitParser {
+            onRead: line => {
+                if (line === "toggle") shell.setBuilder(!builderLoader.active);
+                else if (line === "settings") { shell.setBuilder(true); shell.builderWin.page = "settings"; }
+                else if (line === "quit") Qt.quit();
+            }
+        }
+    }
 
     // ───────────── focus timer: one shared timer that lives with the shell (widgets/focustimer/FocusTimerService.qml) ─────────────
     Binding { target: FocusTimerService; property: "store"; value: theStore }
@@ -165,7 +183,7 @@ ShellRoot {
         function style(id: string, key: string, json: string): void { theStore.setStyle(id, key, JSON.parse(json)); }
         function builderGlass(mode: string): void { theStore.setBuilder("glass", mode); }
         function reloadLayout(): void { theStore.scanPlugins(); }
-        function themeInfo(): string { return JSON.stringify({ enabled: theTheme.enabled, mode: theTheme.mode, scheme: theTheme.scheme, source: theTheme.sourceColor, primary: theTheme.resolve("theme:primary"), on_surface: theTheme.resolve("theme:on_surface") }); }
+        function themeInfo(): string { return JSON.stringify({ enabled: theTheme.enabled, source: theTheme.source, active: theTheme.activeSource, found: theTheme.found, mode: theTheme.mode, scheme: theTheme.scheme, sourceColor: theTheme.sourceColor, primary: theTheme.resolve("theme:primary"), on_surface: theTheme.resolve("theme:on_surface") }); }
         function setTheme(key: string, json: string): void { theStore.setBuilder(key, JSON.parse(json)); }
         function regenerate(): void { theTheme.regenerate(theWall.path); }
         // ── snap grid / edit mode automation ──
@@ -201,6 +219,11 @@ ShellRoot {
         function sels(): string { return JSON.stringify(builderWin.sels); }
         function refreshArea(): void { shell.refreshArea(); }
         function settingsPanel(on: bool): void { builderWin.showSettings(on); }
+        function builderPage(name: string): void { builderWin.page = name; }              // editor | library | presets | settings
+        function builderTab(name: string): void { builderWin.propsTab = name; }            // advanced mode: content | style | layout
+        function commandPalette(): void { builderWin.openCommands(); }
+        function undo(): string { return String(theStore.undo()); }
+        function redo(): string { return String(theStore.redo()); }
         function scrollSettings(y: real): void { builderWin.scrollSettings(y); }
         // drive the stage exactly like the mouse does (same functions); x / y in desktop px, mods bit 1 = Shift, bit 2 = Alt
         function dragStart(x: real, y: real, mods: int): void { builderWin.canvasItem.pressAt(x, y, (mods & 1 ? Qt.ShiftModifier : 0) | (mods & 2 ? Qt.AltModifier : 0)); }

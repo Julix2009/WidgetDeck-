@@ -34,7 +34,7 @@ Item {
             // 6 revolutions a minute; stands still while paused or hidden
             NumberAnimation on rotation { running: d.host.live; paused: !d.host.playing; from: 0; to: 360; duration: 10000; loops: Animation.Infinite }
         }
-        Rectangle { anchors.centerIn: parent; width: parent.width * 0.11; height: width; radius: width / 2; color: "#e6111318"; border.width: 2; border.color: d.host.accent }
+        Rectangle { anchors.centerIn: parent; width: parent.width * 0.11; height: width; radius: width / 2; color: "#e6131313"; border.width: 2; border.color: d.host.accent }
         MouseArea { anchors.fill: art; cursorShape: Qt.PointingHandCursor; onClicked: d.host.togglePlay() }
     }
     Column {

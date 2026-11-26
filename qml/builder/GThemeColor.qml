@@ -28,7 +28,7 @@ Item {
         Text {
             anchors.centerIn: parent; font.family: s.th.font; font.pixelSize: 12
             text: s.isShell ? "Serpantinum · " + s.value.substring(6) : (s.isTheme ? s.role : s.value)
-            color: s.shown.hslLightness > 0.55 ? "#101216" : "#f2f4f8"
+            color: s.shown.hslLightness > 0.55 ? "#121212" : "#f2f4f8"
         }
         MouseArea {
             anchors.fill: parent; cursorShape: Qt.PointingHandCursor

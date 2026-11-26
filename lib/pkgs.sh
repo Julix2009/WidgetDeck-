@@ -18,13 +18,13 @@
 # Icons are drawn by WidgetDeck itself (qml/core/Icons.js): no icon font and no icon theme is needed.
 PKGS_REQUIRED=(quickshell qt6-declarative qt6-wayland qt6-shadertools jq curl iproute2 iputils)
 PKGS_RECOMMENDED=(adwaita-fonts)
-PKGS_OPTIONAL=(networkmanager playerctl cava fastfetch matugen python zbar libsecret)
+PKGS_OPTIONAL=(networkmanager playerctl cava fastfetch matugen python python-gobject zbar libsecret)
 declare -A PKG_WHY=(
     [quickshell]="shell runtime" [qt6-declarative]="QtQuick" [qt6-wayland]="Wayland plugin for Qt" [qt6-shadertools]="qsb (Liquid Glass shaders)"
     [jq]="JSON in the data widgets and config" [curl]="weather / air quality" [iproute2]="network widget (ip)" [iputils]="network widget (ping)"
     [adwaita-fonts]="preferred UI font"
     [networkmanager]="Wi-Fi name and signal (nmcli)" [playerctl]="music widget: skip direction" [cava]="visualizer widget" [fastfetch]="system info widget" [matugen]="colours from the wallpaper"
-    [python]="timetable and Formula 1 widgets: data helpers" [zbar]="timetable widget: reads the QR code" [libsecret]="timetable widget: keyring (secret-tool)"
+    [python]="timetable and Formula 1 widgets: data helpers" [python-gobject]="icon in the system tray" [zbar]="timetable widget: reads the QR code" [libsecret]="timetable widget: keyring (secret-tool)"
 )
 
 # missing <pkg...>: prints the packages that are NOT installed (provides are honoured: quickshell-git satisfies quickshell)

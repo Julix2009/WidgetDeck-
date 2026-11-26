@@ -98,8 +98,8 @@ var SOLID_PRESETS = {
 // the built-in presets of a glass style (Frosted has none)
 function presetsFor(mode) { return mode === "liquid" ? LIQUID_PRESETS : (mode === "solid" ? SOLID_PRESETS : {}); }
 
-var BUILDER_DEFAULT = { glass: "frosted", opacity: 0.78, liveCapture: false,
-                        themeEnabled: true, themeMode: "dark", themeScheme: "scheme-tonal-spot" };
+var BUILDER_DEFAULT = { glass: "frosted", opacity: 0.78, liveCapture: false, splash: true, neutralSurfaces: true,
+                        themeEnabled: true, themeSource: "auto", themeFile: "", themeMode: "dark", themeScheme: "scheme-tonal-spot" };
 var SCHEMES = [["scheme-tonal-spot", "Tonal Spot"], ["scheme-vibrant", "Vibrant"], ["scheme-expressive", "Expressive"], ["scheme-content", "Content"],
                ["scheme-monochrome", "Monochrome"], ["scheme-fidelity", "Fidelity"], ["scheme-fruit-salad", "Fruit Salad"],
                ["scheme-neutral", "Neutral"], ["scheme-rainbow", "Rainbow"]];

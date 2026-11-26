@@ -38,7 +38,7 @@ Item {
     Item {
         visible: p.wide
         anchors.fill: parent
-        Rectangle { anchors.fill: parent; radius: p.r; color: "#d915171d"; border.width: 1; border.color: "#33ffffff" }
+        Rectangle { anchors.fill: parent; radius: p.r; color: "#d9171717"; border.width: 1; border.color: "#33ffffff" }
         RoundCover { id: sq; x: p.u * 0.6; y: p.u * 0.6; width: parent.height - p.u * 1.2; height: width; radius: p.r * 0.7; source: p.host.artText; tint: p.host.accent }
         Column {
             anchors { left: sq.right; leftMargin: p.u * 1.2; right: parent.right; rightMargin: p.u * 1.2; verticalCenter: parent.verticalCenter }

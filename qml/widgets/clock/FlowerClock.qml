@@ -10,7 +10,7 @@ Item {
     readonly property int petals: Math.max(5, Math.min(16, Math.round(Number(w.props.petals || 10))))
     readonly property color cFg: w.style.fg || "#f2f4f8"
     readonly property color cAcc: w.style.accent || "#8ab4ff"
-    readonly property color cPlate: w.palette.surface_container || "#1d2027"
+    readonly property color cPlate: w.palette.surface_container || "#202020"
     readonly property real h: w.now.getHours() % 12 + w.now.getMinutes() / 60
     readonly property real m: w.now.getMinutes() + w.now.getSeconds() / 60
 

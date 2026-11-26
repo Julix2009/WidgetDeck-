@@ -1,6 +1,6 @@
 # Ein neues Widget hinzufügen
 
-[Zurück zur README](../README.md) · [English README](../README.en.md)
+[Zurück zur README](../README.md)
 
 Es gibt zwei Wege. Für ein eigenes Widget auf deinem Rechner brauchst du keine Änderung am Repository (Weg 1). Soll das Widget ins Projekt, ist es ein Eintrag in der Registry (Weg 2).
 
@@ -88,6 +88,6 @@ Die vollständigen Regeln stehen in [`CONTRIBUTING.md`](../CONTRIBUTING.md) (eng
 5. **Texte:** In QML `I18n.tr("English text")`, in Shell-Skripten `t 'English text %s' arg`. Die deutschen Texte kommen nach `qml/core/i18n.js` und `lib/i18n.sh`.
 6. **Icons:** In `qml/core/Icons.js` selbst zeichnen (24×24 Linien-Icons). Keine Icon-Schriften und keine fremden Icons ohne kompatible Lizenz.
 7. **Prüfen:** die Befehle aus der Liste in `CONTRIBUTING.md` ausführen, mindestens `python3 tools/check-i18n.py`, `shellcheck` und die Tests, die dein Widget berühren.
-8. **Doku:** Eintrag in der Widget-Tabelle der [README](../README.md#funktionen-auf-einen-blick) und ein Abschnitt in [`docs/widgets.md`](widgets.md). Die Einstellungs-Tabelle dort lässt sich aus der Registry erzeugen, sie sollte nicht von Hand abgeschrieben werden.
+8. **Doku:** Ein Abschnitt in [`docs/widgets.md`](widgets.md). Die Einstellungs-Tabelle dort lässt sich aus der Registry erzeugen, sie sollte nicht von Hand abgeschrieben werden.
 
 Lizenz: Nur Code beitragen, den du selbst geschrieben hast oder der eine freie Lizenz trägt, und in der Pull-Request-Beschreibung die Herkunft nennen.

@@ -30,7 +30,7 @@ Scope {
             Rectangle {
                 anchors.centerIn: parent
                 width: Math.min(parent.width * 0.5, 520); height: width * 0.62; radius: 36
-                color: "#d9101420"; border.width: 3; border.color: modelData.key === idf.mons.primaryKey ? "#8ab4ff" : "#55ffffff"
+                color: "#d9141414"; border.width: 3; border.color: modelData.key === idf.mons.primaryKey ? "#8ab4ff" : "#55ffffff"
                 opacity: 0
                 NumberAnimation on opacity { to: 1; duration: 180; running: true }
                 Column {

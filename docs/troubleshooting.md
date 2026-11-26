@@ -1,6 +1,6 @@
 # Fehlerbehebung
 
-[Zurück zur README](../README.md) · [English README](../README.en.md)
+[Zurück zur README](../README.md)
 
 Erst `widgetdeck-doctor` ausführen. Es prüft Hyprland, Quickshell, Qt, Shader, Pakete, Wallpaper, Monitore, Konflikte, Einstellungen und die Netzwerkdienste und nennt zu jeder WARN- und FAIL-Zeile eine Lösung. Das Protokoll der Shell zeigt `widgetdeck log`.
 

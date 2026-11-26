@@ -55,5 +55,5 @@ Item {
     Icon { visible: disc.cover === ""; anchors.centerIn: parent; width: disc.labelSize * 0.55; height: width; name: "music"; color: Qt.rgba(1, 1, 1, 0.9); stroke: 2.2 }
     Rectangle { anchors.centerIn: parent; width: disc.labelSize; height: width; radius: width / 2; color: "transparent"; border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.14) }
     // spindle hole
-    Rectangle { anchors.centerIn: parent; width: disc.width * 0.04; height: width; radius: width / 2; color: "#16161a"; border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.35) }
+    Rectangle { anchors.centerIn: parent; width: disc.width * 0.04; height: width; radius: width / 2; color: "#161616"; border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.35) }
 }

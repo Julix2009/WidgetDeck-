@@ -1,6 +1,6 @@
 # Widgets im Detail
 
-[Zurück zur README](../README.md) · [English README](../README.en.md)
+[Zurück zur README](../README.md)
 
 Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas), Liquid Glass und der undurchsichtige Stil *Deckend* (mit festen Paletten *AMOLED*, *Dunkelgrau*, *Nord*, *Gruvbox*, *Hell*, bei installierter Shell Serpantinum auch *Serpantinum* mit deren Farben) gelten also für jedes Widget gleich, Raster, Einrasten und mehrere Monitore ebenso. Die Einstellungen eines Widgets stehen im Builder rechts im Eigenschaften-Panel. Die Spalte „Schlüssel“ ist der Name, den `widgetdeck ipc setProp <id> <schlüssel> <json>` erwartet.
 
@@ -232,7 +232,7 @@ Ein Ring mit der Restzeit, der Phase und den heutigen Sessions. Es gibt **einen*
 
 * **Phasen:** Fokus (25 min), kurze Pause (5 min), lange Pause (15 min nach 4 Fokus-Sessions). Alle Längen sind Einstellungen und für alle Instanzen gleich.
 * **Größen:** Groß (300×380): Ring, Phase, Session-Punkte, Fokuszeit heute, *Start / Pause*, *Überspringen*, *Zurücksetzen*. Klein (200×200): Ring, Zeit und Phase; die Tasten erscheinen beim Darüberfahren, ein Klick auf den Ring startet oder pausiert.
-* **Steuerung von außen:** `focus-timer toggle | start | pause | reset | skip | status [--json]`. Der Befehl spricht per Quickshell-IPC (Target `focustimer`) mit dem laufenden WidgetDeck und startet es nicht. Exit-Status 0 = erledigt, 1 = WidgetDeck läuft nicht, 2 = unbekannter Befehl. Tastenkürzel: siehe [README](../README.md#bedienung).
+* **Steuerung von außen:** `focus-timer toggle | start | pause | reset | skip | status [--json]`. Der Befehl spricht per Quickshell-IPC (Target `focustimer`) mit dem laufenden WidgetDeck und startet es nicht. Exit-Status 0 = erledigt, 1 = WidgetDeck läuft nicht, 2 = unbekannter Befehl. Tastenkürzel: Beispiele stehen auskommentiert in `hypr/widgetdeck.lua.in`.
 * **Fokus-Modus** (Einstellung *Benachrichtigungen im Fokus pausieren*, aus): Während einer laufenden Fokus-Phase ist „Nicht stören“ an, danach kommt der vorherige Zustand zurück. Ein selbst gesetztes „Nicht stören“ wird nie aufgehoben. Funktioniert mit dem Benachrichtigungsmodul von WidgetDeck, **dunst** (`dunstctl set-paused`), **mako** (`makoctl mode`, Modus `do-not-disturb`), **swaync** (`swaync-client -dn / -df`) und Benachrichtigungs-Shells, die einer Flag-Datei folgen (`~/.cache/quickshell/dnd/state`, `1` = still).
 * **Phasenende:** ein kurzer Ton (eigene Arbeit, `qml/widgets/focustimer/chime.wav`) über das erste vorhandene Programm aus `pw-play`, `paplay`, `ffplay`, `canberra-gtk-play`, `aplay`, dazu eine Benachrichtigung per `notify-send` (Paket `libnotify`); beides einzeln abschaltbar. Eine Phase, die endete, während die Shell nicht lief oder der Rechner schlief, wird einmal und leise gezählt.
 * **Statistik:** `~/.config/widgetdeck/focus-stats.json` (je Tag abgeschlossene Fokus-Sessions und Fokus-Sekunden; die letzten 365 Tage). Eine beschädigte Datei wird nach `focus-stats.json.damaged-<Datum>` kopiert und neu begonnen. Der laufende Zustand steht in `focus-state.json`, ein Neustart der Shell oder des Rechners macht dort weiter.

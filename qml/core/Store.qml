@@ -34,7 +34,8 @@ Scope {
         // missing monitor do), cross_edge = dragging a widget over a monitor edge moves it to the neighbour, notify = "focused" | "primary" | <key>,
         // bar = "all" | [keys] (monitors that get the bar), osd = same values as notify (volume / brightness indicators of other tools use it)
         monitors: { primary: "", unplugged: "wait", cross_edge: false, notify: "focused", bar: "all" },
-        update: { check: true, channel: "main" }
+        update: { check: true, channel: "main" },
+        tray: true
     })
     property var config: JSON.parse(JSON.stringify(configDefaults))
     property int configRev: 0                 // bumped AFTER the file was written / read: widgets that depend on it fetch again
@@ -151,6 +152,7 @@ Scope {
             else applyText(t);
         }
         if (loaded) { var moved = clampAll(); maybeMigrate(); if (!moved && !first) saveTimer.restart(); }     // a changed monitor list is saved with the layout
+        resetHistory();
     }
     function areaRect() { return { x: area.x, y: area.y, w: area.width, h: area.height }; }
     // the monitors a widget is shown on right now ("all" = every connected one; a missing monitor: wait, or use the primary one - config monitors.unplugged)
@@ -339,6 +341,9 @@ Scope {
         var c = raw(id);
         return c ? R.resolveProps(c.type, c.props, userTypes) : ({});
     }
+    // builder previews (library, design tiles): a widget that is not part of the layout
+    function previewStyle(type, partial) { var t = typeInfo(type); return D.resolveStyle(partial, t ? t.style : null); }
+    function previewProps(type, partial) { return R.resolveProps(type, partial, userTypes); }
     function peers(id) {
         var out = [], w = data.widgets;
         var me = raw(id), hk = me ? homeKey(me) : "";
@@ -384,6 +389,53 @@ Scope {
         }
         if (n > 0) touch(false);
         return n;
+    }
+    // one preset onto every widget (builder: "Presets" page); the font size stays what it was
+    function applyLookAll(mode, obj) {
+        var n = 0;
+        for (var i = 0; i < data.widgets.length; i++) {
+            var c = raw(data.widgets[i].id); if (!c) continue;
+            c.style = Object.assign({}, c.style || {}, D.MODE_PRESETS[mode] || {}, obj || {}, { mode: mode });
+            n++;
+        }
+        if (n > 0) touch(false);
+        return n;
+    }
+    // ───────────── undo / redo ─────────────
+    // One step per save (saves are debounced, so a drag is one step). Only the widget list is kept; a reload of the file from outside or a
+    // changed monitor setup starts a new history.
+    property var undoStack: []
+    property var redoStack: []
+    property string histBase: ""
+    function resetHistory() { histBase = JSON.stringify(data.widgets); undoStack = []; redoStack = []; }
+    function recordHistory() {
+        var s = JSON.stringify(data.widgets);
+        if (histBase !== "" && s !== histBase) { undoStack = undoStack.concat([histBase]).slice(-50); redoStack = []; }
+        histBase = s;
+    }
+    function restore(s) {
+        histBase = s;
+        data.widgets = JSON.parse(s);
+        touch(true);
+    }
+    function flushSave() { if (saveTimer.running) { saveTimer.stop(); saveNow(); } }
+    function undo() {
+        flushSave();
+        if (undoStack.length === 0) return false;
+        var s = undoStack[undoStack.length - 1];
+        undoStack = undoStack.slice(0, -1);
+        redoStack = redoStack.concat([histBase]);
+        restore(s);
+        return true;
+    }
+    function redo() {
+        flushSave();
+        if (redoStack.length === 0) return false;
+        var s = redoStack[redoStack.length - 1];
+        redoStack = redoStack.slice(0, -1);
+        undoStack = undoStack.concat([histBase]);
+        restore(s);
+        return true;
     }
     function applyStyle(id, obj) {
         var c = raw(id); if (!c) return;
@@ -564,6 +616,7 @@ Scope {
             if (!root.parseLayout(t)) console.log("[widgetdeck] widgets.json is not valid JSON, keeping the current layout");
             root.loaded = true;
             if (root.areaKnown) { root.clampAll(); root.maybeMigrate(); }
+            if (t !== root.lastWritten) root.resetHistory();
         }
         onLoadFailed: error => {
             if (!root.loaded) {
@@ -608,6 +661,7 @@ Scope {
     Process { id: bak; onExited: root.saveNow() }
     Timer { id: migrateFallback; interval: 3000; running: root.needsMigration; onTriggered: { root.areaKnown = true; root.maybeMigrate(); } }
     function saveNow() {
+        recordHistory();
         var t = JSON.stringify(toFile(), null, 2) + "\n";
         lastWritten = t;
         lfile.setText(t);

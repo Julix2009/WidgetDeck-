@@ -15,7 +15,7 @@ Item {
     Text { anchors.right: parent.right; text: s.value.toFixed(s.decimals); color: s.th.dim; font.family: s.th.font; font.pixelSize: 12 }
     Rectangle {
         id: track
-        y: 24; width: parent.width; height: 5; radius: 3; color: Qt.rgba(1, 1, 1, 0.14)
+        y: 24; width: parent.width; height: 5; radius: 3; color: s.th.fieldHover
         Rectangle { width: Math.max(0, knob.x + knob.width / 2); height: parent.height; radius: 3; color: s.th.accent }
         Rectangle {
             id: knob
