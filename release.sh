@@ -46,7 +46,7 @@ step "Prüfungen"
 git rev-parse --git-dir >/dev/null 2>&1 || die "Kein Git-Repository."
 [ -f VERSION ] || die "Datei VERSION fehlt."
 CUR="$(tr -d '[:space:]' < VERSION)"
-[[ "$CUR" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "VERSION '$CUR' ist keine Version nach Semantic Versioning (x.y.z)."
+[[ "$CUR" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || die "VERSION '$CUR' ist keine Version nach Semantic Versioning (x.y.z)."
 
 if [ -z "$(git status --porcelain)" ]; then ok "Arbeitsbaum sauber"; else fail "Arbeitsbaum ist nicht sauber (git status): erst committen oder verwerfen."; git status --short | head -n 8 | sed 's/^/         /'; fi
 cur_branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -83,7 +83,7 @@ if [ "$KIND" = current ]; then
     NEW="$CUR"
     grep -q "^## \[$NEW\]" CHANGELOG.md || fail "CHANGELOG.md hat keinen Abschnitt für $NEW."
 else
-    IFS=. read -r MA MI PA <<<"$CUR"
+    IFS=. read -r MA MI PA _ <<<"$CUR"
     case "$KIND" in patch) PA=$((PA + 1)) ;; minor) MI=$((MI + 1)); PA=0 ;; major) MA=$((MA + 1)); MI=0; PA=0 ;; esac
     NEW="$MA.$MI.$PA"
     [ -n "$LAST" ] && [ "$LAST" != "v$CUR" ] && warn "VERSION ($CUR) entspricht nicht dem letzten Tag ($LAST)."

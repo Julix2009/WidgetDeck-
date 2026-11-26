@@ -5,8 +5,6 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 
 ## [Unveröffentlicht]
 
-- Setup assistant: the language (system, English, German) is now the first choice and applies at once.
-
 ### Hinzugefügt
 - Layout der neuen Uhr-, Musik- und F1-Stile an jede Widget-Größe angepasst: nichts läuft mehr über den Rand; breite Widgets bekommen eine Seite-an-Seite-Anordnung, hohe eine untereinander (Poster, Drehscheibe, Strecke, Countdown, Poster-Uhr).
 - Neue Designs im Formel-1-Widget: Strecke, Großer Countdown, Startampel, WM-Turm und Renn-Ticket (die bisherige Karte bleibt Standard); die neuen stehen ohne Glas-Behälter.
@@ -38,6 +36,12 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - README und Widget-Dokumentation auf den aktuellen Stand gebracht (Version, Schulfortschritt, Kantenlinse und Presets, Stil kopieren und einfügen, Builder wird nur bei Bedarf geladen); Bilder unverändert.
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
+
+## [1.5.0.1] - 2026-11-26
+
+- Setup assistant: the language (system, English, German) is now the first choice and applies at once.
+- README: new screenshots and a list of the widgets that come in several designs.
+- Update check and release script understand four-part version numbers.
 
 ## [1.5.0] - 2026-11-26
 

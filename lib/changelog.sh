@@ -5,7 +5,7 @@ changelog_since() {
     awk -v have="$have" '
         function vgt(a, b,    x, y, i, n) {            # a > b ?
             n = split(a, x, "."); split(b, y, ".")
-            for (i = 1; i <= 3; i++) { if ((x[i] + 0) > (y[i] + 0)) return 1; if ((x[i] + 0) < (y[i] + 0)) return 0 }
+            for (i = 1; i <= 4; i++) { if ((x[i] + 0) > (y[i] + 0)) return 1; if ((x[i] + 0) < (y[i] + 0)) return 0 }
             return 0
         }
         /^## \[/ {

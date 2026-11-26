@@ -43,7 +43,7 @@ unknown() { save "$(emit unknown "" "")"; exit 0; }
 
 notes_from() {   # notes_from <ref in clone>: changelog sections newer than the installed version
     git -C "$REPO" show "$1:CHANGELOG.md" 2>/dev/null | awk -v have="$VER" '
-        function vgt(a, b,  x, y, i) { split(a, x, "."); split(b, y, "."); for (i = 1; i <= 3; i++) { if ((x[i]+0) > (y[i]+0)) return 1; if ((x[i]+0) < (y[i]+0)) return 0 } return 0 }
+        function vgt(a, b,  x, y, i) { split(a, x, "."); split(b, y, "."); for (i = 1; i <= 4; i++) { if ((x[i]+0) > (y[i]+0)) return 1; if ((x[i]+0) < (y[i]+0)) return 0 } return 0 }
         /^## \[/ { v = $0; sub(/^## \[/, "", v); sub(/\].*/, "", v); show = (v ~ /^[0-9]+\.[0-9]+\.[0-9]+/) && vgt(v, have) }
         show && NF { print }' | head -c 1800
 }
