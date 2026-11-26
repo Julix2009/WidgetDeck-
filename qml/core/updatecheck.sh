@@ -30,7 +30,6 @@ if [ "$CHECK" = false ]; then emit disabled "" ""; exit 0; fi
 
 if [ "$FORCE" = 0 ] && [ -f "$CF" ]; then
     age=$(( now - $(jq -r '.checked // 0' "$CF" 2>/dev/null || echo 0) ))
-    st="$(jq -r '.state // ""' "$CF" 2>/dev/null)"
     same="$(jq -r --arg v "$VER" --arg r "$REV" --arg c "$CHANNEL" '(.version == $v) and (.rev == $r) and (.channel == $c)' "$CF" 2>/dev/null)"
     limit=900
     if [ "$same" = true ] && [ "$age" -lt "$limit" ] && [ "$age" -ge 0 ]; then cat "$CF"; exit 0; fi
