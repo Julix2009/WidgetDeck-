@@ -37,6 +37,23 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.5.2.0] - 2026-11-27
+
+### Behoben
+- Datenverlust bei der Migration: Ohne vollständiges Backup wird nicht mehr migriert, beim Zurückspielen wird nichts mehr vorher gelöscht, und ein verlinkter Einstellungsordner (Dotfiles) wird wirklich kopiert statt nur der Link (Issue #4).
+- Eine `widgets.json`, `config.json` oder `builder.json` mit Fehler wird nicht mehr mit leeren oder Standardwerten überschrieben; Speichern ist gesperrt, bis die Datei wieder lesbar ist, und es kommt eine Benachrichtigung (Issue #4).
+- Formel 1: `fetch` und `live` sperren den Cache gemeinsam und schreiben über eigene Zwischendateien; ein nicht beschreibbarer Cache bricht die Ausgabe nicht mehr ab (Issue #4).
+- Koordinaten mit Dezimalkomma werden verstanden statt auf ganze Grad gekürzt; ungültige Werte werden gemeldet und nicht halb gespeichert (Assistent, Einstellungen, Luftqualität) (Issue #4).
+- Update: „die alte Version ist wiederhergestellt“ steht nur noch da, wenn das wirklich passiert ist (Issue #4).
+- CPU & RAM: liest nur, solange das Widget-Fenster sichtbar ist, und ein fehlendes Intervall führt nicht mehr zu einer Endlosschleife (Issue #4).
+- Englische Oberfläche ohne deutsche Texte (Update-Hinweis, `widgetdeck-update`, `update.sh`) (Issue #4).
+- `--uninstall --purge` entfernt auch den Untis-Zugang und den von `widgetdeck-update` angelegten Klon (ohne eigene Änderungen) und meldet keinen Fehler mehr (Issue #4).
+- Uhr `%j` stimmt auch in der Sommerzeit; Wetter zeigt bei fehlenden Werten nichts statt `NaN°`; Benachrichtigungen bleiben bei Timeout 0 stehen, der Timeout des Absenders wird als Millisekunden gelesen (vorher 1000-fach zu lang) und sie zeigen nur reinen Text (Issue #4).
+- Formel 1: abgesagte Rennen werden nicht mehr abgefragt, Countdown tickt zur Minute, Erinnerungen kommen nach einem Neustart nicht doppelt (Issue #4).
+- GitHub-Widget: Cache-Fehler brechen nichts ab, Pause nach „rate limited“. Stundenplan: nach abgelehntem Login Pause (1 h, 6 h, 24 h), keine Weiterleitungen, neue Zugangsdaten leeren den Cache (Issue #4).
+- Pfade mit Leerzeichen funktionieren im Starter, in den Hyprland-Regeln und bei swaybg; fehlt eine End-Markierung, wird die Datei nicht angefasst (Issue #4).
+- Kleinigkeiten: Rechte von `config.json` bleiben, Feeds melden Fehler statt das Widget abzuhängen, Fokus-Timer bucht die Länge der Phase, `netmon`/Visualizer prüfen Eingaben, ohne Monitore wird nicht gespeichert (Issue #4).
+
 ## [1.5.1.0] - 2026-11-26
 
 - New widget “GitHub activity”: the contribution calendar with total and streak. Enter the user name once in the settings; no login needed.
