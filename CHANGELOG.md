@@ -37,6 +37,11 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.5.2.1] - 2026-11-27
+
+### Geändert
+- Weniger Last und Akkuverbrauch (Issue #4): Netzwerk- und CPU-&-RAM-Widget starten viel weniger Programme (WLAN-Name und Signal nur noch alle 10 s), `cava` schläft nach 5 s Stille, die Uhr zeichnet ohne Sekundenanzeige nur zum Minutenwechsel neu, das Wallpaper wird je nach Bedarf alle 5, 15 oder 60 s gesucht und die Platzsuche beim Einrasten ist um ein Vielfaches schneller.
+
 ## [1.5.2.0] - 2026-11-27
 
 ### Behoben
