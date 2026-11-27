@@ -26,7 +26,7 @@ Item {
     Feed {
         id: poll
         key: "sysmon:" + w.seconds
-        command: ["sh", "-c", "while :; do head -n1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo; echo; sleep " + w.seconds + "; done"]
+        command: ["sh", "-c", "while :; do read -r l < /proc/stat; echo \"$l\"; while read -r k v _; do case $k in MemTotal:|MemAvailable:) echo \"$k $v\" ;; esac; done < /proc/meminfo; echo; sleep " + w.seconds + "; done"]
         interval: 0
         active: w.live
         property real total: 0

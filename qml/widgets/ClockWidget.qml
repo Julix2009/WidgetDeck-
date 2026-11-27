@@ -53,7 +53,18 @@ Item {
     }
     function hAlign(a) { return a === "center" ? Text.AlignHCenter : (a === "end" ? Text.AlignRight : Text.AlignLeft); }
 
-    Timer { interval: 500; running: true; repeat: true; onTriggered: w.now = new Date() }
+    // redraw only when something shown can change: every second with seconds, else when the minute turns. The timer itself stays short, so the
+    // time is right again at once after standby (a timer does not run while the computer sleeps)
+    readonly property bool live: Window.window !== null && Window.window.visible
+    readonly property bool needsSeconds: (timeFmt + (props.date_format || "")).indexOf("%S") >= 0
+        || (face === "flower" && (props.show_seconds !== false || props.spin === true)) || (face === "pixel" && props.show_seconds !== false)
+    Timer {
+        interval: w.needsSeconds ? 500 : 1000; running: w.live; repeat: true; triggeredOnStart: true
+        onTriggered: {
+            var d = new Date();
+            if (w.needsSeconds || Math.floor(d.getTime() / 60000) !== Math.floor(w.now.getTime() / 60000)) w.now = d;
+        }
+    }
 
     Loader {
         id: faceLoader

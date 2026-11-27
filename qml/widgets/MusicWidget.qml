@@ -116,7 +116,7 @@ Item {
         else if (!progAnim.running) prog = progTarget;                                              // normal 1 Hz tick: no animation
     }
     NumberAnimation { id: progAnim; target: w; property: "prog"; duration: 460; easing.type: Easing.OutCubic }
-    Timer { interval: 1000; repeat: true; running: w.playing && (w.props.show_progress !== false || w.turntable || w.skinFile !== ""); onTriggered: { try { w.player.positionChanged(); } catch (e) { } } }
+    Timer { interval: 1000; repeat: true; running: w.live && w.playing && (w.props.show_progress !== false || w.turntable || w.skinFile !== ""); onTriggered: { try { w.player.positionChanged(); } catch (e) { } } }
 
     // ───────────── layout ─────────────
     // the style switch is a crossfade between the two views (the glass behind is not touched)

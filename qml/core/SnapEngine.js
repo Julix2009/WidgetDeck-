@@ -208,8 +208,8 @@ function nearestFree(rects, others, area, cell) {
     }
     if (ok(0, 0)) return { dx: 0, dy: 0 };
     for (r = 1; r <= R; r++) {
-        for (dx = -r; dx <= r; dx++) for (dy = -r; dy <= r; dy++) {
-            if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        // only the cells of this ring: both side columns in full, of the others the top and the bottom one
+        for (dx = -r; dx <= r; dx++) for (dy = -r; dy <= r; dy += (Math.abs(dx) === r ? 1 : 2 * r)) {
             var d = dx * dx + dy * dy;
             if (best !== null && d >= best.d) continue;
             if (ok(dx * cell, dy * cell)) best = { dx: dx * cell, dy: dy * cell, d: d };

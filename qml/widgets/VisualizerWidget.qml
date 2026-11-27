@@ -22,7 +22,7 @@ Item {
     function colorAt(i) { return props.gradient ? mix(style.accent, props.color2, i / Math.max(1, n - 1)) : style.accent; }
 
     // cava prints one line per frame: "12;40;7;..." (0..1000)
-    readonly property string conf: "[general]\nbars = " + n + "\nframerate = " + fps + "\n[input]\nmethod = pipewire\nsource = " + String(props.source || "auto").replace(/[\r\n]+/g, " ")
+    readonly property string conf: "[general]\nbars = " + n + "\nframerate = " + fps + "\nsleep_timer = 5\n[input]\nmethod = pipewire\nsource = " + String(props.source || "auto").replace(/[\r\n]+/g, " ")
         + "\n[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 1000\nbar_delimiter = 59\nframe_delimiter = 10\n[smoothing]\nnoise_reduction = 70\n"
     Feed {                                                  // one cava for every visualizer with the same settings
         id: cava

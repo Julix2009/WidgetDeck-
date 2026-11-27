@@ -8,6 +8,8 @@ Scope {
     id: root
     property string override: ""          // "wallpaperPath" from widgets.json
     property bool wanted: true            // poll only while something needs it
+    property int interval: 5000           // ms between two looks; the shell sets it by who needs the picture (shell.qml)
+    onIntervalChanged: if (wanted && interval <= 5000) refresh()          // the builder was just opened: look now
     property string detected: ""
     property var outputs: ({})            // output name -> picture, when the tool tells per monitor (awww / swww / hyprpaper / swaybg / wpaperd)
     property var tools: ({})              // output name -> tool
@@ -93,5 +95,5 @@ Scope {
         command: ["true"]
         onExited: (code, status) => root.overrideExists = code === 0
     }
-    Timer { interval: 5000; repeat: true; running: root.wanted && root.override === ""; onTriggered: root.refresh() }
+    Timer { interval: root.interval; repeat: true; running: root.wanted && root.override === ""; onTriggered: root.refresh() }
 }

@@ -20,7 +20,16 @@ ShellRoot {
     ThemeStore { id: theTheme; store: theStore; wallUrl: theWall.url }
     GlassBackend { id: theBackend }
     UpdateCheck { id: theUpdate; store: theStore }
-    Wallpaper { id: theWall; override: theStore.data.wallpaperPath || ""; extra: theStore.data.wallpapers || ({}) }
+    // the picture is visible in the widgets when one of them is Liquid Glass or the colours are taken from it
+    readonly property bool wallInUse: {
+        theStore.rev;
+        if (theTheme.enabled && theTheme.activeSource === "wallpaper") return true;
+        return theStore.data.widgets.some(function (w) { return theStore.styleOf(w.id).mode === "liquid"; });
+    }
+    // looking for a new wallpaper starts a handful of programs: every 5 s while someone is choosing (builder, setup), 15 s when the picture is
+    // visible, else once a minute. A rewritten colour file (matugen & co.) makes it look at once, as does `widgetdeck ipc reloadWallpaper`.
+    Wallpaper { id: theWall; override: theStore.data.wallpaperPath || ""; extra: theStore.data.wallpapers || ({})
+        interval: (builderLoader.active || setupWizard.visible) ? 5000 : (shell.wallInUse ? 15000 : 60000) }
 
     // ───────────── monitors ─────────────
     // every connected, active, non-mirrored monitor with a stable key (core/Monitors.qml); plug / unplug is noticed live
