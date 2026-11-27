@@ -206,6 +206,13 @@ Item {
                 }
             }
 
+            // ── quick apps: its programs ──
+            QuickAppsEditor {
+                visible: !!pp.c && pp.c.type === "quickapps" && (!pp.adv || pp.tab === "content")
+                width: parent.width; th: pp.th; store: pp.store
+                wid: visible ? pp.sel : ""
+            }
+
             Text { visible: pp.showLayout; text: I18n.tr("POSITION & SIZE"); color: th.dim; font.family: th.font; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.2; topPadding: 4 }
             Grid {
                 visible: pp.showLayout

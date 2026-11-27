@@ -15,12 +15,12 @@ Item {
     property var look: ({ mode: "solid" })    // style keys of the preview
     property var size: null                   // [w, h]; default = the size of the type
     readonly property var ti: { store.rev; return store.typeInfo(type); }
-    readonly property var sz: size ? size : (ti ? ti.size : [320, 160])
+    readonly property var sz: size ? size : (type === "quickapps" ? [340, 260] : (ti ? ti.size : [320, 160]))       // the preview shows six apps
     readonly property real k: Math.min(1, width / sz[0], height / sz[1])
     clip: true
 
     // demo data where a widget would otherwise need an account
-    readonly property var demo: type === "timetable" ? ({ source: "demo" }) : (type === "github" ? ({ user: "demo" }) : ({}))
+    readonly property var demo: type === "timetable" ? ({ source: "demo" }) : (type === "github" ? ({ user: "demo" }) : (type === "todo" || type === "quickapps" ? ({ demo: true }) : ({})))
 
     Item {
         x: (pt.width - width * pt.k) / 2

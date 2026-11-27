@@ -67,6 +67,7 @@ var de = {
  "School": "Schule",
  "Own": "Eigene",
  "Add": "Hinzufügen",
+ "Apps": "Apps",
  "Apply to all": "Auf alle anwenden",
  "A preset changes the look of every widget. Undo brings the old looks back.": "Ein Preset ändert den Look aller Widgets. Rückgängig holt die alten Looks zurück.",
  "+ Widget": "+ Widget",
@@ -710,6 +711,22 @@ var de = {
  "just now": "gerade eben",
  "min": "Min",
  "not connected": "nicht angeschlossen",
- "s": "s"
+ "s": "s",
+ "To-do": "To-do",
+ "A task list on the desktop: type, tick off, remove (one list everywhere)": "Aufgabenliste auf dem Desktop: eintippen, abhaken, löschen (eine Liste überall)",
+ "Show done tasks": "Erledigte anzeigen",
+ "Water the plants": "Blumen gießen",
+ "Answer the e-mail": "E-Mail beantworten",
+ "Buy milk": "Milch kaufen",
+ "Remove done": "Erledigte löschen",
+ "%1 open": "%1 offen",
+ "todo.json cannot be read. It is left untouched.": "todo.json ist nicht lesbar. Die Datei bleibt unverändert.",
+ "Nothing to do.": "Nichts zu tun.",
+ "New task …": "Neue Aufgabe …",
+ "Quick apps": "Schnellzugriff",
+ "Start up to six programs with one click; the size follows the number of apps": "Bis zu sechs Programme mit einem Klick starten; die Größe folgt der Anzahl",
+ "Add apps": "Apps hinzufügen",
+ "Search …": "Suchen …",
+ "No app found": "Keine App gefunden"
 };
 var TABLES = { de: de };

@@ -14,6 +14,8 @@ Thanks for helping! Bug reports and small fixes are the most useful things right
   python3 tools/f1-helper-test.py    # Formula 1 data helper against a local mock server (cache, 429, offline, request counts)
   node tools/focus-timer-test.js     # focus timer logic (phases, standby, restore, statistics), re-runs itself under four time zones
   tools/focus-timer-dnd-test.sh      # do-not-disturb backends against stand-ins of dunst / mako / swaync / a flag file
+  node tools/todo-test.js            # to-do list logic (parsing, damaged files, limits)
+  node tools/quickapps-test.js       # quick apps logic (limit, sizes, search)
   node tools/monitors-test.js        # monitor keys, moving widgets between monitors, wallpaper per output
   tools/untis-test.sh                # Untis client against a local mock server (invented data)
   tools/secret-scan.sh               # no personal paths, tokens or coordinates

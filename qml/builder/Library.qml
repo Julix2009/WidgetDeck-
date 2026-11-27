@@ -30,7 +30,7 @@ Item {
                                        ["sport", I18n.tr("Sport")], ["school", I18n.tr("School")], ["own", I18n.tr("Own")]]
     readonly property var catOf: ({ clock: "system", sysmon: "system", netmon: "system", thermals: "system", sysstatus: "system", fastfetch: "system",
                                     music: "media", lyrics: "media", visualizer: "media", weather: "weather", weathercard: "weather", airquality: "weather",
-                                    f1: "sport", github: "system", focustimer: "school", timetable: "school", schoolprogress: "school" })
+                                    f1: "sport", github: "system", focustimer: "school", timetable: "school", schoolprogress: "school", todo: "system", quickapps: "system" })
     readonly property var allKeys: { store.rev; return Object.keys(store.allTypes); }
     readonly property var keys: allKeys.filter(function (k) { return lib.category === "all" || (lib.catOf[k] || "own") === lib.category; })
     readonly property bool hasOwn: allKeys.some(function (k) { return lib.catOf[k] === undefined; })

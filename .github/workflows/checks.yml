@@ -38,6 +38,10 @@ jobs:
         run: node tools/focus-timer-test.js
       - name: focus timer do-not-disturb backends (stand-ins of dunst, mako, swaync)
         run: tools/focus-timer-dnd-test.sh
+      - name: to-do list tests
+        run: node tools/todo-test.js
+      - name: quick apps tests
+        run: node tools/quickapps-test.js
       - name: monitor tests
         run: node tools/monitors-test.js
       - name: Untis client tests (local mock server)

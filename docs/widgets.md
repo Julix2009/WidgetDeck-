@@ -6,7 +6,7 @@ Alle Widgets liegen auf demselben Glas-Panel. Frosted Glass (Milchglas), Liquid 
 
 Widgets mit zwei Größen haben im Builder die Knöpfe *Klein* und *Groß*. Das Aussehen eines Widgets (Glas-Stil, Regler, Farben) lässt sich mit *Stil kopieren* und *Stil einfügen* auf andere übertragen. Bei Liquid Glass gibt es außerdem die optionale *Kantenlinse* (*Linsenstärke*, *Kantenbiegung*, *Regenbogensaum*, *Linsen-Tönung*) und die Presets *Kristall* und *Wassertropfen*; bei Linsenstärke 0 bleibt alles wie zuvor. Alle anderen haben eine Standardgröße, die du über Breite und Höhe frei ändern kannst.
 
-Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [Songtext](#songtext) · [System-Info](#system-info-fastfetch) · [Visualizer](#musik-visualizer)
+Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) · [Temperaturen](#temperaturen--lüfter) · [Uptime](#uptime--status) · [Luftqualität](#luftqualität) · [Wetter](#wetter) · [Wetter-Karte](#wetter-karte) · [Formel 1](#formel-1-inoffiziell) · [Fokus-Timer](#fokus-timer) · [To-do](#to-do) · [Schnellzugriff](#schnellzugriff) · [Musik](#musik) · [Stundenplan](#stundenplan-webuntis--untis-mobile) · [Schulfortschritt](#schulfortschritt) · [Songtext](#songtext) · [System-Info](#system-info-fastfetch) · [Visualizer](#musik-visualizer)
 
 ## Uhr & Datum
 
@@ -254,6 +254,40 @@ Ein Ring mit der Restzeit, der Phase und den heutigen Sessions. Es gibt **einen*
 | Benachrichtigung am Ende einer Phase (gilt für alle Instanzen) | `notify` | an | an / aus |
 
 </details>
+
+## To-do
+
+*Aufgabenliste auf dem Desktop.* Größe: Klein 280×240, Groß 360×380 (logische Pixel, Breite × Höhe).
+
+Ins Feld unten klicken, Aufgabe tippen, Enter. Ein Klick auf eine Zeile hakt sie ab (oder wieder auf), das ✕ löscht sie, „Erledigte löschen“ räumt alle abgehakten weg. Offene Aufgaben stehen oben. Alle To-do-Widgets auf allen Monitoren zeigen dieselbe Liste.
+
+Die Tastatur bekommt das Widget nur nach einem Klick ins Eingabefeld. Sie geht zurück, sobald der Mauszeiger das Widget verlässt, bei Esc oder nach 30 Sekunden ohne Tippen; ein angefangener Text bleibt dabei stehen (nur Esc verwirft ihn).
+
+Gespeichert wird in `~/.config/widgetdeck/todo.json`. Ist die Datei nicht lesbar, bleibt sie unverändert und das Widget sagt das. Aufgaben lassen sich auch von außen anlegen, zum Beispiel für einen Tastenkurzbefehl:
+
+```bash
+quickshell -p ~/.config/quickshell/widgetdeck ipc call todo add "Blumen gießen"
+```
+
+<details>
+<summary>Alle Einstellungen</summary>
+
+| Einstellung | Schlüssel | Standard | Werte |
+|---|---|---|---|
+| Erledigte anzeigen | `show_done` | an | an / aus |
+| Textgröße | `text_size` | 1.0 | 0.8 – 1.8 |
+
+</details>
+
+## Schnellzugriff
+
+*Bis zu sechs Programme mit einem Klick starten.* Die Größe folgt der Anzahl: bis zwei Apps 240×160, drei 340×160, vier 240×260, fünf und sechs 340×260 (logische Pixel, auf das Raster aufgerundet).
+
+Auf das große Feld oder das „+“ (erscheint, wenn die Maus über dem Widget ist) klicken: Es öffnet sich die Liste der installierten Programme mit Suche. Ein Klick fügt eine App hinzu, Enter nimmt den ersten Treffer, Esc oder ein Klick daneben schließt. Jedes Widget hat seine eigene Liste. Auf dem Desktop lässt sich nichts entfernen, damit das nicht aus Versehen passiert: Entfernt wird im Builder.
+
+Dasselbe geht im Builder: Widget auswählen, rechts unter „Apps“ stehen die gewählten Programme klein, mit ✕ zum Entfernen und „+“ zum Hinzufügen (in dieser Auswahl lässt sich eine App auch wieder abwählen) (im erweiterten Modus im Reiter *Inhalt*).
+
+Die Größe wird nur angepasst, wenn sich die Liste ändert. Die Position bleibt gleich, ein gewachsenes Widget kann also ein Nachbar-Widget überdecken. Programme, die ein Terminal brauchen (etwa btop), starten im ersten installierten Terminal (`$TERMINAL`, kitty, foot, alacritty, ghostty, wezterm, konsole, xterm).
 
 ## Musik
 

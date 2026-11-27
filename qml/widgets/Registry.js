@@ -203,6 +203,18 @@ var TYPES = {
             { key: "show_count", simple: true, label: "Show the lessons (e.g. 5 of 30)", kind: "bool", def: true }
         ]
     },
+    todo: {
+        label: "To-do", desc: "A task list on the desktop: type, tick off, remove (one list everywhere)", icon: "check", size: [360, 380], file: "TodoWidget.qml",
+        sizes: { small: [280, 240], large: [360, 380] },
+        props: [
+            { key: "show_done", simple: true, label: "Show done tasks", kind: "bool", def: true },
+            { key: "text_size", simple: true, label: "Text size", kind: "range", def: 1.0, min: 0.8, max: 1.8, step: 0.05 }
+        ]
+    },
+    quickapps: {
+        label: "Quick apps", desc: "Start up to six programs with one click; the size follows the number of apps", icon: "grid", size: [240, 160], file: "QuickAppsWidget.qml",
+        props: []
+    },
     visualizer: {
         label: "Visualizer", desc: "Audio-reactive bars (cava)", icon: "bars", size: [460, 150], file: "VisualizerWidget.qml",
         style: { bg_alpha: 0.45 },

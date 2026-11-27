@@ -9,6 +9,8 @@ import "core"
 import "core/Defaults.js" as D
 import "widgets"
 import "widgets/focustimer"
+import "widgets/todo"
+import "widgets/quickapps"
 import "builder"
 import "modules"
 import "wizard"
@@ -103,6 +105,33 @@ ShellRoot {
         function reset(): string { FocusTimerService.reset(); return FocusTimerService.statusJson(); }
         function skip(): string { FocusTimerService.skip(); return FocusTimerService.statusJson(); }
         function status(): string { return FocusTimerService.statusJson(); }
+    }
+
+    // ───────────── to-do list: one list for all widgets (widgets/todo/TodoService.qml) ─────────────
+    Binding { target: TodoService; property: "store"; value: theStore }
+    IpcHandler {
+        target: "todo"
+        // qs -p <qml> ipc call todo add "text" | toggle <id> | remove <id> | removeDone | list
+        function add(text: string): string { TodoService.add(text); return TodoService.statusJson(); }
+        function toggle(id: string): string { TodoService.toggle(id); return TodoService.statusJson(); }
+        function remove(id: string): string { TodoService.remove(id); return TodoService.statusJson(); }
+        function removeDone(): string { TodoService.removeDone(); return TodoService.statusJson(); }
+        function list(): string { return TodoService.statusJson(); }
+    }
+
+    // ───────────── quick apps: the widgets start programs; the app chooser only exists while it is open (widgets/quickapps) ─────────────
+    Binding { target: QuickAppsService; property: "store"; value: theStore }
+    LazyLoader {
+        active: QuickAppsService.pickerFor !== ""
+        AppPicker { theme: theTheme; visible: true }
+    }
+    IpcHandler {
+        target: "quickapps"
+        // qs -p <qml> ipc call quickapps add <widget id> <app id> | remove <widget id> <app id> | list <widget id> | close
+        function add(widget: string, app: string): string { QuickAppsService.add(widget, app); return JSON.stringify(QuickAppsService.listOf(widget)); }
+        function remove(widget: string, app: string): string { QuickAppsService.remove(widget, app); return JSON.stringify(QuickAppsService.listOf(widget)); }
+        function list(widget: string): string { return JSON.stringify(QuickAppsService.listOf(widget)); }
+        function close(): void { QuickAppsService.closePicker(); }
     }
 
     Wizard { id: setupWizard; store: theStore; theme: theTheme; wall: theWall; liquidOk: shell.liquidOk; shaderOk: theBackend.ready }

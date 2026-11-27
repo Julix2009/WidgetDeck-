@@ -5,6 +5,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../core"
 
 PanelWindow {
@@ -52,7 +53,12 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Bottom
     WlrLayershell.namespace: win.ns
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    // only while a widget asks for it (to-do list: after a click into its text field) the surface takes the keyboard. Hyprland does not hand it over
+    // for a click that happened before the surface asked, so the focus grab fetches it; the widget gives it back itself.
+    readonly property bool wantsKeys: host.contentItem !== null && host.contentItem.wantsKeyboard === true
+    WlrLayershell.keyboardFocus: win.wantsKeys ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    HyprlandFocusGrab { id: grab; windows: [win]; onCleared: if (win.wantsKeys) host.contentItem.release() }
+    onWantsKeysChanged: if (wantsKeys) Qt.callLater(function () { grab.active = win.wantsKeys; }); else grab.active = false
     mask: Region { item: host }
 
     // Self-healing: a layer surface that was created while the monitor still had another scale (right after boot or login, resume from suspend) can keep that
