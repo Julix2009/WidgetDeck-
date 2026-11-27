@@ -5,13 +5,14 @@ Thanks for helping! Bug reports and small fixes are the most useful things right
 * **Bugs:** open an issue with the template and paste the output of `widgetdeck-doctor` (it hides your home directory and prints no location or wallpaper path).
 * **Pull requests:** keep them small and focused. Run the checks before you push:
   ```bash
-  shellcheck -x -S warning install.sh update.sh uninstall.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/widgets/focustimer/*.sh qml/widgets/lyrics/*.sh qml/modules/*.sh tools/*.sh tools/f1/*.sh tools/nested/*.sh tools/perf/*.sh
+  shellcheck -x -S warning install.sh update.sh uninstall.sh lib/*.sh bin/* qml/core/*.sh qml/widgets/sysmon/*.sh qml/widgets/focustimer/*.sh qml/widgets/lyrics/*.sh qml/widgets/clock/*.sh qml/modules/*.sh tools/*.sh tools/f1/*.sh tools/nested/*.sh tools/perf/*.sh
   python3 tools/check-i18n.py        # every UI text needs an English source and a German entry
   node tools/snapengine-test.js      # grid / snapping tests
   node tools/timetable-test.js       # timetable logic
   node tools/weathercard-test.js     # weather card logic (needs network for one check, skipped without)
   node tools/f1-test.js              # Formula 1 model (sessions, states, DST), re-runs itself under four time zones
   python3 tools/f1-helper-test.py    # Formula 1 data helper against a local mock server (cache, 429, offline, request counts)
+  node tools/worldclock-test.js      # world clock of the clock widget (zones, offsets, the tzdata helper), re-runs itself under four time zones
   node tools/focus-timer-test.js     # focus timer logic (phases, standby, restore, statistics), re-runs itself under four time zones
   tools/focus-timer-dnd-test.sh      # do-not-disturb backends against stand-ins of dunst / mako / swaync / a flag file
   node tools/monitors-test.js        # monitor keys, moving widgets between monitors, wallpaper per output

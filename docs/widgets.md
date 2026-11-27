@@ -16,6 +16,8 @@ Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) ·
 
 Ein leeres Zeit- oder Datumsformat bedeutet „automatisch“. Das Widget braucht keine Zusatzpakete und keinen Netzwerkzugriff.
 
+**Weltzeit** (nur Stil *Digital*): Unter dem Datum stehen bis zu sechs weitere Zeitzonen in einer Zeile, z. B. „Tokyo 08:30⁺¹ · NYC 18:30“. In die Einstellung „Weltzeit: Zeitzonen“ kommen Namen aus der tz-Datenbank, getrennt durch Komma (`Asia/Tokyo, America/New_York=NYC`); mit `=` bekommt eine Zone einen eigenen Namen, sonst steht die Stadt aus dem Zonennamen da. ⁺¹ / ⁻¹ heißt: dort ist schon morgen bzw. noch gestern. Die Zeitverschiebung kommt aus der tzdata des Systems (alle 15 Minuten, Sommerzeit inklusive); eine unbekannte Zone zeigt „?“.
+
 <details>
 <summary>Alle Einstellungen</summary>
 
@@ -24,6 +26,7 @@ Ein leeres Zeit- oder Datumsformat bedeutet „automatisch“. Das Widget brauch
 | Zeitformat (leer = automatisch) | `time_format` | leer | Text |
 | Datumsformat (leer = automatisch) | `date_format` | leer | Text |
 | Datum anzeigen | `show_date` | an | an / aus |
+| Weltzeit: Zeitzonen (nur Digital) | `world_zones` | leer | Text, z. B. `Asia/Tokyo, America/New_York=NYC` |
 | Uhr-Stil | `clock_style` | Digital | Digital / Blüte / Poster / Grußkarte / Gestapelt / Tagesring / Pixel |
 | Glas hinter dem Uhr-Stil | `clock_glass` | aus | an / aus |
 | Sekunden (Zeiger / blinkender Doppelpunkt) | `show_seconds` | an | an / aus |

@@ -1,5 +1,6 @@
 import QtQuick
 import "../core"
+import "clock/WorldClock.js" as WC
 
 Item {
     id: w
@@ -53,7 +54,33 @@ Item {
     }
     function hAlign(a) { return a === "center" ? Text.AlignHCenter : (a === "end" ? Text.AlignRight : Text.AlignLeft); }
 
-    Timer { interval: 500; running: true; repeat: true; onTriggered: w.now = new Date() }
+    Timer { interval: 500; running: true; repeat: true; onTriggered: { w.now = new Date(); w.checkWorld(); } }
+
+    // ───────────── world clock (digital style) ─────────────
+    // other time zones in one line under the date; the offsets come from the system's tzdata (clock/worldclock.sh)
+    readonly property string dir: decodeURIComponent(Qt.resolvedUrl("clock/").toString().replace("file://", ""))
+    readonly property var worldZones: w.face === "digital" ? WC.parseZones(w.props.world_zones) : []
+    property var worldOffsets: ({})
+    property real worldAsked: 0
+    readonly property string worldText: w.worldZones.length === 0 ? "" : WC.line(w.worldZones, w.worldOffsets, w.now, function (d) { return w.fmt(d, w.use12h ? "%I:%M %p" : "%H:%M"); })
+    // after standby the samples may no longer reach "now" (a daylight saving change in between): ask again, at most once a minute
+    // (zones without samples yet are left to the feed itself: it runs as soon as it is acquired)
+    function checkWorld() {
+        if (w.worldZones.length === 0 || Date.now() - w.worldAsked < 60000) return;
+        var ms = w.now.getTime();
+        for (var i = 0; i < w.worldZones.length; i++) {
+            var s = w.worldOffsets[w.worldZones[i].zone];
+            if (s && WC.stale(s, ms)) { w.worldAsked = Date.now(); worldFeed.refresh(); return; }
+        }
+    }
+    Feed {
+        id: worldFeed
+        key: "worldclock:" + w.worldZones.map(function (z) { return z.zone; }).join(",")
+        command: ["bash", w.dir + "worldclock.sh"].concat(w.worldZones.map(function (z) { return z.zone; }))
+        interval: 900000
+        active: w.worldZones.length > 0
+        onGot: text => { w.worldOffsets = WC.parseOffsets(text); }
+    }
 
     Loader {
         id: faceLoader
@@ -85,6 +112,19 @@ Item {
             wstyle: w.style
             opacity: 0.65
             text: w.dateText(w.now)
+            horizontalAlignment: w.hAlign(w.props.align)
+        }
+        GText {
+            width: parent.width
+            visible: w.worldText !== ""
+            wstyle: w.style
+            opacity: 0.8
+            topPadding: 4
+            text: w.worldText
+            font.pixelSize: Math.max(10, Math.round((w.style.font_size || 16) * 0.9))
+            wrapMode: Text.Wrap                 // between entries; a single entry wider than the widget breaks anywhere
+            maximumLineCount: 2
+            elide: Text.ElideRight
             horizontalAlignment: w.hAlign(w.props.align)
         }
     }

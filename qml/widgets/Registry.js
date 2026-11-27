@@ -20,6 +20,7 @@ var TYPES = {
             { key: "time_format", label: "Time format (empty = automatic)", kind: "text", def: "" },
             { key: "date_format", label: "Date format (empty = automatic)", kind: "text", def: "" },
             { key: "show_date", simple: true, label: "Show date", kind: "bool", def: true },
+            { key: "world_zones", label: "World clock: time zones (e.g. Asia/Tokyo, America/New_York=NYC)", kind: "text", def: "", when: { key: "clock_style", is: "digital" } },
             { key: "time_scale", label: "Time size", kind: "range", def: 3.6, min: 1.5, max: 7, step: 0.1 },
             { key: "align", simple: true, label: "Alignment", kind: "choice", def: "start", options: [["start", "Left"], ["center", "Centre"], ["end", "Right"]] }
         ]

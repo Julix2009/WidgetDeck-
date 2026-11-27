@@ -3,6 +3,7 @@
 // To add a language: add a table here and its code to LANGS. tools/check-i18n.py lists missing keys.
 var LANGS = ["en", "de"];
 var de = {
+ "World clock: time zones (e.g. Asia/Tokyo, America/New_York=NYC)": "Weltzeit: Zeitzonen (z. B. Asia/Tokyo, America/New_York=NYC)",
  "Enter both coordinates: latitude -90 to 90, longitude -180 to 180.": "Gib beide Koordinaten ein: Breitengrad -90 bis 90, Längengrad -180 bis 180.",
  "Not saved: latitude must be -90 to 90, longitude -180 to 180.": "Nicht gespeichert: Breitengrad -90 bis 90, Längengrad -180 bis 180.",
  "Invalid coordinates": "Ungültige Koordinaten",
