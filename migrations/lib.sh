@@ -6,5 +6,6 @@ merge_defaults() {
     local f="$1" defaults="$2" tmp
     [ -f "$f" ] || printf '{}\n' > "$f"
     tmp="$(mktemp "$f.XXXXXX")"
+    chmod --reference="$f" "$tmp"
     if jq --argjson d "$defaults" '$d * .' "$f" > "$tmp"; then mv "$tmp" "$f"; else rm -f "$tmp"; return 1; fi
 }

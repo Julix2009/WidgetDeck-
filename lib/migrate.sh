@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Config migrations (sourced by install.sh). Needs: CONF_DIR, H, SCRIPT_DIR, STATE_FILE, DRY_RUN and lib/common.sh.
+# Config migrations (sourced by install.sh). Needs: CONF_DIR, SCRIPT_DIR, STATE_FILE, DRY_RUN and lib/common.sh.
 
 migrate_latest() {      # highest migration number shipped with this version (0 = none)
     local f n max=0
@@ -19,10 +19,12 @@ migrate_current() {     # schema number of the user's config.json (0 when missin
 migrate_set_schema() {  # migrate_set_schema <n>
     local tmp
     tmp="$(mktemp "$CONF_DIR/config.json.XXXXXX")"
+    chmod --reference="$CONF_DIR/config.json" "$tmp"
     if jq --argjson n "$1" '.schema = $n' "$CONF_DIR/config.json" > "$tmp"; then mv "$tmp" "$CONF_DIR/config.json"; else rm -f "$tmp"; return 1; fi
 }
 
-# migrate_run: runs pending migrations. Returns 1 (config restored) when one fails.
+# migrate_run: runs pending migrations. Returns 1 (config restored) when one fails; stops the script (die) when the settings cannot be backed up
+# or restored. It is called as `migrate_run || ...`, where `set -e` is off: every step that matters is checked by hand.
 migrate_run() {
     [ -f "$CONF_DIR/config.json" ] || return 0
     local cur latest f n pending=() bak
@@ -37,18 +39,19 @@ migrate_run() {
         [ "$n" -gt "$cur" ] && pending+=("$f")
     done
     step "$(t 'Migrating your settings (schema %s -> %s)' "$cur" "$latest")"
-    bak="$H/.config/widgetdeck.bak-$(stamp)"
+    bak="$CONF_DIR.bak-$(stamp)"
+    [ -e "$bak" ] && bak="$bak-$$"
     if [ "$DRY_RUN" = 1 ]; then
         printf '  [dry-run] backup %s\n' "$bak"
         for f in "${pending[@]}"; do printf '  [dry-run] bash %s %s\n' "$(basename "$f")" "$CONF_DIR"; done
         return 0
     fi
-    cp -a "$CONF_DIR" "$bak"
+    conf_backup "$CONF_DIR" "$bak" || die "$(t 'Could not back up your settings to %s - they were not touched.' "$bak")"
     state_set CONFIG_BACKUP "$bak"
     ok "$(t 'Backup of your settings: %s' "$bak")"
     # keep the five newest backups
     local old_baks=()
-    while IFS= read -r f; do old_baks+=("$f"); done < <(ls -1d "$H"/.config/widgetdeck.bak-* 2>/dev/null | sort -r | tail -n +6)
+    while IFS= read -r f; do old_baks+=("$f"); done < <(ls -1d "$CONF_DIR".bak-* 2>/dev/null | sort -r | tail -n +6)
     for f in "${old_baks[@]}"; do rm -rf "$f"; done
     for f in "${pending[@]}"; do
         n="$(basename "$f")"; n=$((10#${n%%_*}))
@@ -56,7 +59,7 @@ migrate_run() {
             ok "$(t 'Migration %s' "$(basename "$f")")"
         else
             warn "$(t 'Migration %s failed - restoring your settings from the backup.' "$(basename "$f")")"
-            rm -rf "$CONF_DIR" && cp -a "$bak" "$CONF_DIR"
+            conf_restore "$bak" "$CONF_DIR" || die "$(t 'Restoring your settings failed. They are still in the backup: %s' "$bak")"
             state_set CONFIG_BACKUP ""
             return 1
         fi

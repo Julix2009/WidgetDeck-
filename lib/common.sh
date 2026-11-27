@@ -72,6 +72,12 @@ ver_of() { printf '%s' "$1" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n1; }
 sha_of() { if [ -f "$1" ]; then sha256sum "$1" | cut -d' ' -f1; else echo none; fi; }
 stamp() { date '+%Y%m%d-%H%M%S'; }
 
+# settings backup / restore. The CONTENTS are copied, so a settings folder that is a symlink (dotfiles) is followed.
+# conf_backup <settings dir> <new backup dir>: fails (and leaves no half backup) when the copy is not complete
+conf_backup() { [ -d "$1" ] && [ ! -e "$2" ] || return 1; cp -a "$1/." "$2" && return 0; rm -rf "$2"; return 1; }
+# conf_restore <backup dir> <settings dir>: copies over the current files; nothing is deleted first, so a failed restore never loses more
+conf_restore() { [ -d "$1" ] && mkdir -p "$2" && cp -a "$1/." "$2/"; }
+
 # state file (key=value) used by uninstall
 state_set() { [ "$DRY_RUN" = 1 ] && return 0; mkdir -p "$(dirname "$STATE_FILE")"; touch "$STATE_FILE"; grep -v "^$1=" "$STATE_FILE" > "$STATE_FILE.tmp" || true; printf '%s=%s\n' "$1" "$2" >> "$STATE_FILE.tmp"; mv "$STATE_FILE.tmp" "$STATE_FILE"; }
 state_get() { [ -f "$STATE_FILE" ] && grep -m1 "^$1=" "$STATE_FILE" | cut -d= -f2- || true; }

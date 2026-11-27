@@ -70,8 +70,9 @@ elif command -v shellcheck >/dev/null 2>&1; then
     if shellcheck -x -S warning "${SC_FILES[@]}"; then ok "shellcheck: ${#SC_FILES[@]} Skripte ohne Warnungen"; else fail "shellcheck meldet Probleme (siehe oben)."; fi
 else fail "shellcheck ist nicht installiert (pacman -S shellcheck)."; fi
 for f in "${SC_FILES[@]}"; do bash -n "$f" 2>/dev/null || fail "Syntaxfehler in $f"; done
-if "$SCRIPT_DIR/tools/secret-scan.sh" >/tmp/release-secret-scan.$$ 2>&1; then ok "Secret-Scan sauber (Pfade, Tokens, Standort, persönliche Wörter)"; else fail "Secret-Scan hat etwas gefunden:"; sed 's/^/         /' /tmp/release-secret-scan.$$; fi
-rm -f /tmp/release-secret-scan.$$
+SCAN="$(mktemp)"
+if "$SCRIPT_DIR/tools/secret-scan.sh" >"$SCAN" 2>&1; then ok "Secret-Scan sauber (Pfade, Tokens, Standort, persönliche Wörter)"; else fail "Secret-Scan hat etwas gefunden:"; sed 's/^/         /' "$SCAN"; fi
+rm -f "$SCAN"
 if command -v node >/dev/null 2>&1 && [ -f tools/snapengine-test.js ]; then
     if node tools/snapengine-test.js 2>&1 | grep -q '^FAIL'; then fail "tools/snapengine-test.js: Tests schlagen fehl."; else ok "Raster-Tests bestanden"; fi
 fi
@@ -83,9 +84,10 @@ if [ "$KIND" = current ]; then
     NEW="$CUR"
     grep -q "^## \[$NEW\]" CHANGELOG.md || fail "CHANGELOG.md hat keinen Abschnitt für $NEW."
 else
-    IFS=. read -r MA MI PA _ <<<"$CUR"
+    IFS=. read -r MA MI PA SUB <<<"$CUR"
     case "$KIND" in patch) PA=$((PA + 1)) ;; minor) MI=$((MI + 1)); PA=0 ;; major) MA=$((MA + 1)); MI=0; PA=0 ;; esac
     NEW="$MA.$MI.$PA"
+    [ -z "$SUB" ] || NEW="$NEW.0"          # a version with four parts keeps four
     [ -n "$LAST" ] && [ "$LAST" != "v$CUR" ] && warn "VERSION ($CUR) entspricht nicht dem letzten Tag ($LAST)."
 fi
 git rev-parse -q --verify "refs/tags/v$NEW" >/dev/null && fail "Der Tag v$NEW existiert schon."

@@ -24,6 +24,21 @@ found() {   # found <tool> <path>
     exit 0
 }
 
+# swaybg tells nothing: its arguments do. One line "<output>\t<path>" per picture; read from /proc, where a path with spaces stays whole
+swaybg_pairs() {
+    local pid i o args
+    for pid in $(pgrep -x swaybg 2>/dev/null); do
+        args=(); mapfile -d '' args < "/proc/$pid/cmdline" 2>/dev/null || continue
+        o="*"
+        for ((i = 0; i < ${#args[@]}; i++)); do
+            case "${args[i]}" in
+                -o|--output) o="${args[i+1]:-*}" ;;
+                -i|--image) printf '%s\t%s\n' "$o" "${args[i+1]:-}" ;;
+            esac
+        done
+    done
+}
+
 # --all: one line per output "<output>\t<tool>\t<path>" ("*" = the same picture on every output / not told per output). Used for several monitors.
 if [ "${1:-}" = "--all" ] || [ "${2:-}" = "--all" ]; then
     emitted=0
@@ -54,10 +69,7 @@ if [ "${1:-}" = "--all" ] || [ "${2:-}" = "--all" ]; then
         awk '/^[[:space:]]*wallpaper[[:space:]]*\{/ {inb=1; m=""; p=""; next} inb && /^[[:space:]]*monitor[[:space:]]*=/ {sub(/^[^=]*=/,""); gsub(/^[ \t]+|[ \t]+$/,""); m=$0} inb && /^[[:space:]]*path[[:space:]]*=/ {sub(/^[^=]*=/,""); gsub(/^[ \t]+|[ \t]+$/,""); p=$0} inb && /\}/ {inb=0; if (p != "") print (m==""?"*":m) "\t" p}' "$f" | while IFS=$'\t' read -r o p; do emit "$o" hyprpaper "$p"; done
     fi
     if [ "$emitted" = 0 ]; then
-        while IFS= read -r l; do                         # swaybg -o DP-1 -i /path   (one process per output)
-            o="$(sed -n 's/.* -o \([^ ]*\).*/\1/p; s/.* --output \([^ ]*\).*/\1/p' <<<"$l" | head -n1)"; p="$(sed -n 's/.* -i \([^ ]*\).*/\1/p; s/.* --image \([^ ]*\).*/\1/p' <<<"$l" | head -n1)"
-            [ -n "$p" ] && emit "${o:-*}" swaybg "$p"
-        done < <(pgrep -a swaybg 2>/dev/null)
+        while IFS=$'\t' read -r o p; do emit "$o" swaybg "$p"; done < <(swaybg_pairs)
     fi
     if [ "$emitted" = 0 ]; then
         for f in "$CFG/wpaperd/config.toml" "$CFG/wpaperd/wallpaper.toml"; do
@@ -80,7 +92,7 @@ if [ -f "$f" ]; then
     [ -z "$p" ] && p="$(grep -E '^[[:space:]]*wallpaper[[:space:]]*=' "$f" | head -n1 | sed -E 's/^[^=]*=//; s/^[^,]*,//' | clean)"
     [ -n "$p" ] && found hyprpaper "$p"
 fi
-p="$(pgrep -a swaybg 2>/dev/null | sed -n 's/.* -i \([^ ]*\).*/\1/p; s/.*--image \([^ ]*\).*/\1/p' | head -n1 | clean)"
+p="$(swaybg_pairs | head -n1 | cut -f2-)"
 [ -n "$p" ] && found swaybg "$p"
 for f in "$CFG/wpaperd/config.toml" "$CFG/wpaperd/wallpaper.toml"; do
     [ -f "$f" ] || continue

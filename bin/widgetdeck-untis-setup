@@ -25,7 +25,7 @@ declare -A DE=(
  ['No Secret Service is running (e.g. gnome-keyring or KeePassXC with Secret Service enabled), so the key cannot go into a keyring.']='Es läuft kein Secret Service (z. B. gnome-keyring oder KeePassXC mit aktiviertem Secret Service), der Schlüssel kann also nicht in einen Schlüsselbund.'
  ['Alternative: a private file (chmod 600) outside the repository. Anyone who can read your files can then read the key. Use it?']='Alternative: eine private Datei (chmod 600) außerhalb des Repositorys. Wer deine Dateien lesen kann, kann dann den Schlüssel lesen. Verwenden?'
  ['Stored in a private file:']='In privater Datei gespeichert:' ['Nothing was stored.']='Es wurde nichts gespeichert.'
- ['Delete the QR code image now (overwritten, then removed)?']='QR-Code-Bild jetzt löschen (überschrieben, dann entfernt)?' ['Image deleted.']='Bild gelöscht.'
+ ['Delete the QR code image now?']='QR-Code-Bild jetzt löschen?' ['Image deleted.']='Bild gelöscht.'
  ['Also remove copies of the QR code: Downloads, trash, screenshot folders, cloud sync, clipboard history. Anyone with the image can read your timetable.']='Entferne auch Kopien des QR-Codes: Downloads, Papierkorb, Screenshot-Ordner, Cloud-Sync, Zwischenablage-Verlauf. Wer das Bild hat, kann deinen Stundenplan lesen.'
  ['Done. Add the Timetable widget in the builder (or run: widgetdeck wizard).']='Fertig. Füge das Stundenplan-Widget im Builder hinzu (oder starte: widgetdeck wizard).'
  ['Stored key and cached timetable removed.']='Gespeicherter Schlüssel und zwischengespeicherter Stundenplan entfernt.'
@@ -42,6 +42,7 @@ CLIENT=""
 for d in "$CFG/quickshell/widgetdeck/widgets/timetable" /usr/share/widgetdeck/qml/widgets/timetable "$HERE/../qml/widgets/timetable"; do [ -f "$d/untis.py" ] && { CLIENT="$d/untis.py"; break; }; done
 PRIV="${XDG_DATA_HOME:-$HOME/.local/share}/widgetdeck-private/untis.json"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/widgetdeck/timetable.json"
+HOLD="${CACHE%.json}-auth.json"          # untis.py: no new login for a while after a refused one
 
 if [ "${1:-}" = "--terminal" ]; then
     shift
@@ -59,7 +60,7 @@ fi
 
 if [ "${1:-}" = "--remove" ]; then
     secret-tool clear application widgetdeck kind untis 2>/dev/null
-    rm -f "$PRIV" "$CACHE"
+    rm -f "$PRIV" "$CACHE" "$HOLD"
     say 'Stored key and cached timetable removed.'; exit 0
 fi
 
@@ -80,7 +81,7 @@ if [ "$choice" = 1 ]; then
     raw="$(zbarimg --raw -q "$qrfile" 2>/dev/null | head -n1)"
     [ -n "$raw" ] || { say 'No QR code found in the image (is it sharp and complete?).'; exit 1; }
     case "$raw" in untis://setschool\?*) ;; *) say 'That is not an Untis Mobile QR code.'; exit 1 ;; esac
-    parsed="$(printf '%s' "$raw" | jq -Rr 'sub("^[^?]*\\?";"") | split("&") | map(split("=") | {(.[0]): ((.[1] // "") | @urid)}) | add | [.url, .school, .user, .key] | .[]' 2>/dev/null)"
+    parsed="$(printf '%s' "$raw" | jq -Rr 'sub("^[^?]*\\?";"") | split("&") | map(split("=") | {(.[0]): (.[1:] | join("=") | @urid)}) | add | [.url, .school, .user, .key] | .[]' 2>/dev/null)"
     { IFS= read -r server; IFS= read -r school; IFS= read -r user; IFS= read -r key; } <<<"$parsed"
     unset raw parsed
     if [ -z "$server" ] || [ -z "$school" ] || [ -z "$user" ] || [ -z "$key" ]; then say 'The QR code lacks some values.'; exit 1; fi
@@ -114,10 +115,12 @@ if [ "$store" = 1 ]; then
     fi
 fi
 key=""; server=""; school=""; user=""
+# new access: try it at once, and never show the timetable of the previous account
+[ "$store" = 1 ] && rm -f "$CACHE" "$HOLD"
 
 if [ -n "$qrfile" ] && [ -f "$qrfile" ]; then
     echo
-    if yn 'Delete the QR code image now (overwritten, then removed)?'; then
+    if yn 'Delete the QR code image now?'; then
         shred -u "$qrfile" 2>/dev/null || rm -f "$qrfile"
         say 'Image deleted.'
     fi

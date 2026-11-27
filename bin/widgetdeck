@@ -13,18 +13,17 @@ find_qml() {
 }
 QML="$(find_qml)" || { echo "widgetdeck: cannot find the QML files (looked in ~/.config/quickshell/widgetdeck, /usr/share/widgetdeck/qml). Run ./install.sh first." >&2; exit 1; }
 VERSION="$(tr -d '[:space:]' < "$QML/VERSION" 2>/dev/null || true)"; VERSION="${VERSION:-unknown}"
-QS="quickshell -p $QML"
+qs_run() { quickshell -p "$QML" "$@"; }          # a function, not a string: the path may contain spaces
 # The size of the screen comes from the compositor only. A scale variable inherited from another Qt program (QT_SCALE_FACTOR=1.4 is common where a
 # bar is enlarged on purpose, and it leaks into everything that bar starts) would make every widget that much bigger and the saved layout wrong.
 # Set WIDGETDECK_KEEP_QT_SCALE=1 to keep them.
 [ -n "${WIDGETDECK_KEEP_QT_SCALE:-}" ] || unset QT_SCALE_FACTOR QT_SCREEN_SCALE_FACTORS QT_AUTO_SCREEN_SCALE_FACTOR
 CONF="${WIDGETDECK_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/widgetdeck}"
 
-running() { $QS ipc call widgetdeck ping >/dev/null 2>&1; }
+running() { qs_run ipc call widgetdeck ping >/dev/null 2>&1; }
 ensure() {
     running && return 0
-    # shellcheck disable=SC2086
-    setsid $QS >/dev/null 2>&1 &
+    setsid quickshell -p "$QML" >/dev/null 2>&1 &
     i=0
     while [ "$i" -lt 60 ]; do running && return 0; sleep 0.2; i=$((i + 1)); done
     echo "widgetdeck: Quickshell did not start (see: widgetdeck log)" >&2
@@ -44,24 +43,24 @@ module() {
     case "$2" in on) v=true ;; off) v=false ;; *) echo "usage: widgetdeck module $1 <on|off>" >&2; return 1 ;; esac
     command -v jq >/dev/null 2>&1 || { echo "widgetdeck: jq is needed" >&2; return 1; }
     f="$CONF/config.json"; mkdir -p "$CONF"; [ -f "$f" ] || echo '{}' > "$f"
-    t="$(mktemp "$f.XXXXXX")" && jq --arg m "$1" --argjson v "$v" '.modules[$m] = $v' "$f" > "$t" && mv "$t" "$f" && echo "module $1: $2"
+    t="$(mktemp "$f.XXXXXX")" && chmod --reference="$f" "$t" && jq --arg m "$1" --argjson v "$v" '.modules[$m] = $v' "$f" > "$t" && mv "$t" "$f" && echo "module $1: $2"
 }
 
 case "${1:-builder}" in
-    daemon)   if running; then echo "widgetdeck: already running" >&2; exit 0; fi; exec $QS ;;
-    builder)  ensure && exec $QS ipc call widgetdeck openBuilder ;;
-    toggle)   ensure && exec $QS ipc call widgetdeck toggleBuilder ;;
-    close)    exec $QS ipc call widgetdeck closeBuilder ;;
-    stop)     exec $QS kill ;;
-    restart)  $QS kill >/dev/null 2>&1; sleep 0.5; setsid $QS >/dev/null 2>&1 & ;;
+    daemon)   if running; then echo "widgetdeck: already running" >&2; exit 0; fi; exec quickshell -p "$QML" ;;
+    builder)  ensure && exec quickshell -p "$QML" ipc call widgetdeck openBuilder ;;
+    toggle)   ensure && exec quickshell -p "$QML" ipc call widgetdeck toggleBuilder ;;
+    close)    exec quickshell -p "$QML" ipc call widgetdeck closeBuilder ;;
+    stop)     exec quickshell -p "$QML" kill ;;
+    restart)  qs_run kill >/dev/null 2>&1; sleep 0.5; setsid quickshell -p "$QML" >/dev/null 2>&1 & ;;
     status)   running ;;
-    log)      exec $QS log ;;
+    log)      exec quickshell -p "$QML" log ;;
     config)   echo "$CONF/widgets.json" ;;
     doctor)   shift; doctor "$@" ;;
     module)   shift; module "$@" ;;
-    wizard)   ensure && exec $QS ipc call widgetdeck wizard ;;
+    wizard)   ensure && exec quickshell -p "$QML" ipc call widgetdeck wizard ;;
     version|--version) echo "widgetdeck $VERSION" ;;
-    ipc)      shift; exec $QS ipc call widgetdeck "$@" ;;
+    ipc)      shift; exec quickshell -p "$QML" ipc call widgetdeck "$@" ;;
     *)  cat <<USAGE
 widgetdeck <command>
   daemon     start the desktop widgets (runs in the foreground, used for autostart)

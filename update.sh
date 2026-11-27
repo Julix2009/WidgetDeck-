@@ -51,14 +51,15 @@ main() {
     done
     case "$CHANNEL_OPT" in ""|main|stable) ;; *) die "$(t '--channel: expected main or stable, not %s' "$CHANNEL_OPT")" ;; esac
 
-    if [ -n "$PREFIX" ]; then H="$(realpath -m -- "$PREFIX")"; else H="${HOME:?HOME ist nicht gesetzt}"; fi
+    if [ -n "$PREFIX" ]; then H="$(realpath -m -- "$PREFIX")"; else H="${HOME:?HOME is not set}"; fi
     wd_paths "$H" "$PREFIX"
     LOG_FILE=""
     if [ "$DRY_RUN" = 0 ]; then mkdir -p "$CACHE_DIR"; LOG_FILE="$CACHE_DIR/install.log"; : >> "$LOG_FILE"; fi
     _log "== update.sh $* (H=$H) =="
     if [ "$DRY_RUN" = 0 ]; then       # two updates at the same time would corrupt each other
         exec 9> "$CACHE_DIR/update.lock"
-        flock -n 9 || die "$(t 'An update is already running (or a second call at the same time). Please wait.')"
+        # -w: waits out the short fetch of the widgets' update check
+        flock -w 40 9 || die "$(t 'An update is already running (or a second call at the same time). Please wait.')"
     fi
 
     command -v git >/dev/null 2>&1 || die "$(t 'git is missing (pacman -S git).')"
@@ -77,7 +78,7 @@ main() {
     if [ -z "$channel" ]; then channel="$(jq -r '.update.channel // "main"' "$CONF_DIR/config.json" 2>/dev/null || echo main)"; fi
     case "$channel" in main|stable) ;; *) channel=main ;; esac
     if [ -n "$CHANNEL_OPT" ] && [ "$DRY_RUN" = 0 ] && [ -f "$CONF_DIR/config.json" ]; then
-        local t; t="$(mktemp "$CONF_DIR/config.json.XXXXXX")"
+        local t; t="$(mktemp "$CONF_DIR/config.json.XXXXXX")"; chmod --reference="$CONF_DIR/config.json" "$t"
         jq --arg ch "$CHANNEL_OPT" '.update.channel = $ch' "$CONF_DIR/config.json" > "$t" && mv "$t" "$CONF_DIR/config.json"
     fi
 
@@ -160,15 +161,25 @@ main() {
     checkout_target "$target_rev" "$default_branch" "$channel"
     if ! run_install; then
         warn "$(t 'Installing the new version failed. Restoring the previous version ...')"
-        if [ -n "$cur_rev" ]; then
-            checkout_detached "$cur_rev"
+        local restored=0
+        if [ -n "$cur_rev" ] && checkout_detached "$cur_rev"; then
+            restored=1
             local bak; bak="$(state_get CONFIG_BACKUP)"
-            [ -n "$bak" ] && [ -d "$bak" ] && { rm -rf "$CONF_DIR"; cp -a "$bak" "$CONF_DIR"; state_set CONFIG_BACKUP ""; }
-            run_install || warn "$(t 'The restore had problems too - see %s' "$LOG_FILE")"
+            if [ -n "$bak" ] && [ -d "$bak" ]; then
+                if conf_restore "$bak" "$CONF_DIR"; then state_set CONFIG_BACKUP ""
+                else restored=0; warn "$(t 'Restoring your settings failed. They are still in the backup: %s' "$bak")"; fi
+            fi
+            run_install || { restored=0; warn "$(t 'The restore had problems too - see %s' "$LOG_FILE")"; }
         fi
-        state_set PREV_REV ""; state_set PREV_VERSION ""
         [ "$was_running" = 1 ] && restart_shell
-        die "$(t 'Update failed; the old version is back in place. Details: %s' "$LOG_FILE")"
+        if [ "$restored" = 1 ]; then
+            state_set PREV_REV ""; state_set PREV_VERSION ""
+            if [ "$channel" = main ]; then info "$(t 'The clone now points at the previous state (detached HEAD); the next update goes back to %s.' "$default_branch")"; fi
+            die "$(t 'Update failed; the old version is back in place. Details: %s' "$LOG_FILE")"
+        fi
+        # PREV_REV stays, so --rollback can still be tried
+        if [ -n "$cur_rev" ]; then die "$(t 'Update failed and the old version could NOT be restored. Try ./update.sh --rollback in the cloned folder. Details: %s' "$LOG_FILE")"; fi
+        die "$(t 'Update failed. The installed version is unknown, so nothing was rolled back: run ./install.sh again in the cloned folder. Details: %s' "$LOG_FILE")"
     fi
     rm -f "$CACHE_DIR/update-check.json"
     state_set LAST_UPDATE "$(date '+%F %T')"
@@ -260,8 +271,11 @@ do_rollback() {
     if [ "$NO_RESTART" = 0 ] && [ -x "$BIN_DEST" ] && HOME="$H" "$BIN_DEST" status >/dev/null 2>&1 9>&-; then was_running=1; HOME="$H" "$BIN_DEST" stop >/dev/null 2>&1 9>&- || true; sleep 0.5; fi
     if [ -n "$bak" ] && [ -d "$bak" ]; then
         local pre; pre="$CONFIG_HOME/widgetdeck.pre-rollback-$(stamp)"
-        [ -d "$CONF_DIR" ] && cp -a "$CONF_DIR" "$pre"
-        rm -rf "$CONF_DIR"; cp -a "$bak" "$CONF_DIR"
+        if [ -d "$CONF_DIR" ] && ! conf_backup "$CONF_DIR" "$pre"; then
+            [ "$was_running" = 1 ] && restart_shell
+            die "$(t 'Could not back up your settings to %s - they were not touched.' "$pre")"
+        fi
+        conf_restore "$bak" "$CONF_DIR" || die "$(t 'Restoring your settings failed. They are still in the backup: %s' "$bak")"
         ok "$(t 'Settings restored from the backup (previous state: %s)' "${pre:-none}")"
     fi
     checkout_detached "$prev"

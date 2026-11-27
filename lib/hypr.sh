@@ -16,9 +16,17 @@ hypr_version() {
 
 # the config file the RUNNING Hyprland was started with (-c / --config), if any
 hypr_running_config() {
-    local line f
-    line="$(pgrep -ax Hyprland 2>/dev/null | head -n1)"
-    f="$(printf '%s\n' "$line" | sed -nE 's/.* (-c|--config)[ =]([^ ]+).*/\2/p')"
+    local pid
+    pid="$(pgrep -x Hyprland 2>/dev/null | head -n1)"
+    [ -n "$pid" ] && hypr_config_of "/proc/$pid/cmdline"
+}
+# hypr_config_of <cmdline file>: the arguments are NUL separated there, so a path with spaces stays whole
+hypr_config_of() {
+    local f="" i args=()
+    mapfile -d '' args < "$1" 2>/dev/null || return 1
+    for ((i = 1; i < ${#args[@]}; i++)); do
+        case "${args[i]}" in -c|--config) f="${args[i+1]:-}" ;; --config=*) f="${args[i]#--config=}" ;; esac
+    done
     [ -n "$f" ] && [ -f "$f" ] && printf '%s' "$f"
 }
 
@@ -55,7 +63,24 @@ hypr_template() {
     if [ "$HYPR_MODE" = lua ]; then echo "$SCRIPT_DIR/hypr/widgetdeck.lua.in"; return; fi
     if [ -n "$v" ] && [ "$(vercmp "$v" "$HYPR_LEGACY_BELOW")" = -1 ]; then echo "$SCRIPT_DIR/hypr/widgetdeck-legacy.conf.in"; else echo "$SCRIPT_DIR/hypr/widgetdeck.conf.in"; fi
 }
-hypr_render() { sed "s|@BIN@|$BIN_DEST|g" "$1"; }
+# the program path as the templates need it: unchanged when harmless, else quoted for the shell (and escaped for the Lua string around it)
+hypr_bin_word() {       # hypr_bin_word <path> <lua|conf>
+    local p="$1" esc="'\\''"
+    case "$p" in *[!A-Za-z0-9_./+-]*) ;; *) printf '%s' "$p"; return 0 ;; esac
+    p="${p//\'/"$esc"}"; p="'$p'"
+    if [ "$2" = lua ]; then p="${p//\\/\\\\}"; p="${p//\"/\\\"}"; fi
+    printf '%s' "$p"
+}
+hypr_render() {
+    local c w mode=conf
+    case "$1" in *.lua.in) mode=lua ;; esac
+    c="$(cat "$1")"; w="$(hypr_bin_word "$BIN_DEST" "$mode")"
+    printf '%s\n' "${c//@BIN@/"$w"}"
+}
+# every begin marker has its end marker? Otherwise "delete from begin to end" would delete to the end of the file
+hypr_block_complete() {
+    awk -v b="$HYPR_MARK_BEGIN" -v e="$HYPR_MARK_END" 'index($0, b) { open = 1; next } open && index($0, e) { open = 0; n++ } END { exit !(n && !open) }' "$1"
+}
 
 hypr_include_block() {
     if [ "$HYPR_MODE" = lua ]; then
@@ -186,6 +211,9 @@ hypr_remove() {
         if [ -n "$bak" ] && [ -f "$bak" ] && [ "$(sha_of "$main")" = "$(state_get HYPR_MAIN_SHA)" ]; then
             # the file is exactly as we left it: the backup is the exact rollback
             run cp -p "$bak" "$main"; ok "$(t '%s restored from the backup (%s)' "$main" "$bak")"
+        elif ! hypr_block_complete "$main"; then
+            warn "$(t '%s: the end marker of the WidgetDeck block is missing - the file is not changed, remove the block by hand.' "$main")"
+            return 0
         else
             # the user changed the file since: remove only our marked block
             if [ "$DRY_RUN" = 0 ]; then

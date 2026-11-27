@@ -214,9 +214,9 @@ install_files() {
         ok "$(t 'Your existing settings stay unchanged (%s)' "$CONF_DIR")"
         if [ "$DRY_RUN" = 0 ]; then
             local tf
-            if [ -n "$CHANNEL" ]; then tf="$(mktemp "$CONF_DIR/config.json.XXXXXX")"; jq --arg ch "$CHANNEL" '.update.channel = $ch' "$CONF_DIR/config.json" > "$tf" && mv "$tf" "$CONF_DIR/config.json" && ok "$(t 'Update channel: %s' "$CHANNEL")"; fi
+            if [ -n "$CHANNEL" ]; then tf="$(mktemp "$CONF_DIR/config.json.XXXXXX")"; chmod --reference="$CONF_DIR/config.json" "$tf"; jq --arg ch "$CHANNEL" '.update.channel = $ch' "$CONF_DIR/config.json" > "$tf" && mv "$tf" "$CONF_DIR/config.json" && ok "$(t 'Update channel: %s' "$CHANNEL")"; fi
             if [ "$MODULES_TOUCH" = 1 ]; then
-                tf="$(mktemp "$CONF_DIR/config.json.XXXXXX")"
+                tf="$(mktemp "$CONF_DIR/config.json.XXXXXX")"; chmod --reference="$CONF_DIR/config.json" "$tf"
                 jq --argjson m "$(modules_json)" '.modules = $m' "$CONF_DIR/config.json" > "$tf" && mv "$tf" "$CONF_DIR/config.json" && ok "$(t 'Modules saved in your settings')"
             fi
         fi
@@ -266,6 +266,29 @@ matugen_setup() {
 }
 
 # ---------------------------------------------------------------- uninstall
+# what --purge removes besides settings and cache: the Untis access and the clone that widgetdeck-update made
+purge_private() {
+    local data="$H/.local/share" repo
+    [ -n "$PREFIX" ] || data="${XDG_DATA_HOME:-$data}"
+    # the keyring belongs to the real session: never touched for a test installation (--prefix)
+    if [ -z "$PREFIX" ] && command -v secret-tool >/dev/null 2>&1; then
+        run secret-tool clear application widgetdeck kind untis >/dev/null 2>&1 || true
+        if [ "$DRY_RUN" = 0 ] && secret-tool lookup application widgetdeck kind untis >/dev/null 2>&1; then
+            warn "$(t 'The Untis access is still in the keyring: remove it there by hand (WidgetDeck Untis).')"
+        fi
+    fi
+    run rm -f "$data/widgetdeck-private/untis.json"
+    ok "$(t 'Untis access removed')"
+    repo="$data/widgetdeck/repo"
+    if [ -d "$repo/.git" ]; then
+        # only when there is nothing of yours in it: no changed files, no stash, no commit that is not on the remote
+        if [ -z "$(git -C "$repo" status --porcelain 2>/dev/null)$(git -C "$repo" stash list 2>/dev/null)$(git -C "$repo" log --oneline --branches --not --remotes 2>/dev/null)" ]; then
+            run rm -rf "$repo"; ok "$(t 'removed: %s' "$repo")"
+        else warn "$(t 'The clone %s has local changes and is kept.' "$repo")"; fi
+    fi
+    if [ "$DRY_RUN" = 0 ]; then rmdir "$data/widgetdeck-private" "$data/widgetdeck" 2>/dev/null || true; fi
+}
+
 do_uninstall() {
     step "$(t 'Removing WidgetDeck')"
     [ -f "$STATE_FILE" ] || warn "$(t 'No installation data found (%s) - removing the default locations.' "$STATE_FILE")"
@@ -287,7 +310,9 @@ do_uninstall() {
     if [ -n "$tpl" ] && [ -f "$tpl" ]; then run rm -f "$tpl"; ok "$(t 'removed: %s' "$tpl")"; fi
     local toml bak
     toml="$(state_get MATUGEN_TOML)"; bak="$(state_get MATUGEN_BACKUP)"
-    if [ -n "$toml" ] && [ -f "$toml" ] && grep -qF "$HYPR_MARK_BEGIN" "$toml"; then
+    if [ -n "$toml" ] && [ -f "$toml" ] && grep -qF "$HYPR_MARK_BEGIN" "$toml" && ! hypr_block_complete "$toml"; then
+        warn "$(t '%s: the end marker of the WidgetDeck block is missing - the file is not changed, remove the block by hand.' "$toml")"
+    elif [ -n "$toml" ] && [ -f "$toml" ] && grep -qF "$HYPR_MARK_BEGIN" "$toml"; then
         if [ "$DRY_RUN" = 0 ]; then local t; t="$(mktemp)"; sed "/$HYPR_MARK_BEGIN/,/$HYPR_MARK_END/d" "$toml" > "$t" && cat "$t" > "$toml"; rm -f "$t"; else printf '  [dry-run] %s\n' "$(t 'remove the block from %s' "$toml")"; fi
         ok "$(t 'WidgetDeck block removed from the matugen config (backup stays: %s)' "${bak:-none}")"
     fi
@@ -297,7 +322,9 @@ do_uninstall() {
             run rm -rf "$CONF_DIR"; ok "$(t 'Settings deleted')"
         else ok "$(t 'your settings stay: %s' "$CONF_DIR")"; fi
     fi
-    if [ "$PURGE" = 1 ] && [ "$DRY_RUN" = 0 ]; then rm -rf "$CACHE_DIR"; else info "$(t 'Cache and log stay: %s (--purge deletes them)' "$CACHE_DIR")"; fi
+    if [ "$PURGE" = 1 ]; then purge_private; fi
+    # LOG_FILE lives in the cache: no more logging once that is gone
+    if [ "$PURGE" = 1 ] && [ "$DRY_RUN" = 0 ]; then LOG_FILE=""; rm -rf "$CACHE_DIR"; else info "$(t 'Cache and log stay: %s (--purge deletes them)' "$CACHE_DIR")"; fi
     say ""; say "$(t 'Done. Backups ending in .widgetdeck-backup-* next to your configs can be deleted when everything is fine.')"
 }
 

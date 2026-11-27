@@ -11,16 +11,22 @@ SRC_FILE="$CFG/quickshell/widgetdeck/SOURCE"
 read_src() { [ -f "$SRC_FILE" ] && sed -n "s/^$1=//p" "$SRC_FILE" | head -n1; }
 REPO="$(read_src repo)"; URL="$(read_src url)"
 
+case "${WIDGETDECK_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}" in
+    de*) HOLD="[Enter zum Schliessen]"; YN="[J/n]" ;;
+    *)   HOLD="[Press Enter to close]"; YN="[Y/n]" ;;
+esac
+
 # --terminal: reopen ourselves inside a terminal emulator (the button in the settings has no tty)
 if [ "$1" = "--terminal" ]; then
     shift
     self="$0"
+    hold="\"\$0\" \"\$@\"; printf '\\n$HOLD '; read -r _"        # keep the window open so the result can be read
     for t in "${TERMINAL:-}" kitty alacritty foot wezterm ghostty konsole gnome-terminal xfce4-terminal xterm; do
         [ -n "$t" ] && command -v "$t" >/dev/null 2>&1 || continue
         case "$t" in
-            gnome-terminal|xfce4-terminal) exec "$t" -- sh -c '"$0" "$@"; printf "\n[Enter zum Schliessen] "; read -r _' "$self" "$@" ;;
-            wezterm) exec "$t" start -- sh -c '"$0" "$@"; printf "\n[Enter zum Schliessen] "; read -r _' "$self" "$@" ;;
-            *) exec "$t" -e sh -c '"$0" "$@"; printf "\n[Enter zum Schliessen] "; read -r _' "$self" "$@" ;;
+            gnome-terminal|xfce4-terminal) exec "$t" -- sh -c "$hold" "$self" "$@" ;;
+            wezterm) exec "$t" start -- sh -c "$hold" "$self" "$@" ;;
+            *) exec "$t" -e sh -c "$hold" "$self" "$@" ;;
         esac
     done
     echo "widgetdeck-update: no terminal emulator found (set \$TERMINAL, or run widgetdeck-update in a terminal)" >&2
@@ -37,7 +43,7 @@ if [ -z "$REPO" ] || [ ! -f "$REPO/update.sh" ]; then
     REPO="${XDG_DATA_HOME:-$HOME/.local/share}/widgetdeck/repo"
     if [ ! -f "$REPO/update.sh" ]; then
         echo "The clone of WidgetDeck is missing. Clone it again from $URL to $REPO?"
-        case " $* " in *" --yes "*|*" -y "*) a=y ;; *) printf '  [J/n] '; read -r a || a=n ;; esac
+        case " $* " in *" --yes "*|*" -y "*) a=y ;; *) printf '  %s ' "$YN"; read -r a || a=n ;; esac
         case "$a" in ""|j|J|y|Y) ;; *) echo "Aborted."; exit 1 ;; esac
         mkdir -p "$(dirname "$REPO")" || exit 1
         GIT_TERMINAL_PROMPT=0 git clone "$URL" "$REPO" || { echo "widgetdeck-update: clone failed (no network or no access to the repository)." >&2; exit 1; }
