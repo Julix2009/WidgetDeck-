@@ -22,6 +22,8 @@ TEST_FILE = os.environ.get("WIDGETDECK_UNTIS_FILE")        # test hook: read the
 PRIVATE_FILE = TEST_FILE or os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "widgetdeck-private", "untis.json")
 CAFILE = os.environ.get("WIDGETDECK_UNTIS_CAFILE")          # test hook: one extra CA (the local test server); verification stays ON
 TIMEOUT = 20
+AUTH_HOLD = os.path.join(CACHE_DIR, "timetable-auth.json")   # after a refused login; widgetdeck-untis-setup removes it
+AUTH_WAIT = (3600, 6 * 3600, 24 * 3600)                      # some servers lock the account after a few failed logins
 HOST_RE = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9.-]{0,251}[A-Za-z0-9])?(:[0-9]{1,5})?$")
 ELEM = {"CLASS": 1, "TEACHER": 2, "SUBJECT": 3, "ROOM": 4, "STUDENT": 5}
 
@@ -74,12 +76,18 @@ def totp(key, now):
 
 
 # ---------------------------------------------------------------------------------------------- http
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """The session cookie never follows a redirect (to another host, or to http). A redirected request is a server error."""
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
 class Session:
     def __init__(self, secret):
         self.s = secret
         ctx = ssl.create_default_context(cafile=CAFILE) if CAFILE else ssl.create_default_context()
         self.sid = ""                                          # session id from the login answer (cookies are handled by hand: robust for any host name)
-        self.op = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx))
+        self.op = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx), NoRedirect())
         self.base = "https://" + secret["server"] + "/WebUntis/"
 
     def rpc(self, path, query, method, params):
@@ -266,11 +274,34 @@ def write_cache(data):
         pass
 
 
+def auth_hold():
+    """-> (failed logins in a row, seconds still to wait)"""
+    try:
+        with open(AUTH_HOLD, encoding="utf-8") as f:
+            h = json.load(f)
+        left = float(h["until"]) - time.time()
+        return int(h["fails"]), left if left <= AUTH_WAIT[-1] else 0      # a clock that jumped must not block for years
+    except (OSError, ValueError, KeyError, TypeError):
+        return 0, 0
+
+
+def auth_failed():
+    fails = auth_hold()[0] + 1
+    try:
+        os.makedirs(CACHE_DIR, mode=0o700, exist_ok=True)
+        with open(AUTH_HOLD, "w", encoding="utf-8") as f:
+            json.dump({"fails": fails, "until": time.time() + AUTH_WAIT[min(fails, len(AUTH_WAIT)) - 1]}, f)
+    except OSError:
+        pass
+
+
 def cmd_fetch():
     secret = get_secret()
     if secret is None:
         return out("unconfigured")
     cached = read_cache()
+    if auth_hold()[1] > 0:
+        return out("expired", cached)
     try:
         s = Session(secret)
         etype, eid, gdays = s.login()
@@ -298,8 +329,13 @@ def cmd_fetch():
         lessons.sort(key=lambda x: (x["date"], x["start"], x["subject"]))
         data = {"fetched": int(time.time()), "grid": grid, "lessons": lessons}
         write_cache(data)
+        try:
+            os.unlink(AUTH_HOLD)
+        except OSError:
+            pass
         return out("ok", data)
     except AuthError:
+        auth_failed()
         return out("expired", cached)
     except NetError:
         return out("stale" if cached else "offline", cached)

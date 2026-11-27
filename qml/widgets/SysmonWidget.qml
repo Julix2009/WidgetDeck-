@@ -12,6 +12,8 @@ Item {
     property real ramUsedGb: 0
     property real ramTotalGb: 0
     property var prev: null
+    readonly property bool live: Window.window !== null && Window.window.visible
+    readonly property real seconds: Math.max(250, Number(props.interval) || 1000) / 1000      // never "sleep NaN": the loop would spin
 
     readonly property var items: {
         var a = [];
@@ -23,10 +25,10 @@ Item {
     // one long-lived shell prints a sample per interval (cheaper than spawning a process every time)
     Feed {
         id: poll
-        key: "sysmon:" + w.props.interval
-        command: ["sh", "-c", "while :; do head -n1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo; echo; sleep " + (w.props.interval / 1000) + "; done"]
+        key: "sysmon:" + w.seconds
+        command: ["sh", "-c", "while :; do head -n1 /proc/stat; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo; echo; sleep " + w.seconds + "; done"]
         interval: 0
-        active: true
+        active: w.live
         property real total: 0
         property real avail: 0
         onGot: line => {

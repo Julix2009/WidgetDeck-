@@ -20,6 +20,29 @@ Scope {
     property bool loaded: false
     property int geomRev: 0               // bumped by every change (rev AND geometry): position / size readers depend on this one
 
+    // ───────────── unreadable files ─────────────
+    // A file that exists but cannot be read (a typo while editing by hand) is NEVER overwritten: saving it is blocked until it parses again.
+    property var broken: ({})                 // file name -> true
+    readonly property bool configBroken: broken["config.json"] === true
+    function setBroken(name, on) {
+        if ((broken[name] === true) === on) return;
+        var b = Object.assign({}, broken);
+        if (on) b[name] = true; else delete b[name];
+        broken = b;
+        if (on) { console.log("[widgetdeck] " + name + " cannot be read: it is not overwritten until it is fixed"); brokenNote.restart(); }
+    }
+    function parseObject(text) {              // null unless the text is one JSON object
+        try { var o = JSON.parse(text); return (o && typeof o === "object" && !Array.isArray(o)) ? o : null; } catch (e) { return null; }
+    }
+    Timer {                                   // delayed: an editor that is just writing the file does not raise a message
+        id: brokenNote; interval: 2000
+        onTriggered: {
+            var names = Object.keys(root.broken);
+            if (names.length > 0) Quickshell.execDetached(["notify-send", "-a", "WidgetDeck", "-u", "critical", I18n.tr("Settings file cannot be read"),
+                I18n.trf("Error in %1. Changes are not saved until it is fixed, so nothing gets overwritten.", names.join(", "))]);
+        }
+    }
+
     // ───────────── config.json: setup, location, units, language, modules, update ─────────────
     // Shared with the data scripts (sysmon/*.sh read the same file). Edited in the builder (Settings) and by the first-run assistant.
     //   { "setup": {"done": false}, "location": { "auto": true, "lat": null, "lon": null, "name": "" }, "units": "auto|metric|imperial",
@@ -69,16 +92,21 @@ Scope {
         atomicWrites: true
         onLoaded: {
             var t = text();
-            if (t === root.clast) return;                       // our own save echoing back
-            try { var o = JSON.parse(t); if (o && typeof o === "object") { root.config = root.mergeDefaults(root.configDefaults, o); root.configRev++; } } catch (e) { }
+            if (t === root.clast) { root.setBroken("config.json", false); return; }      // our own save echoing back
+            var o = root.parseObject(t);
+            root.setBroken("config.json", !o && t.trim() !== "");      // before configLoaded: the setup assistant looks at both
+            if (o) { root.config = root.mergeDefaults(root.configDefaults, o); root.configRev++; }
             root.configLoaded = true;
         }
-        onLoadFailed: error => { root.configLoaded = true; }
+        onLoadFailed: error => { root.setBroken("config.json", error !== FileViewError.FileNotFound); root.configLoaded = true; }
         onFileChanged: reload()
     }
     Timer {
         id: csaveTimer; interval: 300
-        onTriggered: { var t = JSON.stringify(root.config, null, 2) + "\n"; root.clast = t; cfile.setText(t); cbump.restart(); }
+        onTriggered: {
+            if (root.configBroken) return;
+            var t = JSON.stringify(root.config, null, 2) + "\n"; root.clast = t; cfile.setText(t); cbump.restart();
+        }
     }
     Timer { id: cbump; interval: 400; onTriggered: root.configRev++ }      // the scripts read the file: wait until it is on disk
 
@@ -574,7 +602,7 @@ Scope {
     function applyText(text) {
         try {
             var o = JSON.parse(text);
-            if (!o || !Array.isArray(o.widgets)) return false;
+            if (!o || !Array.isArray(o.widgets)) { setBroken("widgets.json", true); return false; }
             var ver = o.version || 1, cells = ver >= 2, fileMons = (ver >= 3 && o.monitors) ? o.monitors : {}, primFile = o.primary || "";
             var legU = Number(o.unit) || 20, legOrg = Array.isArray(o.origin) ? o.origin : [0, 0];
             var info = Object.assign({}, monInfo), k;
@@ -603,8 +631,9 @@ Scope {
             data = o;
             widgetIds = o.widgets.map(function (w) { return w.id; });
             rev++; geomRev++;
+            setBroken("widgets.json", false);
             return true;
-        } catch (e) { console.log("[widgetdeck] layout error:", e); return false; }
+        } catch (e) { console.log("[widgetdeck] layout error:", e); setBroken("widgets.json", text.trim() !== ""); return false; }
     }
     FileView {
         id: lfile
@@ -613,15 +642,18 @@ Scope {
         atomicWrites: true
         onLoaded: {
             var t = text();
-            if (t === root.lastWritten) { root.loaded = true; return; }     // our own save echoing back
+            if (t === root.lastWritten) { root.setBroken("widgets.json", false); root.loaded = true; return; }     // our own save echoing back
             if (!root.parseLayout(t)) console.log("[widgetdeck] widgets.json is not valid JSON, keeping the current layout");
             root.loaded = true;
             if (root.areaKnown) { root.clampAll(); root.maybeMigrate(); }
             if (t !== root.lastWritten) root.resetHistory();
         }
         onLoadFailed: error => {
+            var missing = error === FileViewError.FileNotFound;
+            root.setBroken("widgets.json", !missing);
             if (!root.loaded) {
-                if (!root.monsReady) root.pendingText = "__default__";
+                if (!missing) { }                                   // it exists: no default layout over it
+                else if (!root.monsReady) root.pendingText = "__default__";
                 else { root.data = root.defaultLayout(); root.widgetIds = root.data.widgets.map(function (w) { return w.id; }); root.rev++; root.geomRev++; root.saveNow(); }
                 root.loaded = true;
             }
@@ -663,6 +695,8 @@ Scope {
     Timer { id: migrateFallback; interval: 3000; running: root.needsMigration; onTriggered: { root.areaKnown = true; root.maybeMigrate(); } }
     function saveNow() {
         recordHistory();
+        if (broken["widgets.json"] || (!monsReady && pendingText !== "")) return;      // unreadable, or read but not applied yet
+        if (monsReady && mons.length === 0) return;        // all monitors gone (suspend): there is no area to save against, the next change saves
         var t = JSON.stringify(toFile(), null, 2) + "\n";
         lastWritten = t;
         lfile.setText(t);
@@ -675,12 +709,22 @@ Scope {
         path: root.dir + "/builder.json"
         watchChanges: true
         atomicWrites: true
-        onLoaded: { var t = text(); if (t === root.blast) return; try { root.builder = Object.assign({}, D.BUILDER_DEFAULT, JSON.parse(t)); } catch (e) { } }
+        onLoaded: {
+            var t = text();
+            if (t === root.blast) { root.setBroken("builder.json", false); return; }
+            var o = root.parseObject(t);
+            root.setBroken("builder.json", !o && t.trim() !== "");
+            if (o) root.builder = Object.assign({}, D.BUILDER_DEFAULT, o);
+        }
+        onLoadFailed: error => root.setBroken("builder.json", error !== FileViewError.FileNotFound)
         onFileChanged: reload()
     }
     Timer {
         id: bsaveTimer; interval: 250
-        onTriggered: { var t = JSON.stringify(root.builder, null, 2) + "\n"; root.blast = t; bfile.setText(t); }
+        onTriggered: {
+            if (root.broken["builder.json"]) return;
+            var t = JSON.stringify(root.builder, null, 2) + "\n"; root.blast = t; bfile.setText(t);
+        }
     }
 
     // ───────────── user widget types ─────────────

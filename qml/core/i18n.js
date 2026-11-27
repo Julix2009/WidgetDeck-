@@ -3,6 +3,12 @@
 // To add a language: add a table here and its code to LANGS. tools/check-i18n.py lists missing keys.
 var LANGS = ["en", "de"];
 var de = {
+ "Enter both coordinates: latitude -90 to 90, longitude -180 to 180.": "Gib beide Koordinaten ein: Breitengrad -90 bis 90, Längengrad -180 bis 180.",
+ "Not saved: latitude must be -90 to 90, longitude -180 to 180.": "Nicht gespeichert: Breitengrad -90 bis 90, Längengrad -180 bis 180.",
+ "Invalid coordinates": "Ungültige Koordinaten",
+ "Check latitude and longitude of this widget": "Breiten- und Längengrad dieses Widgets prüfen",
+ "Settings file cannot be read": "Einstellungsdatei nicht lesbar",
+ "Error in %1. Changes are not saved until it is fixed, so nothing gets overwritten.": "Fehler in %1. Bis er behoben ist, werden Änderungen nicht gespeichert, damit nichts überschrieben wird.",
  "Update available": "Update verfügbar",
  "WidgetDeck %1 is available. You have %2.": "WidgetDeck %1 ist da. Du hast %2.",
  "There are newer changes on GitHub.": "Auf GitHub gibt es neuere Änderungen.",

@@ -46,7 +46,7 @@ Item {
             case "a": return L.dayName(d.getDay(), Locale.ShortFormat);
             case "B": return L.monthName(d.getMonth(), Locale.LongFormat);
             case "b": return L.monthName(d.getMonth(), Locale.ShortFormat);
-            case "j": return String(Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000));
+            case "j": return String(Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 0)) / 86400000));
             default: return "%";
             }
         });

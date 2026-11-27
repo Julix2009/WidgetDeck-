@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tests of the F1 data helper (qml/widgets/f1/f1.py) against tools/f1-mock.py (invented data, local): python3 tools/f1-helper-test.py"""
 import calendar
+import fcntl
 import json
 import os
 import socket
@@ -157,6 +158,42 @@ ok("plain http is refused without the test switch", d.get("state") in ("error", 
 for sc in ("weekend", "sprint", "running", "finished", "seasonend", "cancelled", "noresult"):
     dm = run(["demo", sc, "monza"], T0, cache="cD")
     ok("demo scenario " + sc, dm.get("state") == "ok" and dm["races"][1]["circuitId"] == "monza" and dm["source"] == "demo", dm)
+
+# 12) fetch and live are separate processes sharing one cache: live waits for the lock, parallel runs all answer, an unwritable cache is no crash
+env = dict(os.environ, F1_CACHE=os.path.join(tmp, "cL.json"), F1_NOW=iso(T0), WIDGETDECK_F1_TEST="1", F1_JOLPICA=BASE + "/jolpica", F1_OPENF1=BASE + "/openf1")
+
+
+def start(cmd, e=env):
+    return subprocess.Popen([sys.executable, "-I", HELPER, cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=e)
+
+
+with open(env["F1_CACHE"] + ".lock", "a") as lk:
+    fcntl.flock(lk, fcntl.LOCK_EX)
+    p = start("live")
+    try:
+        p.wait(1.5); waited = False
+    except subprocess.TimeoutExpired:
+        waited = True
+ok("live waits while another process holds the cache lock", waited)
+p.communicate(timeout=60)
+res = [(p, p.communicate(timeout=60)) for p in [start("live" if i % 2 else "fetch") for i in range(24)]]
+bad = [err[-300:] for p, (o, err) in res if p.returncode != 0 or err or not o.startswith("{")]
+ok("24 parallel fetch / live runs: all print JSON, none fails", not bad, bad[:1])
+ok("no temporary files stay behind", not [f for f in os.listdir(tmp) if f.endswith(".tmp")], os.listdir(tmp))
+blocker = os.path.join(tmp, "not-a-folder"); open(blocker, "w").close()
+for cmd in ("fetch", "live"):
+    p = start(cmd, dict(env, F1_CACHE=os.path.join(blocker, "f1.json")))
+    o, err = p.communicate(timeout=60)
+    ok(cmd + " with an unwritable cache still prints JSON", p.returncode == 0 and o.startswith("{"), err[-300:])
+
+# 13) a cancelled race never gets a result: it must not be polled
+import importlib.util
+sys.dont_write_bytecode = True                                  # no __pycache__ between the program files
+os.environ["F1_CACHE"] = os.path.join(tmp, "cImport.json")      # whatever happens on import stays in the test folder
+spec = importlib.util.spec_from_file_location("f1", HELPER); f1 = importlib.util.module_from_spec(spec); spec.loader.exec_module(f1)
+race = {"round": 3, "sessions": [{"key": "Race", "start": iso(T0 - 5 * 3600)}]}
+ok("a finished race without result is polled", f1.pending_result({"cal": {"races": [race]}}, T0) is True)
+ok("a cancelled race is not", f1.pending_result({"cal": {"races": [dict(race, cancelled=True)]}}, T0) is False)
 
 srv.terminate()
 sys.exit(1 if fails else 0)

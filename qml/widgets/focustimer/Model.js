@@ -3,7 +3,8 @@
 // Time is never counted in ticks: a running phase has an absolute end (endsAt, ms since the epoch), a paused one a stored remaining time. So the
 // remaining time is right after standby, after a hanging UI and after a restart of the shell.
 //
-// state    { v, phase: "focus"|"short"|"long", cycle, running, endsAt, remainingMs }
+// state    { v, phase: "focus"|"short"|"long", cycle, running, endsAt, remainingMs, lengthMs }
+//          lengthMs = full length of this phase as it was entered (a changed setting does not change what is booked afterwards)
 //          cycle = focus sessions completed in the current set (the dots); a set ends with the long break
 // settings { focus_min, short_min, long_min, cycles, auto_next, debug_fast }   (debug_fast: phases of seconds for testing)
 // events   what happened, for the service (stats, sound, notification): { completed, phase, next, late, seconds }
@@ -24,7 +25,7 @@ function durationMs(settings, phase) {
     if (s.debug_fast) return DEBUG_MS[phase] || DEBUG_MS.focus;
     return Math.round((phase === "short" ? s.short_min : phase === "long" ? s.long_min : s.focus_min) * 60000);
 }
-function fresh(settings) { return { v: 1, phase: "focus", cycle: 0, running: false, endsAt: 0, remainingMs: durationMs(settings, "focus") }; }
+function fresh(settings) { var d = durationMs(settings, "focus"); return { v: 1, phase: "focus", cycle: 0, running: false, endsAt: 0, remainingMs: d, lengthMs: d }; }
 function remaining(st, now) { return st.running ? Math.max(0, st.endsAt - now) : Math.max(0, st.remainingMs); }
 
 // the phase after this one; `completed` = a focus phase that really ended counts for the set
@@ -38,17 +39,17 @@ function following(st, settings, completed) {
 }
 function enter(st, settings, nx, running, now) {
     var d = durationMs(settings, nx.phase);
-    return { v: 1, phase: nx.phase, cycle: Math.min(nx.cycle, cleanSettings(settings).cycles), running: running, endsAt: running ? now + d : 0, remainingMs: d };
+    return { v: 1, phase: nx.phase, cycle: Math.min(nx.cycle, cleanSettings(settings).cycles), running: running, endsAt: running ? now + d : 0, remainingMs: d, lengthMs: d };
 }
 
 function start(st, now) {
     if (st.running) return st;
     var r = Math.max(1000, st.remainingMs);
-    return { v: 1, phase: st.phase, cycle: st.cycle, running: true, endsAt: now + r, remainingMs: r };
+    return { v: 1, phase: st.phase, cycle: st.cycle, running: true, endsAt: now + r, remainingMs: r, lengthMs: st.lengthMs };
 }
 function pause(st, now) {
     if (!st.running) return st;
-    return { v: 1, phase: st.phase, cycle: st.cycle, running: false, endsAt: 0, remainingMs: remaining(st, now) };
+    return { v: 1, phase: st.phase, cycle: st.cycle, running: false, endsAt: 0, remainingMs: remaining(st, now), lengthMs: st.lengthMs };
 }
 function toggle(st, now) { return st.running ? pause(st, now) : start(st, now); }
 function reset(settings) { return fresh(settings); }
@@ -62,7 +63,7 @@ function finish(st, settings, now) {
     var late = st.running && now - st.endsAt > GRACE_MS;
     var nx = following(st, settings, true);
     var auto = cleanSettings(settings).auto_next && !late;
-    var secs = st.phase === "focus" ? Math.round(durationMs(settings, "focus") / 1000) : 0;
+    var secs = st.phase === "focus" ? Math.round((st.lengthMs > 0 ? st.lengthMs : durationMs(settings, "focus")) / 1000) : 0;
     return { state: enter(st, settings, nx, auto, now), event: { completed: true, phase: st.phase, next: nx.phase, late: late, seconds: secs } };
 }
 // is it time? (the service asks on every wake-up and on every second of a visible widget)
@@ -75,10 +76,11 @@ function restore(raw, settings, now) {
         if (raw && raw.v === 1 && PHASES.indexOf(raw.phase) >= 0) {
             st = { v: 1, phase: raw.phase, cycle: Math.max(0, Math.min(11, Math.round(Number(raw.cycle) || 0))), running: raw.running === true,
                    endsAt: Number(raw.endsAt) || 0, remainingMs: Number(raw.remainingMs) || 0 };
-            var full = durationMs(settings, st.phase);
+            var full = Number(raw.lengthMs) > 0 ? Math.min(Number(raw.lengthMs), 180 * 60000) : durationMs(settings, st.phase);
+            st.lengthMs = full;
             if (st.running) {
-                if (!(st.endsAt > 0)) st = pause({ v: 1, phase: st.phase, cycle: st.cycle, running: true, endsAt: now + full, remainingMs: full }, now);
-                else if (st.endsAt - now > full + 3600000) st = { v: 1, phase: st.phase, cycle: st.cycle, running: true, endsAt: now + full, remainingMs: full };
+                if (!(st.endsAt > 0)) st = pause({ v: 1, phase: st.phase, cycle: st.cycle, running: true, endsAt: now + full, remainingMs: full, lengthMs: full }, now);
+                else if (st.endsAt - now > full + 3600000) st = { v: 1, phase: st.phase, cycle: st.cycle, running: true, endsAt: now + full, remainingMs: full, lengthMs: full };
             } else if (!(st.remainingMs > 0) || st.remainingMs > full) st.remainingMs = full;
             // it ended while nobody was looking (shell not running, computer asleep): counted once, silent, the next phase waits paused
             if (due(st, now)) { var r = finish(st, settings, now); st = r.state.running ? pause(r.state, now) : r.state; ev = r.event; ev.late = true; }

@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -100,6 +101,28 @@ def demo():
     return finish("demo", days, sum(d["c"] for d in days), "demo")
 
 
+def read_json(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def write_json(path, data):
+    """Atomic; a cache that cannot be written (disk full, read-only) never loses the answer that was just fetched."""
+    tmp = None
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        fd, tmp = tempfile.mkstemp(suffix=".tmp", dir=os.path.dirname(path))
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        os.replace(tmp, path)
+    except OSError:
+        if tmp and os.path.exists(tmp):
+            os.unlink(tmp)
+
+
 def main():
     user = (sys.argv[1] if len(sys.argv) > 1 else "").strip().lstrip("@")
     if user == "demo":
@@ -107,14 +130,20 @@ def main():
     if user and not re.fullmatch(r"[A-Za-z0-9-]{1,39}", user):
         return {"state": "error", "error": "notfound"}
     path = os.path.join(CACHE, "github-%s.json" % (user.lower() or "_own"))
-    old = None
+    old = read_json(path)
     try:
-        with open(path, encoding="utf-8") as f:
-            old = json.load(f)
-        if time.time() - old["fetched"] < TTL:
+        if old and time.time() - old["fetched"] < TTL:
             return old
-    except (OSError, ValueError, KeyError):
-        pass
+    except (KeyError, TypeError):
+        old = None
+    # after "rate limited" GitHub is left alone for a while: 30 min, doubling up to 4 h
+    held = path + ".backoff"
+    hold = read_json(held) or {}
+    if hold.get("until", 0) > time.time():
+        if old:
+            old["stale"] = True
+            return old
+        return {"state": "error", "error": "ratelimit"}
     try:
         data = None
         if shutil.which("gh"):
@@ -128,15 +157,19 @@ def main():
                 raise Problem("nouser")
             data = from_public(user)
     except Problem as e:
+        if str(e) == "ratelimit":
+            fails = min(hold.get("fails", 0) + 1, 4)
+            write_json(held, {"fails": fails, "until": time.time() + min(14400, 1800 * 2 ** (fails - 1))})
         if old:
             old["stale"] = True
             return old
         return {"state": "error", "error": str(e)}
-    os.makedirs(CACHE, exist_ok=True)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f)
-    os.replace(tmp, path)
+    write_json(path, data)
+    if hold:
+        try:
+            os.unlink(held)
+        except OSError:
+            pass
     return data
 
 

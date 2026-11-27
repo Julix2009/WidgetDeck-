@@ -134,7 +134,7 @@ Item {
     Column {
         anchors.centerIn: parent
         visible: !w.has; spacing: w.s(4)
-        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.3; text: w.d.error === "offline" ? I18n.tr("Offline") : (w.d.error === "no-location" ? I18n.tr("No location") : I18n.tr("Loading …")) }
-        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.75; text: w.d.error === "no-location" ? I18n.tr("Builder → Settings → Location & units") : "" }
+        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 1.3; text: w.d.error === "offline" ? I18n.tr("Offline") : (w.d.error === "no-location" ? I18n.tr("No location") : (w.d.error === "bad-location" ? I18n.tr("Invalid coordinates") : I18n.tr("Loading …"))) }
+        GText { anchors.horizontalCenter: parent.horizontalCenter; wstyle: w.style; opacity: 0.6; font.pixelSize: w.fs * 0.75; text: w.d.error === "no-location" ? I18n.tr("Builder → Settings → Location & units") : (w.d.error === "bad-location" ? I18n.tr("Check latitude and longitude of this widget") : "") }
     }
 }

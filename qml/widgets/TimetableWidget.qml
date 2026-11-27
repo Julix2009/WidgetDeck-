@@ -76,6 +76,7 @@ Item {
     }
     Timer { id: retryTimer; onTriggered: if (w.live) w.run() }
     onConfigRevChanged: if (live) run()
+    onLiveChanged: if (live) now = new Date()
     Timer { interval: 30000; repeat: true; running: w.live; onTriggered: w.now = new Date() }                          // minute resolution is enough
     function openSetup() {
         var p = Quickshell.env("HOME") + "/.local/bin/widgetdeck-untis-setup";

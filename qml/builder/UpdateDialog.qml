@@ -29,7 +29,7 @@ Rectangle {
             Text {
                 width: parent.width; wrapMode: Text.WordWrap; color: ud.th.fg; font.family: ud.th.font; font.pixelSize: 13
                 // on the "main" channel there can be newer changes without a new version number
-                text: ud.update.latest !== ud.update.version ? I18n.trf("WidgetDeck %1 is available. You have %2.", ud.update.latest, ud.update.version)
+                text: ud.update.latest !== "" && ud.update.latest !== ud.update.version ? I18n.trf("WidgetDeck %1 is available. You have %2.", ud.update.latest, ud.update.version)
                     : I18n.tr("There are newer changes on GitHub.")
             }
             Rectangle {

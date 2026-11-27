@@ -5,7 +5,7 @@
 # usage: netmon.sh [ping-target]      (the widget passes its "ping_target" prop; default 1.1.1.1)
 export LC_ALL=C
 TARGET="${1:-1.1.1.1}"
-[[ "$TARGET" =~ ^[A-Za-z0-9._:-]+$ ]] || TARGET="1.1.1.1"
+[[ "$TARGET" =~ ^[A-Za-z0-9._:][A-Za-z0-9._:-]*$ ]] || TARGET="1.1.1.1"
 PF=$(mktemp "${XDG_RUNTIME_DIR:-/tmp}/netmon-ping.XXXXXX")
 cleanup() { jobs -p | xargs -r kill 2>/dev/null; rm -f "$PF"; }
 trap cleanup EXIT
@@ -49,7 +49,7 @@ while true; do
     fi
     # one ping every 3 s, in the background: the loop never waits for it
     if [ $(( tick % 3 )) -eq 0 ]; then
-        ( r=$(ping -n -c1 -W1 "$TARGET" 2>/dev/null | sed -n 's/.*time=\([0-9.]*\) ms.*/\1/p'); echo "${r:-x}" > "$PF" ) &
+        ( r=$(ping -n -c1 -W1 -- "$TARGET" 2>/dev/null | sed -n 's/.*time=\([0-9.]*\) ms.*/\1/p'); echo "${r:-x}" > "$PF" ) &
     fi
     read -r PING < "$PF"; [ "$PING" = x ] && PING=null
 

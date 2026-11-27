@@ -13,12 +13,14 @@ every source backs off exponentially after an error and obeys Retry-After on 429
 Cache: ${XDG_CACHE_HOME:-~/.cache}/widgetdeck/f1.json. Test hooks: F1_JOLPICA / F1_OPENF1 (base URLs, plain http allowed only with WIDGETDECK_F1_TEST=1),
 F1_NOW (ISO time that replaces the clock), F1_CACHE (cache file).
 """
+import contextlib
 import datetime
 import fcntl
 import json
 import os
 import ssl
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -71,13 +73,36 @@ def load_cache():
     return {"v": 1, "cal": None, "std": None, "last": None, "cancel": None, "removed": [], "backoff": {}, "req": []}
 
 
+@contextlib.contextmanager
+def cache_lock():
+    """fetch and live run as separate processes: only one at a time reads, changes and writes the cache. No lock when the directory is not writable."""
+    f = None
+    try:
+        os.makedirs(os.path.dirname(CACHE), exist_ok=True)
+        f = open(CACHE + ".lock", "a")
+        fcntl.flock(f, fcntl.LOCK_EX)
+    except OSError:
+        pass
+    try:
+        yield
+    finally:
+        if f:
+            f.close()                      # closing releases the lock
+
+
 def save_cache(c):
-    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
-    tmp = CACHE + ".tmp"
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(c, f, separators=(",", ":"), ensure_ascii=False)
-    os.replace(tmp, CACHE)
+    """Writes the cache atomically. A cache that cannot be written (disk full, read-only) is not an error: the data is still printed."""
+    tmp = None
+    try:
+        os.makedirs(os.path.dirname(CACHE), exist_ok=True)
+        fd, tmp = tempfile.mkstemp(prefix=os.path.basename(CACHE) + ".", suffix=".tmp", dir=os.path.dirname(CACHE))
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(c, f, separators=(",", ":"), ensure_ascii=False)
+        os.replace(tmp, CACHE)
+    except OSError:
+        if tmp:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp)
 
 
 class Blocked(Exception):
@@ -191,7 +216,7 @@ def pending_result(c, t):
     last = (c.get("last") or {}).get("round", 0)
     for r in cal["races"]:
         rs = [s for s in r["sessions"] if s["key"] == "Race" and s["start"]]
-        if rs and r["round"] > last and parse_iso(rs[0]["start"]) + (SESSION_MIN["Race"] + 30) * 60 <= t <= parse_iso(rs[0]["start"]) + 4 * 24 * 3600:
+        if rs and not r.get("cancelled") and r["round"] > last and parse_iso(rs[0]["start"]) + (SESSION_MIN["Race"] + 30) * 60 <= t <= parse_iso(rs[0]["start"]) + 4 * 24 * 3600:
             return True
     return False
 
@@ -216,7 +241,7 @@ def refresh(c, t):
                             removed.append({"name": o["name"], "date": o["date"], "round": o["round"]})
             c["removed"] = removed
             try:
-                of = http_json(c, "openf1", OPENF1 + "/sessions?year=" + str(new["season"] or datetime.datetime.utcfromtimestamp(t).year), t)
+                of = http_json(c, "openf1", OPENF1 + "/sessions?year=" + str(new["season"] or datetime.datetime.fromtimestamp(t, datetime.timezone.utc).year), t)
                 cd = cancelled_dates(of if isinstance(of, list) else [])
                 for r in new["races"]:
                     if r["date"] and any(abs((parse_iso(r["date"] + "T00:00:00Z") - parse_iso(d + "T00:00:00Z"))) <= 24 * 3600 for d in cd):
@@ -251,18 +276,11 @@ def refresh(c, t):
 
 
 def fetch():
-    lock = open(CACHE + ".lock", "a") if os.path.isdir(os.path.dirname(CACHE)) else None
-    if lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-    try:
+    with cache_lock():
         c = load_cache()
         t = now()
         errors = refresh(c, t)
         save_cache(c)
-    finally:
-        if lock:
-            fcntl.flock(lock, fcntl.LOCK_UN)
-            lock.close()
     cal = c.get("cal")
     if not cal:
         out({"state": "error" if errors else "empty", "errors": errors, "fetched": 0})
@@ -275,6 +293,11 @@ def fetch():
 
 # ---------------------------------------------------------------------------------------------------------------- live (OpenF1)
 def live():
+    with cache_lock():
+        live_locked()
+
+
+def live_locked():
     c = load_cache()
     t = now()
     try:
@@ -354,7 +377,7 @@ def demo(scenario, circuit):
         sessions[-1]["start"] = iso(t + 22 * h)
     if scenario == "weekend" and circuit == "__missing_time__":
         sessions[1]["start"] = None
-    year = datetime.datetime.utcfromtimestamp(t).year
+    year = datetime.datetime.fromtimestamp(t, datetime.timezone.utc).year
     mk = lambda rd, name, st, cid2, cancelled=False: {"round": rd, "name": name, "circuitId": cid2, "circuitName": (cc.get(cid2) or {}).get("name") or name, "locality": (cc.get(cid2) or {}).get("place") or place,
                                                       "country": "Testland", "date": iso(st)[:10], "sessions": [{"key": "Race", "start": iso(st), "date": iso(st)[:10]}], "cancelled": cancelled}
     races = [mk(20, "Test Grand Prix", race - 14 * 24 * h, "monza"), {"round": 21, "name": "Grand Prix of " + place, "circuitId": cid, "circuitName": ci.get("name") or "Test Circuit", "locality": place, "country": "Testland",
@@ -408,4 +431,5 @@ def main():
         sys.exit(__doc__)
 
 
-main()
+if __name__ == "__main__":
+    main()

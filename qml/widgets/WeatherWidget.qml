@@ -9,6 +9,7 @@ import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 import "../core"
+import "weathercard/Model.js" as WM
 
 Item {
     id: w
@@ -72,7 +73,7 @@ Item {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             spacing: w.s(2)
-            GText { wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 3.2; text: w.has ? Math.round(Number(w.d.current_temp)) + "°" : "" }
+            GText { wstyle: w.style; font.bold: true; font.pixelSize: w.fs * 3.2; text: !w.has ? "" : (WM.num(w.d.current_temp) === null ? "–" : WM.num(w.d.current_temp) + "°") }
             GText { wstyle: w.style; opacity: 0.75; font.bold: true; font.pixelSize: w.fs * 0.95; text: w.today ? w.today.desc : "" }
         }
     }
@@ -82,12 +83,15 @@ Item {
         spacing: w.s(5)
         visible: w.has && w.props.show_details !== false && !!w.today
         Repeater {
-            model: w.today ? [
-                { k: "thermometer", t: Math.round(Number(w.today.max)) + "° / " + Math.round(Number(w.today.min)) + "°" },
-                { k: "thermometer", t: I18n.tr("feels like") + " " + Math.round(Number(w.today.feels_like)) + "°" },
-                { k: "wind", t: w.today.wind + " " + w.windUnit },
-                { k: "drop", t: w.today.humidity + " %" }
-            ] : []
+            model: {                    // a value the service did not send hides its row (no "NaN°")
+                var d = w.today, rows = [];
+                if (!d) return rows;
+                if (WM.num(d.max) !== null && WM.num(d.min) !== null) rows.push({ k: "thermometer", t: WM.num(d.max) + "° / " + WM.num(d.min) + "°" });
+                if (WM.num(d.feels_like) !== null) rows.push({ k: "thermometer", t: I18n.tr("feels like") + " " + WM.num(d.feels_like) + "°" });
+                if (WM.num(d.wind) !== null) rows.push({ k: "wind", t: d.wind + " " + w.windUnit });
+                if (WM.num(d.humidity) !== null) rows.push({ k: "drop", t: d.humidity + " %" });
+                return rows;
+            }
             delegate: Row {
                 anchors.right: parent.right
                 spacing: w.s(8)

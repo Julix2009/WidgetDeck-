@@ -59,6 +59,7 @@ ok('champion only when the standings are from the last round', M.champion({ race
 // ---- countdown
 const p = M.parts(new Date('2026-10-25T20:00:00Z'), new Date('2026-10-23T14:55:30Z'));
 ok('countdown parts', p.d === 2 && p.h === 5 && p.m === 4 && p.s === 30, p);
+ok('the countdown tick is aligned to the shown minute', M.tickMs(new Date('2026-10-25T20:00:00Z'), new Date('2026-10-25T10:00:30Z')) === 30020, 0);
 ok('the clock ticks every second in the last hour, else every minute', M.tickMs(new Date('2026-10-25T20:00:00Z'), new Date('2026-10-25T19:30:00Z')) === 1000 && M.tickMs(new Date('2026-10-25T20:00:00Z'), new Date('2026-10-25T10:00:00Z')) === 60000, 0);
 ok('a passed target counts 0, never negative', M.parts(new Date('2026-10-25T20:00:00Z'), new Date('2026-10-26T20:00:00Z')).total === 0, 0);
 

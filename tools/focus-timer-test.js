@@ -80,6 +80,13 @@ for (const junk of [null, undefined, 5, 'x', {}, { v: 2 }, { v: 1, phase: 'bogus
 }
 ok('broken state files (null, wrong version, NaN, negative, huge) all give a sane timer', true, 0);
 
+// ---- the booked length is the one the phase was started with, also across pause and restart
+const long = { focus_min: 50 };
+let l1 = M.start(M.fresh(S), T0);
+ok('changing focus_min mid-phase books the length of the phase', M.finish(l1, long, l1.endsAt).event.seconds === 1500, 0);
+let l2 = M.restore(JSON.parse(JSON.stringify(M.pause(l1, T0 + 60000))), { focus_min: 5 }, T0 + 70000).state;
+ok('... also after pause and restart with another setting', l2.remainingMs === 1440000 && M.finish(M.start(l2, T0), { focus_min: 5 }, T0 + 1440000).event.seconds === 1500, l2);
+
 // ---- statistics
 const key = M.dateKey(new Date(2026, 9, 22, 23, 59, 59)), key2 = M.dateKey(new Date(2026, 9, 23, 0, 0, 1));
 ok('the day is the LOCAL date, also just before / after midnight', key === '2026-10-22' && key2 === '2026-10-23', [key, key2]);

@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import "../core"
 import "../builder"
+import "../core/Geo.js" as Geo
 
 FloatingWindow {
     id: wz
@@ -12,9 +13,9 @@ FloatingWindow {
     required property var wall
     required property bool liquidOk
     required property bool shaderOk
-    readonly property bool active: store.loaded && store.configLoaded && !store.cget("setup.done", false)
+    readonly property bool active: store.loaded && store.configLoaded && !store.configBroken && !store.cget("setup.done", false)
     property bool dismissed: false
-    onActiveChanged: if (active) dismissed = false
+    onActiveChanged: if (active) { dismissed = false; locTried = false; }
     visible: active && !dismissed
     onClosed: dismissed = true
     title: "WidgetDeck Setup"
@@ -32,6 +33,10 @@ FloatingWindow {
     property string lat: store.cget("location.lat", null) !== null ? String(store.cget("location.lat", "")) : ""
     property string lon: store.cget("location.lon", null) !== null ? String(store.cget("location.lon", "")) : ""
     property string place: store.cget("location.name", "")
+    readonly property real latValue: Geo.parseCoord(lat, 90)
+    readonly property real lonValue: Geo.parseCoord(lon, 180)
+    readonly property bool locValid: locMode !== "manual" || (isFinite(latValue) && isFinite(lonValue))
+    property bool locTried: false                // "Next" was pressed with unusable coordinates
     property string units: store.cget("units", "auto")
     property string timeFmt: store.cget("time_format", "auto")
     property string lang: store.cget("language", "auto")
@@ -52,10 +57,10 @@ FloatingWindow {
     function typeLabel(k) { var t = store.typeInfo(k); return t ? I18n.tr(t.label) : k; }
     function finish(skip) {
         if (!skip) {
+            if (!locValid) { locTried = true; step = 1; return; }        // never save half a location
             store.setConfig("location.auto", locMode === "auto");
-            var la = parseFloat(lat), lo = parseFloat(lon);
-            store.setConfig("location.lat", locMode === "manual" && isFinite(la) ? la : null);
-            store.setConfig("location.lon", locMode === "manual" && isFinite(lo) ? lo : null);
+            store.setConfig("location.lat", locMode === "manual" ? latValue : null);
+            store.setConfig("location.lon", locMode === "manual" ? lonValue : null);
             store.setConfig("location.name", locMode === "manual" ? place : "");
             store.setConfig("units", units); store.setConfig("time_format", timeFmt); store.setConfig("language", lang);
             var types = typeKeys.filter(function (k) { return picked[k] && store.typeInfo(k); });
@@ -123,8 +128,10 @@ FloatingWindow {
                         : I18n.tr("No network request for weather is made; the weather and air quality widgets are not added.") }
                 Column {
                     visible: wz.locMode === "manual"; width: parent.width; spacing: 6
-                    GField { width: parent.width; th: th; label: I18n.tr("Latitude (e.g. 48.2082)"); value: wz.lat; onCommitted: v => wz.lat = v }
-                    GField { width: parent.width; th: th; label: I18n.tr("Longitude (e.g. 16.3738)"); value: wz.lon; onCommitted: v => wz.lon = v }
+                    GField { width: parent.width; th: th; label: I18n.tr("Latitude (e.g. 48.2082)"); value: wz.lat; onEdited: v => wz.lat = v }
+                    GField { width: parent.width; th: th; label: I18n.tr("Longitude (e.g. 16.3738)"); value: wz.lon; onEdited: v => wz.lon = v }
+                    Text { visible: !wz.locValid && (wz.locTried || (wz.lat !== "" && wz.lon !== "")); width: parent.width; wrapMode: Text.WordWrap; color: th.danger; font.family: th.font; font.pixelSize: 12
+                        text: I18n.tr("Enter both coordinates: latitude -90 to 90, longitude -180 to 180.") }
                     GField { width: parent.width; th: th; label: I18n.tr("Place name (display only)"); value: wz.place; onCommitted: v => wz.place = v }
                 }
             }
@@ -195,7 +202,7 @@ FloatingWindow {
             anchors { right: parent.right; bottom: parent.bottom; margins: 32 }
             spacing: 8
             GButton { th: th; label: I18n.tr("Back"); visible: wz.step > 0; onClicked: wz.step-- }
-            GButton { th: th; primary: true; label: wz.step < wz.lastStep ? I18n.tr("Next") : I18n.tr("Finish"); onClicked: { if (wz.step < wz.lastStep) wz.step++; else wz.finish(false); } }
+            GButton { th: th; primary: true; label: wz.step < wz.lastStep ? I18n.tr("Next") : I18n.tr("Finish"); onClicked: { if (wz.step === 1 && !wz.locValid) wz.locTried = true; else if (wz.step < wz.lastStep) wz.step++; else wz.finish(false); } }
         }
     }
 }

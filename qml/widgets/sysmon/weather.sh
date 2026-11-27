@@ -10,7 +10,9 @@
 . "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 
-if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then place='{"lat":'"$1"',"lon":'"$2"',"name":"","source":"manual"}'
+if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then
+    if ! la=$(coord "$1" 90) || ! lo=$(coord "$2" 180); then echo '{"error":"bad-location"}'; exit 0; fi
+    place='{"lat":'"$la"',"lon":'"$lo"',"name":"","source":"manual"}'
 else place=$("$HERE/location.sh"); fi
 lat=$(jq -r '.lat // empty' <<<"$place"); lon=$(jq -r '.lon // empty' <<<"$place"); name=$(jq -r '.name // ""' <<<"$place")
 if [ -z "$lat" ] || [ -z "$lon" ]; then echo '{"error":"no-location"}'; exit 0; fi
@@ -35,6 +37,7 @@ if ! jq -e '.current.temperature_2m != null' >/dev/null 2>&1 <<<"$raw"; then
 fi
 # WMO weather code -> icon name (drawn by core/Icon.qml) + description
 out=$(jq -c --arg key "$key" --arg tsym "$tsym" --arg wsym "$wsym" --arg lang "$lang" --arg name "$name" --arg now "$(date +%s)" '
+  def r: if . == null then null else round end;          # one missing value must not lose the whole answer
   def glyph($c; $day):
     if $c == 0 then (if $day == 1 then "sun" else "moon" end)
     elif $c <= 3 then "cloud"
@@ -51,16 +54,16 @@ out=$(jq -c --arg key "$key" --arg tsym "$tsym" --arg wsym "$wsym" --arg lang "$
      end)[($c|tostring)] // "";
   (.current.time[0:13]) as $h
   | [range(0; (.hourly.time | length)) as $i | select(.hourly.time[$i][0:13] >= $h)
-     | {t: .hourly.time[$i][11:16], temp: (.hourly.temperature_2m[$i] | round), code: .hourly.weather_code[$i], day: .hourly.is_day[$i], pop: .hourly.precipitation_probability[$i]}][0:9] as $hours
+     | {t: .hourly.time[$i][11:16], temp: (.hourly.temperature_2m[$i] | r), code: .hourly.weather_code[$i], day: .hourly.is_day[$i], pop: .hourly.precipitation_probability[$i]}][0:9] as $hours
   | [range(0; (.daily.time | length)) as $i
-     | {date: .daily.time[$i], max: (.daily.temperature_2m_max[$i] | round), min: (.daily.temperature_2m_min[$i] | round), code: .daily.weather_code[$i], pop: .daily.precipitation_probability_max[$i]}] as $days
+     | {date: .daily.time[$i], max: (.daily.temperature_2m_max[$i] | r), min: (.daily.temperature_2m_min[$i] | r), code: .daily.weather_code[$i], pop: .daily.precipitation_probability_max[$i]}] as $days
   | .current as $c | {
     key: $key, unit: $tsym, wind_unit: $wsym, place: $name, fetched: ($now|tonumber), stale: false,
     current_temp: ($c.temperature_2m | tostring), current_icon: glyph($c.weather_code; $c.is_day),
     current_code: $c.weather_code, is_day: $c.is_day, pop: ($hours[0].pop // null), hourly: $hours, daily: $days,
     forecast: [ { desc: desc($c.weather_code), icon: glyph($c.weather_code; $c.is_day),
                   max: (.daily.temperature_2m_max[0] | tostring), min: (.daily.temperature_2m_min[0] | tostring),
-                  feels_like: ($c.apparent_temperature | tostring), wind: ($c.wind_speed_10m | round | tostring), humidity: ($c.relative_humidity_2m | tostring) } ]
+                  feels_like: ($c.apparent_temperature | tostring), wind: ($c.wind_speed_10m | r | tostring), humidity: ($c.relative_humidity_2m | tostring) } ]
   }' <<<"$raw") || out=""
 if [ -z "$out" ]; then echo '{"error":"offline"}'; exit 0; fi
 printf '%s\n' "$out" > "$cache.tmp" && mv "$cache.tmp" "$cache"

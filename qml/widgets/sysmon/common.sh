@@ -18,6 +18,13 @@ cfg() {
     v=$(jq -r "$1 | if . == null then empty else . end" "$WD_CONFIG" 2>/dev/null) || v=""
     printf '%s' "${v:-$2}"
 }
+# coord <text> <max>: a typed coordinate (decimal point or comma, -max..max) as a plain number; fails otherwise (same rules as core/Geo.js)
+coord() {
+    local v="${1//[[:space:]]/}"
+    v="${v/,/.}"
+    [[ "$v" =~ ^[+-]?[0-9]+(\.[0-9]+)?$ ]] || return 1
+    LC_ALL=C awk -v v="$v" -v m="$2" 'BEGIN { n = v + 0; if (n > m || n < -m) exit 1; printf "%.10g", n }'
+}
 # file_age <path>: seconds since the file was last written (huge when it does not exist)
 file_age() {
     if [ -f "$1" ]; then echo $(( $(date +%s) - $(stat -c %Y "$1") )); else echo 999999999; fi

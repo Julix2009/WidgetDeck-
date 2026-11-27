@@ -12,7 +12,9 @@ emit() {   # emit <stale 0|1>
     jq -c --argjson stale "$1" --argjson age "$(( now - $(jq -r '.fetched // 0' "$CACHE") ))" '. + {stale:($stale==1), age:$age}' "$CACHE"
 }
 
-if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then place='{"lat":'"$1"',"lon":'"$2"',"name":"","source":"manual"}'
+if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then
+    if ! la=$(coord "$1" 90) || ! lo=$(coord "$2" 180); then echo '{"error":"bad-location"}'; exit 0; fi
+    place='{"lat":'"$la"',"lon":'"$lo"',"name":"","source":"manual"}'
 else place=$("$HERE/location.sh"); fi
 lat=$(jq -r '.lat // empty' <<<"$place"); lon=$(jq -r '.lon // empty' <<<"$place"); name=$(jq -r '.name // ""' <<<"$place")
 if [ -z "$lat" ] || [ -z "$lon" ]; then echo '{"error":"no-location"}'; exit 0; fi

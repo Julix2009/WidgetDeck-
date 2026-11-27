@@ -70,8 +70,13 @@ function parts(target, now) {
     var ms = Math.max(0, target.getTime() - now.getTime()), s = Math.floor(ms / 1000);
     return { d: Math.floor(s / 86400), h: Math.floor(s % 86400 / 3600), m: Math.floor(s % 3600 / 60), s: s % 60, total: s };
 }
-// the clock ticks every second in the last hour before the start, else once a minute (the display only shows seconds then)
-function tickMs(target, now) { return (target && target.getTime() - now.getTime() < 3600000) ? 1000 : 60000; }
+// the clock ticks every second in the last hour before the start (the display only shows seconds then), else when the shown minute changes
+function tickMs(target, now) {
+    if (!target) return 60000;
+    var ms = target.getTime() - now.getTime();
+    if (ms < 3600000) return 1000;
+    return ms % 60000 === 0 ? 60000 : ms % 60000 + 20;
+}
 
 // ---- labels
 function use12h(timeFormat, localeShortFmt) {

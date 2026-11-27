@@ -117,7 +117,7 @@ Singleton {
     property string lastStateText: ""
     function persist() {
         if (!loaded || dir === "") return;
-        var o = { v: 1, phase: st.phase, cycle: st.cycle, running: st.running, endsAt: st.endsAt, remainingMs: st.remainingMs, settings: settings, dnd: { owned: dndOwned, backend: dndBackend } };
+        var o = { v: 1, phase: st.phase, cycle: st.cycle, running: st.running, endsAt: st.endsAt, remainingMs: st.remainingMs, lengthMs: st.lengthMs, settings: settings, dnd: { owned: dndOwned, backend: dndBackend } };
         var t = JSON.stringify(o);
         if (t === lastStateText) return;
         lastStateText = t; stateFile.setText(t);
@@ -181,7 +181,7 @@ Singleton {
     // ---- settings that change while the timer is paused at its full length follow the new length
     property var lastDur: ({})
     onSettingsChanged: {
-        if (loaded && !st.running && st.remainingMs === (lastDur[st.phase] || -1)) { st = { v: 1, phase: st.phase, cycle: st.cycle, running: false, endsAt: 0, remainingMs: M.durationMs(settings, st.phase) }; rev++; }
+        if (loaded && !st.running && st.remainingMs === (lastDur[st.phase] || -1)) { st = { v: 1, phase: st.phase, cycle: st.cycle, running: false, endsAt: 0, remainingMs: M.durationMs(settings, st.phase), lengthMs: M.durationMs(settings, st.phase) }; rev++; }
         lastDur = { focus: M.durationMs(settings, "focus"), short: M.durationMs(settings, "short"), long: M.durationMs(settings, "long") };
         if (loaded) { persist(); syncDnd(null); }
     }

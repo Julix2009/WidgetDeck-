@@ -47,8 +47,14 @@ Singleton {
         if (!e) return;
         e.last = text; e.hasLast = true; e.stamp = Date.now();
         var dead = [];
-        for (var i = 0; i < e.clients.length; i++) { try { e.clients[i].got(text); } catch (x) { dead.push(e.clients[i]); } }
-        // a reader that is already destroyed (its window went away) throws: forget it; a feed nobody reads any more stops
+        for (var i = 0; i < e.clients.length; i++) {
+            var c = e.clients[i], alive = false;
+            try { alive = !!c && typeof c.got === "function"; } catch (x) { }
+            if (!alive) { dead.push(c); continue; }
+            // an error in one reader (an unexpected value) is logged once; the reader keeps getting data
+            try { c.got(text); } catch (x) { if (!e.warned) { e.warned = true; console.warn("[widgetdeck] feed reader failed (" + e.key.split(":")[0] + "):", x); } }
+        }
+        // a reader that is already destroyed (its window went away): forget it; a feed nobody reads any more stops
         if (dead.length > 0) {
             e.clients = e.clients.filter(function (c) { return dead.indexOf(c) < 0; });
             if (e.clients.length === 0 && e.node) e.node.stop();

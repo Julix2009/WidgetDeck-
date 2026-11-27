@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../core"
+import "../core/Geo.js" as Geo
 import "../core/Defaults.js" as D
 
 Item {
@@ -55,6 +56,15 @@ Item {
         return o;
     }
     Component.onCompleted: { ttProc.running = true; theme.scan(); }
+    property bool latBad: false
+    property bool lonBad: false
+    function setCoord(key, text, max) {          // empty removes it; unusable input keeps the stored value and returns false
+        if (text.trim() === "") { store.setConfig(key, null); return true; }
+        var n = Geo.parseCoord(text, max);
+        if (isNaN(n)) return false;
+        store.setConfig(key, n);
+        return true;
+    }
 
     Column {
         id: leftCol
@@ -65,12 +75,13 @@ Item {
         GSwitch { width: parent.width; th: sp.th; label: I18n.tr("Locate automatically (IP address)"); checked: sp.store.cget("location.auto", true); onToggled: v => sp.store.setConfig("location.auto", v) }
         GField {
             width: parent.width; th: sp.th; label: I18n.tr("Latitude (e.g. 48.2082, empty = automatic)"); value: sp.cfgStr("location.lat", "")
-            onCommitted: v => { var n = parseFloat(v); sp.store.setConfig("location.lat", isFinite(n) && n >= -90 && n <= 90 ? n : null); }
+            onCommitted: v => sp.latBad = !sp.setCoord("location.lat", v, 90)
         }
         GField {
             width: parent.width; th: sp.th; label: I18n.tr("Longitude (e.g. 16.3738)"); value: sp.cfgStr("location.lon", "")
-            onCommitted: v => { var n = parseFloat(v); sp.store.setConfig("location.lon", isFinite(n) && n >= -180 && n <= 180 ? n : null); }
+            onCommitted: v => sp.lonBad = !sp.setCoord("location.lon", v, 180)
         }
+        Note { visible: sp.latBad || sp.lonBad; text: I18n.tr("Not saved: latitude must be -90 to 90, longitude -180 to 180.") }
         GField { width: parent.width; th: sp.th; label: I18n.tr("Place name (display only)"); value: sp.cfgStr("location.name", ""); onCommitted: v => sp.store.setConfig("location.name", v) }
         GChoice { width: parent.width; th: sp.th; label: I18n.tr("Units"); options: [["auto", I18n.tr("From system")], ["metric", "°C, m/s"], ["imperial", "°F, mph"]]; value: sp.store.cget("units", "auto"); onPicked: v => sp.store.setConfig("units", v) }
         GChoice { width: parent.width; th: sp.th; label: I18n.tr("Clock"); options: [["auto", I18n.tr("From system")], ["24h", "24 h"], ["12h", "12 h"]]; value: sp.store.cget("time_format", "auto"); onPicked: v => sp.store.setConfig("time_format", v) }

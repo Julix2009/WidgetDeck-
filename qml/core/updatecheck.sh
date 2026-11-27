@@ -35,10 +35,17 @@ if [ "$FORCE" = 0 ] && [ -f "$CF" ]; then
     if [ "$same" = true ] && [ "$age" -lt "$limit" ] && [ "$age" -ge 0 ]; then cat "$CF"; exit 0; fi
 fi
 
-save() { mkdir -p "$CACHE" 2>/dev/null && printf '%s\n' "$1" > "$CF.tmp" 2>/dev/null && mv "$CF.tmp" "$CF" 2>/dev/null; printf '%s\n' "$1"; }
+save() { mkdir -p "$CACHE" 2>/dev/null && printf '%s\n' "$1" > "$CF.$$.tmp" 2>/dev/null && mv "$CF.$$.tmp" "$CF" 2>/dev/null; printf '%s\n' "$1"; }
 unknown() { save "$(emit unknown "" "")"; exit 0; }
 
 [ -n "$URL" ] && command -v git >/dev/null 2>&1 || unknown
+
+BRANCH="$(git -C "$REPO" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"; BRANCH="${BRANCH:-main}"      # as update.sh
+# fetch under the lock of update.sh (never two git processes in the clone); busy = no release notes this time
+fetch_clone() {
+    mkdir -p "$CACHE" 2>/dev/null
+    ( flock -n 8 || exit 1; timeout 30 git -C "$REPO" fetch --quiet --tags origin 8>&- 2>/dev/null ) 8>>"$CACHE/update.lock"
+}
 
 notes_from() {   # notes_from <ref in clone>: changelog sections newer than the installed version
     git -C "$REPO" show "$1:CHANGELOG.md" 2>/dev/null | awk -v have="$VER" '
@@ -54,19 +61,19 @@ if [ "$CHANNEL" = stable ]; then
     newer="$(printf '%s\n%s\n' "$VER" "$latest" | sort -V | tail -n1)"
     if [ "$latest" != "$VER" ] && [ "$newer" = "$latest" ]; then
         notes=""
-        if [ -d "$REPO/.git" ] && timeout 30 git -C "$REPO" fetch --quiet --tags origin 2>/dev/null; then notes="$(notes_from "refs/tags/v$latest")"; fi
+        if [ -d "$REPO/.git" ] && fetch_clone; then notes="$(notes_from "refs/tags/v$latest")"; fi
         save "$(emit available "$latest" "$notes")"
     else save "$(emit current "$latest" "")"; fi
 else
-    out="$(timeout 20 git ls-remote "$URL" refs/heads/main 2>/dev/null)" || unknown
+    out="$(timeout 20 git ls-remote "$URL" "refs/heads/$BRANCH" 2>/dev/null)" || unknown
     sha="$(printf '%s' "$out" | awk 'NR==1 {print $1}')"
     [ -n "$sha" ] || unknown
     if [ -n "$REV" ] && [ "$sha" != "$REV" ]; then
         latest=""; notes=""
-        if [ -d "$REPO/.git" ] && timeout 30 git -C "$REPO" fetch --quiet --tags origin 2>/dev/null; then
-            latest="$(git -C "$REPO" show origin/main:VERSION 2>/dev/null | tr -d '[:space:]')"; notes="$(notes_from origin/main)"
+        if [ -d "$REPO/.git" ] && fetch_clone; then
+            latest="$(git -C "$REPO" show "origin/$BRANCH:VERSION" 2>/dev/null | tr -d '[:space:]')"; notes="$(notes_from "origin/$BRANCH")"
         fi
-        save "$(emit available "${latest:-neuer Stand}" "$notes")"
+        save "$(emit available "$latest" "$notes")"
     else save "$(emit current "" "")"; fi
 fi
 exit 0

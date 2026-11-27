@@ -5,6 +5,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "../../core"
 import "circuits.js" as C
 
@@ -13,7 +14,16 @@ Singleton {
     property var d: null                          // the parsed answer of f1.py fetch
     property int watchers: 0                      // instances that are visible (or have reminders on)
     readonly property string dir: decodeURIComponent(Qt.resolvedUrl("./").toString().replace("file://", ""))
-    property var notified: []                     // reminder ids already announced (this session of the shell)
+    property var notified: []                     // reminder ids already announced (kept in the cache: a restart does not repeat them)
+    function remember(id) { notified = notified.concat([id]).slice(-100); remFile.setText(JSON.stringify(notified)); }
+    FileView {
+        id: remFile
+        path: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/widgetdeck/f1-reminded.json"
+        blockLoading: true                        // read before the first reminder check
+        atomicWrites: true
+        printErrors: false
+    }
+    Component.onCompleted: { try { var a = JSON.parse(remFile.text()); if (Array.isArray(a)) notified = a; } catch (e) { } }
 
     function watch(on) { watchers = Math.max(0, watchers + (on ? 1 : -1)); }
     function refresh() { feed.refresh(); }

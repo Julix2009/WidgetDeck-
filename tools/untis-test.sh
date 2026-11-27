@@ -13,7 +13,7 @@ printf '{"server":"localhost:%s","school":"testschule","user":"test.user","key":
 export WIDGETDECK_UNTIS_FILE="$T/secret.json" WIDGETDECK_UNTIS_CAFILE="$T/cert.pem" XDG_CACHE_HOME="$T/cache"
 start() { [ -n "$MPID" ] && kill "$MPID" 2>/dev/null; wait "$MPID" 2>/dev/null; python3 "$MOCK" "$PORT" "$T/cert.pem" "$T/key.pem" "$1" >"$T/mock.log" 2>&1 & MPID=$!; sleep 1; }
 st() { python3 -I "$CLIENT" fetch | jq -r .state; }
-python3 -I -c "
+python3 -I -B -c "
 import importlib.util
 sp=importlib.util.spec_from_file_location('u','$CLIENT'); u=importlib.util.module_from_spec(sp); sp.loader.exec_module(u)
 assert u.totp('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ', 59)=='287082'" && ok "TOTP matches the RFC 6238 vector" || bad "TOTP" "vector"
@@ -26,6 +26,13 @@ check "cache file is private" "$(stat -c %a "$T/cache/widgetdeck/timetable.json"
 check "verify ok" "$(python3 -I "$CLIENT" verify)" ok
 start revoked;  check "revoked key -> expired, cache kept" "$(python3 -I "$CLIENT" fetch | jq -r '"\(.state) \(.lessons|length)"')" "expired 6"
 check "verify auth" "$(python3 -I "$CLIENT" verify)" auth
+start ok;       check "after a refused login no new attempt for a while" "$(st)" expired
+rm -f "$T/cache/widgetdeck/timetable-auth.json"; check "hold removed (what the setup does) -> logs in again" "$(st)" ok
+python3 -I -B -c "
+import importlib.util
+sp=importlib.util.spec_from_file_location('u','$CLIENT'); u=importlib.util.module_from_spec(sp); sp.loader.exec_module(u)
+op=u.Session({'server':'localhost','school':'s'}).op
+assert any(isinstance(h,u.NoRedirect) for h in op.handlers) and u.NoRedirect().redirect_request(None,None,302,'',{},'http://x') is None" && ok "redirects are not followed" || bad "redirects" "followed"
 start broken;   check "server error -> stale with cache" "$(python3 -I "$CLIENT" fetch | jq -r '"\(.state) \(.lessons|length)"')" "stale 6"
 kill "$MPID"; wait "$MPID" 2>/dev/null; MPID=""
 check "server down -> stale with cache" "$(st)" stale

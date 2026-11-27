@@ -122,7 +122,7 @@ Item {
                 if (races[i].cancelled) continue;
                 var due = M.remindersDue(races[i], now, 15, w.remKeys, F1Data.notified);
                 for (var j = 0; j < due.length; j++) {
-                    F1Data.notified = F1Data.notified.concat([due[j].id]);
+                    F1Data.remember(due[j].id);
                     Quickshell.execDetached(["notify-send", "-a", "WidgetDeck", "-t", "20000", M.raceName(races[i].name, w.lang),
                                              I18n.trf("%1 starts at %2", w.sessionName(due[j].key), M.timeText(due[j].start, w.twelve))]);
                 }
