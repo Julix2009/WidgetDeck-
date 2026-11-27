@@ -37,6 +37,12 @@ Alle nennenswerten Änderungen an WidgetDeck stehen hier. Das Format folgt
 - Speicher: Der Builder wird nur noch geladen, solange er geöffnet ist (LazyLoader). Geschlossen spart das rund 20 MB, geöffnet-und-wieder-geschlossen gibt es etwa 50 MB frei; Funktion und Aussehen bleiben gleich.
 - Builder: Werkzeugleiste der Fläche bricht bei schmalem Fenster um, lange Hinweis- und Widget-Namen werden gekürzt statt abgeschnitten; Preset-Knöpfe umbrechen.
 
+## [1.5.3.0] - 2026-11-27
+
+### Hinzugefügt
+- Neues Widget „To-do“: Aufgaben direkt auf dem Desktop eintippen, abhaken und löschen; eine Liste für alle Instanzen und Monitore, gespeichert in `todo.json` neben dem Layout. Die Tastatur wird nur nach einem Klick ins Eingabefeld geholt und beim Verlassen des Widgets, mit Esc oder nach 30 s ohne Tippen zurückgegeben. Auch per `quickshell -p <qml> ipc call todo add "…"`.
+- Neues Widget „Schnellzugriff“: bis zu sechs Programme mit einem Klick starten; die Widget-Größe folgt der Anzahl. Apps werden über eine Liste mit Suche ausgewählt, am Desktop oder im Builder (dort rechts unter *Apps*, klein mit Symbol). Entfernen geht nur im Builder, damit am Desktop nichts aus Versehen verschwindet.
+
 ## [1.5.2.1] - 2026-11-27
 
 ### Geändert
