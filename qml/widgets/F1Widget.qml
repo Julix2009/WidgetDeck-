@@ -153,6 +153,17 @@ Item {
         var d = raceT, base = d ? dt(d) + " · " + tm(d) : (race.date || "");
         return (race.moved_from ? I18n.tr("Postponed") + " · " : "") + I18n.tr("Race") + " " + base;
     }
+    // qualifying of the shown weekend, written like raceLine; empty when there is none to show
+    readonly property string qualiLine: {
+        if (shown.kind !== "upcoming" && shown.kind !== "running") return "";
+        var l = shown.sessions || [];
+        for (var i = 0; i < l.length; i++) {
+            if (l[i].key !== "Qualifying") continue;
+            var d = l[i].start, when = d ? dt(d) + " · " + tm(d) : (l[i].date ? dayOnly(l[i].date) : I18n.tr("Time open"));
+            return I18n.tr("Qualifying") + " " + when;
+        }
+        return "";
+    }
     readonly property string countryText: race ? M.countryName(race.country, lang) : ""
     readonly property string flagText_: race && emojiOk ? M.flag(race.country) : ""      // no emoji font: no flag (the country is spelled out anyway)
     readonly property string asOf: fd && fd.checked ? Qt.formatTime(new Date(fd.checked * 1000), twelve ? "h:mm AP" : "HH:mm") : ""
