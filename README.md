@@ -40,7 +40,7 @@ The pictures show only one look per widget. Several widgets come in more designs
 
 | Widget | Variants |
 |---|---|
-| Clock | 7: digital, flower (analogue), poster, greeting card, stacked, day ring, pixel |
+| Clock | 13: digital, flower (analogue), poster, greeting card, stacked, day ring, pixel, two-tone, date chip, bare hands, minimal, Material, Material hands |
 | Music | 7: normal, turntable, poster, spinning disc, typography, cassette, capsule |
 | Formula 1 | 6: classic card, circuit, big countdown, start lights, standings tower, race ticket |
 | Visualizer | 3: bars, mirrored, line |

@@ -191,7 +191,7 @@ var de = {
  "Click again": "Nochmal klicken",
  "Clock": "Uhr",
  "Clock style": "Uhr-Stil",
- "Clock with date in several styles: digital, flower, poster, card, stacked, day ring, pixel": "Uhr mit Datum in mehreren Stilen: Digital, Blüte, Poster, Karte, Gestapelt, Tagesring, Pixel",
+ "Clock with date in several styles: digital, analogue, minimal, Material, flower, poster and more": "Uhr mit Datum in mehreren Stilen: Digital, analog, Minimal, Material, Blüte, Poster und mehr",
  "Cloudy": "Bewölkt",
  "Colour fringe": "Farbsaum",
  "Colour: Wi-Fi icon and bars": "Farbe: WLAN-Symbol und Balken",
@@ -727,6 +727,12 @@ var de = {
  "Start up to six programs with one click; the size follows the number of apps": "Bis zu sechs Programme mit einem Klick starten; die Größe folgt der Anzahl",
  "Add apps": "Apps hinzufügen",
  "Search …": "Suchen …",
- "No app found": "Keine App gefunden"
+ "No app found": "Keine App gefunden",
+ "Two-tone": "Zweifarbig",
+ "Date chip": "Datums-Chip",
+ "Bare hands": "Nur Zeiger",
+ "Minimal": "Minimal",
+ "Material": "Material",
+ "Material hands": "Material-Zeiger"
 };
 var TABLES = { de: de };

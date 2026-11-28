@@ -10,9 +10,9 @@
 
 var TYPES = {
     clock: {
-        label: "Clock", desc: "Clock with date in several styles: digital, flower, poster, card, stacked, day ring, pixel", icon: "clock", size: [380, 190], file: "ClockWidget.qml",
+        label: "Clock", desc: "Clock with date in several styles: digital, analogue, minimal, Material, flower, poster and more", icon: "clock", size: [380, 190], file: "ClockWidget.qml",
         props: [
-            { key: "clock_style", design: true, label: "Clock style", kind: "choice", def: "digital", options: [["digital", "Digital"], ["flower", "Flower (analogue)"], ["poster", "Poster"], ["card", "Greeting card"], ["stacked", "Stacked"], ["ring", "Day ring"], ["pixel", "Pixel"]] },
+            { key: "clock_style", design: true, label: "Clock style", kind: "choice", def: "digital", options: [["digital", "Digital"], ["flower", "Flower (analogue)"], ["poster", "Poster"], ["card", "Greeting card"], ["stacked", "Stacked"], ["ring", "Day ring"], ["pixel", "Pixel"], ["split", "Two-tone"], ["chip", "Date chip"], ["hands", "Bare hands"], ["minimal", "Minimal"], ["material", "Material"], ["material_hands", "Material hands"]] },
             { key: "clock_glass", simple: true, label: "Glass behind the clock style", kind: "bool", def: false },
             { key: "show_seconds", simple: true, label: "Seconds (hand / blinking colon)", kind: "bool", def: true },
             { key: "petals", label: "Petals (flower)", kind: "int", def: 10, min: 5, max: 16, step: 1 },

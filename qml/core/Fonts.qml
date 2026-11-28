@@ -12,4 +12,13 @@ QtObject {
         return "sans-serif";
     }
     function resolve(name) { return has(name) ? name : ui; }
+    function first(names, fallback) {
+        for (var i = 0; i < names.length; i++) if (has(names[i])) return names[i];
+        return fallback;
+    }
+    // for faces with a look of their own (clock styles): a font the user chose wins, else the first installed one of the list
+    readonly property string mono: first(["JetBrains Mono", "JetBrainsMono Nerd Font", "Adwaita Mono", "Noto Sans Mono", "DejaVu Sans Mono"], "monospace")
+    readonly property string round: first(["Google Sans Flex", "Nunito", "Rubik"], ui)
+    function resolveMono(name) { return has(name) ? name : mono; }
+    function resolveRound(name) { return has(name) ? name : round; }
 }

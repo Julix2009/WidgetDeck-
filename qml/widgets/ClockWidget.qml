@@ -1,5 +1,6 @@
 import QtQuick
 import "../core"
+import "../core/Defaults.js" as D
 
 Item {
     id: w
@@ -10,12 +11,13 @@ Item {
     property var appConfig: ({})          // config.json (WidgetHost): time_format auto|24h|12h
     property var palette: ({})
     // ───────────── clock styles ─────────────
-    // "digital" is the glass card; every other style is a free shape or free text on the wallpaper (no container, unless "Glass behind it" is on)
+    // the card styles (Defaults.CARD_CLOCKS) sit on glass; every other style is a free shape or free text on the wallpaper (no container, unless "Glass behind it" is on)
     readonly property string face: w.props.clock_style || "digital"
-    readonly property bool forcePlain: face !== "digital" && w.props.clock_glass !== true       // WidgetHost: draw no glass
+    readonly property bool forcePlain: !D.isCardClock(face) && w.props.clock_glass !== true       // WidgetHost: draw no glass
     // free on the wallpaper: the fine dark shadow of Liquid Glass keeps the text readable on any picture
     readonly property var tstyle: forcePlain ? Object.assign({}, style, { mode: "liquid" }) : style
-    readonly property var faces: ({ flower: "FlowerClock.qml", poster: "PosterClock.qml", card: "CardClock.qml", stacked: "StackedClock.qml", ring: "DayRingClock.qml", pixel: "PixelClock.qml" })
+    readonly property var faces: ({ flower: "FlowerClock.qml", poster: "PosterClock.qml", card: "CardClock.qml", stacked: "StackedClock.qml", ring: "DayRingClock.qml", pixel: "PixelClock.qml",
+        split: "SplitClock.qml", chip: "ChipClock.qml", hands: "HandsClock.qml", minimal: "MinimalClock.qml", material: "MaterialClock.qml", material_hands: "MaterialHandsClock.qml" })
     // empty format in the widget props = follow the global setting (24 h / 12 h / the system locale)
     readonly property bool use12h: {
         var t = appConfig && appConfig.time_format ? appConfig.time_format : "auto";
@@ -57,7 +59,7 @@ Item {
     // time is right again at once after standby (a timer does not run while the computer sleeps)
     readonly property bool live: Window.window !== null && Window.window.visible
     readonly property bool needsSeconds: (timeFmt + (props.date_format || "")).indexOf("%S") >= 0
-        || (face === "flower" && (props.show_seconds !== false || props.spin === true)) || (face === "pixel" && props.show_seconds !== false)
+        || (face === "flower" && (props.show_seconds !== false || props.spin === true)) || (["pixel", "chip", "hands", "minimal", "material_hands"].indexOf(face) >= 0 && props.show_seconds !== false)
     Timer {
         interval: w.needsSeconds ? 500 : 1000; running: w.live; repeat: true; triggeredOnStart: true
         onTriggered: {

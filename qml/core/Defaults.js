@@ -6,13 +6,16 @@
 var MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"], ["solid", "Solid"]];
 var BUILDER_MODES = [["frosted", "Frosted Glass"], ["liquid", "Liquid Glass"]];          // the builder window itself is never opaque
 // `only` can name several modes: "frosted,solid"
+// clock styles that sit on a glass card; all other clock styles are free shapes
+var CARD_CLOCKS = ["digital", "split", "chip", "hands", "minimal", "material", "material_hands"];
+function isCardClock(face) { return !face || CARD_CLOCKS.indexOf(face) >= 0; }
 // a widget that draws no glass at all (setting "Text only", or a free-shape clock style)
 function isFreeForm(type, props) {
     if (!props) return false;
     if (props.no_glass === true) return true;
     if (type === "f1") return !!props.design && props.design !== "classic" && props.design_glass !== true;
     if (type === "music") return ["poster", "disc", "minimal", "cassette"].indexOf(props.skin) >= 0 && props.skin_glass !== true;
-    return type === "clock" && !!props.clock_style && props.clock_style !== "digital" && props.clock_glass !== true;
+    return type === "clock" && !isCardClock(props.clock_style) && props.clock_glass !== true;
 }
 // the setting behind the builder switch "Box behind the widget": free-shape designs have their own "glass behind it" key
 // (true = box), every other widget uses no_glass (true = no box)

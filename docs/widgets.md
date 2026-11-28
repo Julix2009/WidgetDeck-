@@ -10,9 +10,11 @@ Inhalt: [Uhr](#uhr--datum) · [CPU & RAM](#cpu--ram) · [Netzwerk](#netzwerk) ·
 
 ## Uhr & Datum
 
-*Uhr mit Datum in sieben Stilen.* Größe: Standard 380×190 (logische Pixel, Breite × Höhe); die Stile passen sich an die Größe an, runde Stile am besten quadratisch ziehen.
+*Uhr mit Datum in dreizehn Stilen.* Größe: Standard 380×190 (logische Pixel, Breite × Höhe); die Stile passen sich an die Größe an, runde Stile am besten quadratisch ziehen.
 
-**Uhr-Stile** (Einstellung „Uhr-Stil“): *Digital* (Glaskarte wie bisher), *Blüte* (analoge Uhr mit gewelltem Rand, Stundenpunkten und Datum), *Poster* (riesige Uhrzeit und Datum nebeneinander), *Grußkarte* (Linie, Begrüßung nach Tageszeit, Wochentag, Datum, Uhrzeit, Linie), *Gestapelt* (Stunden über Minuten in zwei Farben), *Tagesring* (Anteil des vergangenen Tages als Ring mit leuchtendem Punkt) und *Pixel* (Punktmatrix-Ziffern). Alle außer *Digital* stehen ohne Glas-Behälter frei auf dem Wallpaper; mit „Glas hinter dem Uhr-Stil“ kommt die Glaskarte zurück.
+**Uhr-Stile** (Einstellung „Uhr-Stil“): *Digital* (Glaskarte wie bisher), *Blüte* (analoge Uhr mit gewelltem Rand, Stundenpunkten und Datum), *Poster* (riesige Uhrzeit und Datum nebeneinander), *Grußkarte* (Linie, Begrüßung nach Tageszeit, Wochentag, Datum, Uhrzeit, Linie), *Gestapelt* (Stunden über Minuten in zwei Farben), *Tagesring* (Anteil des vergangenen Tages als Ring mit leuchtendem Punkt) und *Pixel* (Punktmatrix-Ziffern). Von diesen stehen alle außer *Digital* ohne Glas-Behälter frei auf dem Wallpaper; mit „Glas hinter dem Uhr-Stil“ kommt die Glaskarte zurück.
+
+Immer auf der Glaskarte (wie *Digital*) sitzen: *Zweifarbig* (Stunden in der Akzentfarbe, Datum darunter), *Datums-Chip* (Uhrzeit mit Datum daneben), *Nur Zeiger* (analog ohne Zifferblatt), *Minimal* (nur die Uhrzeit), *Material* (dicke runde Ziffern, Stunden über Minuten, Farben über Kreuz) und *Material-Zeiger* (zwei kurze Zeiger, die Sekunden als wandernder Punkt).
 
 Ein leeres Zeit- oder Datumsformat bedeutet „automatisch“. Das Widget braucht keine Zusatzpakete und keinen Netzwerkzugriff.
 
@@ -24,7 +26,7 @@ Ein leeres Zeit- oder Datumsformat bedeutet „automatisch“. Das Widget brauch
 | Zeitformat (leer = automatisch) | `time_format` | leer | Text |
 | Datumsformat (leer = automatisch) | `date_format` | leer | Text |
 | Datum anzeigen | `show_date` | an | an / aus |
-| Uhr-Stil | `clock_style` | Digital | Digital / Blüte / Poster / Grußkarte / Gestapelt / Tagesring / Pixel |
+| Uhr-Stil | `clock_style` | Digital | Digital / Blüte / Poster / Grußkarte / Gestapelt / Tagesring / Pixel / Zweifarbig / Datums-Chip / Nur Zeiger / Minimal / Material / Material-Zeiger |
 | Glas hinter dem Uhr-Stil | `clock_glass` | aus | an / aus |
 | Sekunden (Zeiger / blinkender Doppelpunkt) | `show_seconds` | an | an / aus |
 | Blütenblätter | `petals` | 10 | 5 – 16 |
